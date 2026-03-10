@@ -42,6 +42,7 @@ const checks = [
 
 const faqs = [
   { q: "Is VOS safe to run?", a: "Yes. VOS reads system information and shows a report — it doesn’t change settings without you." },
+  { q: "Windows says \"unknown publisher\" or \"Windows protected your PC\" — what do I do?", a: "VOS is not code-signed. Click More info, then Run anyway. The app is safe; the warning appears because it's from an unsigned developer." },
   { q: "Do I need to install it?", a: "No. VOS is portable — download and run." },
   { q: "Does it work offline?", a: "Most checks work offline. Connection checks need a network to measure stability." }
 ];
@@ -153,8 +154,11 @@ function App() {
                       <Download className="h-4 w-4" />
                       Download VOS
                     </a>
-                    <span className="text-xs text-slate-400">
+                    <span className="block text-xs text-slate-400">
                       Works on Windows 10 and 11 · Free
+                    </span>
+                    <span className="block text-xs text-slate-500">
+                      If Windows shows a warning: click <strong className="text-slate-400">More info</strong> → <strong className="text-slate-400">Run anyway</strong>.
                     </span>
                   </div>
                 </Reveal>
