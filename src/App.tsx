@@ -59,7 +59,7 @@ function App() {
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_#1d4ed822,_transparent_60%),radial-gradient(circle_at_bottom,_#1e40af22,_transparent_55%)]" />
 
       <header className="border-b border-slate-800/70 bg-slate-950/70 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 md:py-5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:max-w-[1400px] md:px-8 md:py-5 xl:max-w-[1600px] xl:px-10">
             <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500 shadow-glow">
               <span className="text-[11px] font-extrabold tracking-wide text-slate-950">VOS</span>
@@ -77,7 +77,7 @@ function App() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pb-20 pt-10 md:pt-16">
+      <main className="mx-auto max-w-7xl px-5 pb-20 pt-10 md:max-w-[1400px] md:px-8 md:pt-16 xl:max-w-[1600px] xl:px-10">
         {/* Hero */}
         <section className="mt-2">
           <Reveal
@@ -92,7 +92,7 @@ function App() {
             <div className="pointer-events-none absolute -left-32 top-0 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
             <div className="pointer-events-none absolute -right-20 -bottom-10 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
 
-            <div className="relative grid items-center gap-10 px-5 py-8 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-12 md:px-10 md:py-10">
+            <div className="relative grid items-center gap-10 px-5 py-8 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-12 md:px-10 md:py-10 lg:px-12 xl:px-14 xl:py-12">
               <div className="relative">
                 <div className="pointer-events-none absolute -left-10 -top-10 hidden h-28 w-28 rounded-3xl border border-blue-500/25 bg-blue-500/5 blur-xl md:block" />
                 <Reveal
@@ -283,8 +283,8 @@ function App() {
         </section>
 
         {/* Features */}
-        <section className="mt-16 border-y border-slate-800/70 py-10 md:mt-20 md:py-12">
-          <div className="grid gap-8 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-center">
+        <section className="mt-16 -mx-5 border-y border-slate-800/70 py-10 md:-mx-8 md:mt-20 md:py-12 xl:-mx-10">
+          <div className="mx-auto grid max-w-7xl gap-8 px-5 md:max-w-[1400px] md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-center md:px-8 xl:max-w-[1600px] xl:px-10">
             <Reveal respectReducedMotion={!ANIMATE_EVEN_IF_REDUCE_MOTION}>
               <div>
               <h2 className="text-xl font-semibold tracking-tight text-slate-50 md:text-2xl">
