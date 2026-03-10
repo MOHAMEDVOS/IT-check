@@ -21,6 +21,14 @@ type RevealProps = {
    */
   liftPx?: number;
   /**
+   * Slight horizontal slide (px) when out. Positive = from right, negative = from left.
+   */
+  slideX?: number;
+  /**
+   * Scale when out (0–1). Slightly < 1 gives a subtle zoom-in on reveal.
+   */
+  scale?: number;
+  /**
    * Override duration (ms) for the reveal transition.
    */
   durationMs?: number;
@@ -81,10 +89,20 @@ export function Reveal({
   lift = true,
   tier = "secondary",
   liftPx,
+  slideX,
+  scale,
   durationMs,
   respectReducedMotion = true
 }: RevealProps) {
   const { ref, inView } = useInView<HTMLDivElement>(undefined, respectReducedMotion);
+
+  const style: React.CSSProperties = {
+    transitionDelay: `${delayMs}ms`,
+    ...(durationMs ? { transitionDuration: `${durationMs}ms` } : {}),
+    ...(liftPx != null ? { ["--reveal-lift" as string]: `${liftPx}px` } : {}),
+    ...(slideX != null ? { ["--reveal-x" as string]: `${slideX}px` } : {}),
+    ...(scale != null ? { ["--reveal-scale" as string]: String(scale) } : {})
+  };
 
   return (
     <div
@@ -96,13 +114,7 @@ export function Reveal({
         lift ? "reveal--lift" : "",
         className ?? ""
       ].join(" ")}
-      style={
-        {
-          transitionDelay: `${delayMs}ms`,
-          ...(durationMs ? { transitionDuration: `${durationMs}ms` } : {}),
-          ...(liftPx ? ({ ["--reveal-lift" as any]: `${liftPx}px` } as React.CSSProperties) : {})
-        } as React.CSSProperties
-      }
+      style={style}
     >
       {children}
     </div>

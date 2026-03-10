@@ -1,24 +1,24 @@
 <svg width="320" height="260" viewBox="0 0 320 260" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect x="40" y="40" width="240" height="150" rx="16" fill="#020617"/>
-  <rect x="40.5" y="40.5" width="239" height="149" rx="15.5" stroke="#22C55E" stroke-opacity="0.35"/>
+  <rect x="40.5" y="40.5" width="239" height="149" rx="15.5" stroke="#3b82f6" stroke-opacity="0.35"/>
   <rect x="60" y="60" width="200" height="110" rx="10" fill="url(#paint0_radial)" stroke="#1E293B" stroke-width="1.2"/>
   <rect x="86" y="190" width="148" height="8" rx="3" fill="#020617"/>
-  <rect x="112" y="202" width="96" height="6" rx="3" fill="#22C55E" fill-opacity="0.6"/>
-  <circle cx="92" cy="82" r="6" fill="#22C55E"/>
+  <rect x="112" y="202" width="96" height="6" rx="3" fill="#3b82f6" fill-opacity="0.6"/>
+  <circle cx="92" cy="82" r="6" fill="#3b82f6"/>
   <circle cx="112" cy="82" r="6" fill="#A855F7" fill-opacity="0.9"/>
   <circle cx="132" cy="82" r="6" fill="#0EA5E9" fill-opacity="0.9"/>
   <path d="M86 104H234" stroke="#0F172A" stroke-width="1.2"/>
-  <rect x="94" y="118" width="44" height="20" rx="4" fill="#020617" stroke="#22C55E" stroke-opacity="0.7"/>
-  <rect x="140" y="118" width="44" height="20" rx="4" fill="#020617" stroke="#22C55E" stroke-opacity="0.4"/>
-  <rect x="186" y="118" width="44" height="20" rx="4" fill="#020617" stroke="#22C55E" stroke-opacity="0.2"/>
+  <rect x="94" y="118" width="44" height="20" rx="4" fill="#020617" stroke="#3b82f6" stroke-opacity="0.7"/>
+  <rect x="140" y="118" width="44" height="20" rx="4" fill="#020617" stroke="#3b82f6" stroke-opacity="0.4"/>
+  <rect x="186" y="118" width="44" height="20" rx="4" fill="#020617" stroke="#3b82f6" stroke-opacity="0.2"/>
   <rect x="94" y="144" width="136" height="6" rx="3" fill="#0F172A"/>
   <rect x="94" y="154" width="118" height="6" rx="3" fill="#0F172A"/>
   <rect x="94" y="164" width="92" height="6" rx="3" fill="#0F172A"/>
-  <circle cx="216" cy="152" r="14" fill="#22C55E" fill-opacity="0.8"/>
-  <path d="M210 151.5L214 156L222 148" stroke="#022C22" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="216" cy="152" r="14" fill="#3b82f6" fill-opacity="0.8"/>
+  <path d="M210 151.5L214 156L222 148" stroke="#1e3a5f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
   <defs>
     <radialGradient id="paint0_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(160 115) rotate(90) scale(95 132)">
-      <stop stop-color="#22C55E" stop-opacity="0.2"/>
+      <stop stop-color="#3b82f6" stop-opacity="0.2"/>
       <stop offset="1" stop-color="#020617" stop-opacity="1"/>
     </radialGradient>
   </defs>

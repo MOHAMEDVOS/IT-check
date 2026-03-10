@@ -12,6 +12,13 @@ body {
   margin: 0;
 }
 
+/* Focus ring for keyboard users – premium and accessible */
+a:focus-visible,
+button:focus-visible {
+  outline: none;
+}
+
+/* Main CTA – subtle “alive” glow */
 html {
   scroll-behavior: smooth;
 }
@@ -37,17 +44,49 @@ html {
 
 .reveal--out {
   opacity: 0;
-  filter: blur(10px);
+  filter: blur(12px);
+  transform: translate3d(var(--reveal-x, 0), var(--reveal-lift), 0) scale(var(--reveal-scale, 0.97));
 }
 
 .reveal--lift.reveal--out {
-  transform: translate3d(0, var(--reveal-lift), 0);
+  transform: translate3d(var(--reveal-x, 0), var(--reveal-lift), 0) scale(var(--reveal-scale, 0.97));
 }
 
 .reveal--in {
   opacity: 1;
   filter: blur(0px);
-  transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* Tech: animated gradient background */
+.bg-gradient-tech {
+  background-size: 200% 200%;
+  animation: gradient-shift 12s ease infinite;
+}
+
+/* Tech: subtle grid overlay */
+.bg-grid-tech {
+  background-image:
+    linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Tech: shimmer text (use with bg-clip-text) */
+.text-shimmer {
+  background-size: 300% auto;
+  animation: shimmer 6s ease-in-out infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  50% { background-position: 0% 0; }
+  100% { background-position: 100% 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -86,6 +125,6 @@ html {
 }
 
 .force-motion .reveal--lift.reveal--out {
-  transform: translate3d(0, var(--reveal-lift), 0) !important;
+  transform: translate3d(var(--reveal-x, 0), var(--reveal-lift), 0) scale(var(--reveal-scale, 0.97)) !important;
 }
 
