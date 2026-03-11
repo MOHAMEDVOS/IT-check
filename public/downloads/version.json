@@ -1,5 +1,5 @@
 {
-  "latest_version": "2.2.4",
+  "latest_version": "2.2.5",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Update v2.2.4: Fixed file-swap logic and button alignment."
+  "release_notes": "Update v2.2.5: Final fixes for tray minimization and robust file-swap."
 }

@@ -115,13 +115,25 @@ def apply_update(download_url: str) -> bool:
 set "EXE_NAME={os.path.basename(current_exe)}"
 set "NEW_EXE={os.path.basename(new_exe_path)}"
 
-:WAIT_LOOP
+log "Starting update swap..." > "update_log.txt"
+
+:KILL_LOOP
 taskkill /f /im "%EXE_NAME%" > NUL 2>&1
 timeout /t 1 /nobreak > NUL
-del /f /q "{current_exe}" > NUL 2>&1
-if exist "{current_exe}" goto WAIT_LOOP
 
+:DEL_LOOP
+if not exist "{current_exe}" goto MOVE_EXE
+del /f /q "{current_exe}" > NUL 2>&1
+timeout /t 1 /nobreak > NUL
+if exist "{current_exe}" goto KILL_LOOP
+
+:MOVE_EXE
 move /y "{new_exe_path}" "{current_exe}" > NUL 2>&1
+if not exist "{current_exe}" (
+    timeout /t 1 /nobreak > NUL
+    goto MOVE_EXE
+)
+
 start "" "{current_exe}"
 del "%~f0"
 """

@@ -220,10 +220,17 @@ class VOSApp(ctk.CTk):
 
     def _to_tray(self):
         """Hide window and show in system tray (notification area)."""
-        self.withdraw()
-        if self._tray_icon is None:
-            self._tray_icon = self._create_tray_icon()
-            self._tray_icon.run_detached()
+        log.info("Minimizing to tray...")
+        try:
+            if self._tray_icon is None:
+                self._tray_icon = self._create_tray_icon()
+                self._tray_icon.run_detached()
+            
+            self.withdraw()
+        except Exception as e:
+            log.error(f"Failed to minimize to tray: {e}")
+            # Fallback: just minimize normally if tray fails
+            self.iconify()
 
     def _from_tray(self):
         """Show window again from tray."""
