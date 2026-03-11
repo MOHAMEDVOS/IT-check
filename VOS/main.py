@@ -209,6 +209,7 @@ class VOSApp(ctk.CTk):
             log.debug("Auto-check skipped: a check is already running")
             return
         log.info("Starting scheduled auto-check (every 1 hour)")
+        self._check_for_updates()
         self.start_diagnostics(silent=True)
 
     # ─────────────────────── System tray ───────────────────────

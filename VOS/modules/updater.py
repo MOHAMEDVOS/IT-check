@@ -111,13 +111,17 @@ def apply_update(download_url: str) -> bool:
             return True
 
         # 2. Create the batch script to swap files (Only for frozen EXE)
-        # It waits 2 seconds, kills VOS if it's still clinging on, 
-        # deletes the old exe, renames the new exe, launches the new exe, and deletes itself.
         bat_content = f"""@echo off
-timeout /t 2 /nobreak > NUL
-taskkill /f /im "{os.path.basename(current_exe)}" > NUL 2>&1
-del "{current_exe}"
-ren "{new_exe_path}" "{os.path.basename(current_exe)}"
+set "EXE_NAME={os.path.basename(current_exe)}"
+set "NEW_EXE={os.path.basename(new_exe_path)}"
+
+:WAIT_LOOP
+taskkill /f /im "%EXE_NAME%" > NUL 2>&1
+timeout /t 1 /nobreak > NUL
+del /f /q "{current_exe}" > NUL 2>&1
+if exist "{current_exe}" goto WAIT_LOOP
+
+move /y "{new_exe_path}" "{current_exe}" > NUL 2>&1
 start "" "{current_exe}"
 del "%~f0"
 """

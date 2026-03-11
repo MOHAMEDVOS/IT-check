@@ -979,3 +979,22 @@ requests.exceptions.HTTPError: 404 Client Error: Not Found for url: https://raw.
 [2026-03-11 23:23:50] vos.updater    INFO     Downloading update from: https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe
 [2026-03-11 23:24:04] vos.updater    INFO     Download complete: C:\Users\vos\Desktop\IT check\VOS\VOS_new.exe
 [2026-03-11 23:24:04] vos.updater    INFO     Update batch script created. Launching script and exiting...
+[2026-03-12 00:23:47] vos.app        INFO     Starting scheduled auto-check (every 1 hour)
+[2026-03-12 00:23:47] vos.app        INFO     Starting diagnostics
+[2026-03-12 00:23:47] vos.app        INFO     Running all diagnostic tasks
+[2026-03-12 00:23:47] vos.disk       INFO     Disk check: C: — 176.9GB free / 476GB total (62.8% used)
+[2026-03-12 00:23:47] vos.vpn        INFO     No VPN detected
+[2026-03-12 00:23:47] vos.app        INFO     Disk: 176.9GB free on C:
+[2026-03-12 00:23:47] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-12 00:23:47] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-12 00:23:48] vos.app        INFO     Chrome: UP_TO_DATE (v145)
+[2026-03-12 00:23:48] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-12 00:23:49] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-12 00:23:49] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-12 00:24:15] vos.app        INFO     Speed: 27.0↓ / 5.0↑ Mbps
+[2026-03-12 00:24:15] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-12 00:24:15] vos.app        INFO     Running ping task sequentially
+[2026-03-12 00:24:53] vos.app        INFO     Ping: 0/100 (CRITICAL)
+[2026-03-12 00:24:53] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-12 00:24:53] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'disk', 'vpn', 'chrome', 'specs', 'ping']
+[2026-03-12 00:24:54] vos.app        DEBUG    Dashboard POST failed (silent): 401 Client Error: UNAUTHORIZED for url: https://mohamed404.pythonanywhere.com/api/results
