@@ -1,0 +1,13 @@
+customtkinter
+psutil
+py-cpuinfo
+requests
+pyinstaller
+pycaw
+comtypes
+flask
+flask-cors
+reportlab
+GPUtil
+pystray
+Pillow

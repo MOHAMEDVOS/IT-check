@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOS — Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:       #0A1118;
+            --surface:  #131F2D;
+            --border:   #2A4158;
+            --accent:   #00D2FF;
+            --text:     #FFFFFF;
+            --text-dim: #7A8FA6;
+            --error:    #FF5252;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 48px;
+            width: 420px;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, var(--accent), #3A86FF);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 20px rgba(0, 210, 255, 0.25);
+        }
+
+        .logo h1 {
+            color: var(--text);
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .logo h1 span { color: var(--accent); }
+
+        label {
+            display: block;
+            color: var(--text-dim);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 24px;
+        }
+
+        input[type="password"]:focus {
+            border-color: var(--accent);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            border: none;
+            border-radius: 10px;
+            color: var(--bg);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover { background: #3A86FF; }
+        button:active { transform: scale(0.98); }
+
+        .error {
+            background: rgba(255, 82, 82, 0.12);
+            color: var(--error);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .hint {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-dim);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">
+            <div class="logo-icon">V</div>
+            <h1>VOS<span> Dashboard</span></h1>
+        </div>
+
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="/login">
+            <label for="password">Dashboard Password</label>
+            <input type="password" id="password" name="password"
+                   placeholder="Enter password" autofocus required>
+            <button type="submit">Sign In →</button>
+        </form>
+
+        <p class="hint">Contact your IT administrator for access</p>
+    </div>
+</body>
+</html>

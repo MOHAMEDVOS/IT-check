@@ -1,0 +1,11 @@
+{
+  "admin_password": "sysprobe2024",
+  "api_key": "sysprobe-default-key",
+  "secret_key": "change-me-in-production",
+  "smtp_host": "",
+  "smtp_port": 587,
+  "smtp_user": "",
+  "smtp_password": "",
+  "alert_recipients": [],
+  "alert_from": ""
+}

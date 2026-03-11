@@ -17,7 +17,7 @@ Thumbs.db
 .vercel/
 
 # Do NOT commit the VOS app source folder
-VOS/
+# VOS/
 
 # Python artifacts (in case they exist here)
 __pycache__/
