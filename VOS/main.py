@@ -345,7 +345,7 @@ class VOSApp(ctk.CTk):
 
         # Buttons: Check My System + Quick Drill (under it)
         self.btn_frame = ctk.CTkFrame(self.header, fg_color="transparent")
-        self.btn_frame.pack(side="right")
+        self.btn_frame.pack(side="right", anchor="ne")
         self.run_btn = ctk.CTkButton(
             self.btn_frame, text="🔍  Check My System",
             font=get_font("Outfit", 14, "bold"),
@@ -354,7 +354,7 @@ class VOSApp(ctk.CTk):
             hover_color=colors["ACCENT_HOVER"],
             corner_radius=8, height=45, command=self.start_diagnostics,
         )
-        self.run_btn.pack(fill="x", pady=(0, 4))
+        self.run_btn.pack(side="top", fill="x", pady=(0, 4))
         self.quick_drill_btn = ctk.CTkButton(
             self.btn_frame, text="Quick Drill !",
             font=get_font("Outfit", 10, "bold"),
@@ -539,6 +539,13 @@ class VOSApp(ctk.CTk):
             if result and result.get("update_available"):
                 new_ver = result.get("latest_version", "?")
                 dl_url = result.get("download_url", "")
+                
+                # Double check to avoid false positives
+                if str(new_ver) == str(APP_VERSION):
+                    log.debug(f"Update check: Skipping false positive (both are {new_ver})")
+                    return
+
+                log.info(f"Update check: Current={APP_VERSION}, Latest={new_ver} -> UPDATE AVAILABLE")
                 
                 def _show_update_ui():
                     # Update footer text
