@@ -369,7 +369,7 @@ class VOSApp(ctk.CTk):
         self.footer_frame.pack(side="bottom", fill="x", pady=(0, 6))
         self.footer_lbl = ctk.CTkLabel(
             self.footer_frame,
-            text="VOS  ·  Developed by Mohamed Abdo",
+            text="Hi! VOS  ·  Developed by Mohamed Abdo",
             font=get_font("Outfit", 9), text_color=colors["DIM_TEXT"],
         )
         self.footer_lbl.pack()
