@@ -112,29 +112,25 @@ def apply_update(download_url: str) -> bool:
 
         # 2. Create the batch script to swap files (Only for frozen EXE)
         bat_content = f"""@echo off
+set "EXE_PATH={current_exe}"
+set "NEW_EXE={new_exe_path}"
 set "EXE_NAME={os.path.basename(current_exe)}"
-set "NEW_EXE={os.path.basename(new_exe_path)}"
 
-log "Starting update swap..." > "update_log.txt"
+:: Wait for app to close
+timeout /t 2 /nobreak > NUL
 
-:KILL_LOOP
+:: Hard kill just in case
 taskkill /f /im "%EXE_NAME%" > NUL 2>&1
 timeout /t 1 /nobreak > NUL
 
-:DEL_LOOP
-if not exist "{current_exe}" goto MOVE_EXE
-del /f /q "{current_exe}" > NUL 2>&1
-timeout /t 1 /nobreak > NUL
-if exist "{current_exe}" goto KILL_LOOP
+:: Swap
+if exist "%EXE_PATH%" del /f /q "%EXE_PATH%"
+if exist "%NEW_EXE%" move /y "%NEW_EXE%" "%EXE_PATH%"
 
-:MOVE_EXE
-move /y "{new_exe_path}" "{current_exe}" > NUL 2>&1
-if not exist "{current_exe}" (
-    timeout /t 1 /nobreak > NUL
-    goto MOVE_EXE
-)
+:: Restart
+if exist "%EXE_PATH%" start "" "%EXE_PATH%"
 
-start "" "{current_exe}"
+:: Cleanup this script
 del "%~f0"
 """
         with open(bat_path, "w") as f:

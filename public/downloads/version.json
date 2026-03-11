@@ -1,5 +1,5 @@
 {
-  "latest_version": "2.2.5",
+  "latest_version": "2.2.6",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Update v2.2.5: Final fixes for tray minimization and robust file-swap."
+  "release_notes": "Update v2.2.6: Simplified update script for better reliability."
 }
