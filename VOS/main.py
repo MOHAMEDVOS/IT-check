@@ -142,6 +142,7 @@ class VOSApp(ctk.CTk):
         self.running = False
         self.is_authorized = False  # Track auth status
         self._is_silent_check = False
+        self._update_btn = None
         self._tray_icon = None  # pystray Icon, created on first minimize (currently unused)
 
         # Close button (X) now minimizes to the system tray.
