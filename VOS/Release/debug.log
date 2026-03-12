@@ -310,3 +310,229 @@ RuntimeError: main thread is not in main loop
 [2026-03-11 22:21:35] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
 [2026-03-11 23:07:48] vos.app        DEBUG    Gradient bg skipped: wrong # args: should be ".!canvas lower tagOrId ?belowThis?"
 [2026-03-11 23:07:50] vos.updater    DEBUG    No update needed (current: 2.2.0, remote: 2.2.0)
+[2026-03-12 09:18:10] vos.app        DEBUG    Gradient bg skipped: wrong # args: should be ".!canvas lower tagOrId ?belowThis?"
+[2026-03-12 09:18:12] vos.updater    DEBUG    No update needed (current: 2.3.3, remote: 2.3.3)
+[2026-03-12 09:19:57] vos.app        INFO     Authorization check completed. Result: True
+[2026-03-12 09:19:57] vos.app        INFO     User IS authorized. Un-hiding cards...
+[2026-03-12 09:20:03] vos.app        INFO     Starting diagnostics 
+[2026-03-12 09:20:03] vos.app        INFO     Running all diagnostic tasks
+[2026-03-12 09:20:03] vos.vpn        INFO     No VPN detected
+[2026-03-12 09:20:03] vos.disk       INFO     Disk check: C: — 178.1GB free / 476GB total (62.6% used)
+[2026-03-12 09:20:03] vos.app        INFO     Disk: 178.1GB free on C:
+[2026-03-12 09:20:03] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-12 09:20:03] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-12 09:20:03] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-12 09:20:03] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-12 09:20:04] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-12 09:20:04] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-12 09:20:28] vos.app        INFO     Speed: 30.1↓ / 4.8↑ Mbps
+[2026-03-12 09:20:28] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-12 09:20:28] vos.app        INFO     Running ping task sequentially
+[2026-03-12 09:21:06] vos.app        INFO     Ping: 58/100 (MARGINAL)
+[2026-03-12 09:21:06] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-12 09:21:06] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'vpn', 'disk', 'chrome', 'specs', 'ping']
+[2026-03-12 09:21:07] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-12 09:33:15] vos.app        INFO     Minimizing to tray...
+[2026-03-12 09:33:24] vos.app        DEBUG    Gradient bg skipped: wrong # args: should be ".!canvas lower tagOrId ?belowThis?"
+[2026-03-12 09:33:25] vos.app        INFO     User is NOT authorized. Keeping restricted UI hidden.
+[2026-03-12 09:33:26] vos.updater    DEBUG    No update needed (current: 2.3.3, remote: 2.3.3)
+[2026-03-12 09:34:08] vos.app        INFO     Starting diagnostics 
+[2026-03-12 09:34:08] vos.app        INFO     Running all diagnostic tasks
+[2026-03-12 09:34:08] vos.vpn        INFO     No VPN detected
+[2026-03-12 09:34:08] vos.disk       INFO     Disk check: C: — 178.1GB free / 476GB total (62.6% used)
+[2026-03-12 09:34:08] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-12 09:34:08] vos.app        INFO     Disk: 178.1GB free on C:
+[2026-03-12 09:34:08] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-12 09:34:09] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-12 09:34:09] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-12 09:34:09] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-12 09:34:09] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-12 09:34:37] vos.app        INFO     Speed: 20.1↓ / 4.8↑ Mbps
+[2026-03-12 09:34:37] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-12 09:34:37] vos.app        INFO     Running ping task sequentially
+[2026-03-12 09:35:15] vos.app        INFO     Ping: 58/100 (MARGINAL)
+[2026-03-12 09:35:15] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-12 09:35:15] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'vpn', 'disk', 'chrome', 'specs', 'ping']
+[2026-03-12 09:35:16] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-12 09:37:15] vos.app        INFO     Minimizing to tray...
+[2026-03-12 10:33:25] vos.app        INFO     Starting scheduled auto-check (every 1 hour)
+[2026-03-12 10:33:25] vos.app        INFO     Starting diagnostics (silent)
+[2026-03-12 10:33:25] vos.app        INFO     Running all diagnostic tasks
+[2026-03-12 10:33:25] vos.vpn        INFO     No VPN detected
+[2026-03-12 10:33:25] vos.disk       INFO     Disk check: C: — 178.1GB free / 476GB total (62.6% used)
+[2026-03-12 10:33:25] vos.app        INFO     Disk: 178.1GB free on C:
+[2026-03-12 10:33:25] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-12 10:33:25] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-12 10:33:25] vos.updater    DEBUG    No update needed (current: 2.3.3, remote: 2.3.3)
+[2026-03-12 10:33:25] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-12 10:33:25] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-12 10:33:25] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-12 10:33:25] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-12 10:33:57] vos.app        INFO     Speed: 17.9↓ / 4.7↑ Mbps
+[2026-03-12 10:33:57] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-12 10:33:57] vos.app        INFO     Running ping task sequentially
+[2026-03-12 10:34:36] vos.app        INFO     Ping: 63/100 (MARGINAL)
+[2026-03-12 10:34:36] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-12 10:34:36] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'vpn', 'disk', 'specs', 'chrome', 'ping']
+[2026-03-12 10:34:37] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-12 11:33:25] vos.app        INFO     Starting scheduled auto-check (every 1 hour)
+[2026-03-12 11:33:25] vos.app        INFO     Starting diagnostics (silent)
+[2026-03-12 11:33:25] vos.app        INFO     Running all diagnostic tasks
+[2026-03-12 11:33:25] vos.vpn        INFO     No VPN detected
+[2026-03-12 11:33:25] vos.disk       INFO     Disk check: C: — 178.1GB free / 476GB total (62.6% used)
+[2026-03-12 11:33:25] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-12 11:33:25] vos.app        INFO     Disk: 178.1GB free on C:
+[2026-03-12 11:33:25] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-12 11:33:25] vos.updater    DEBUG    No update needed (current: 2.3.3, remote: 2.3.3)
+[2026-03-12 11:33:25] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-12 11:33:25] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-12 11:33:25] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-12 11:33:25] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-12 11:33:52] vos.app        INFO     Speed: 24.9↓ / 4.9↑ Mbps
+[2026-03-12 11:33:52] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-12 11:33:52] vos.app        INFO     Running ping task sequentially
+[2026-03-12 11:34:30] vos.app        INFO     Ping: 58/100 (MARGINAL)
+[2026-03-12 11:34:30] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-12 11:34:30] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'vpn', 'disk', 'specs', 'chrome', 'ping']
+[2026-03-12 11:34:31] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-12 12:33:25] vos.app        INFO     Starting scheduled auto-check (every 1 hour)
+[2026-03-12 12:33:25] vos.app        INFO     Starting diagnostics (silent)
+[2026-03-12 12:33:25] vos.app        INFO     Running all diagnostic tasks
+[2026-03-12 12:33:25] vos.vpn        INFO     No VPN detected
+[2026-03-12 12:33:25] vos.disk       INFO     Disk check: C: — 178.1GB free / 476GB total (62.6% used)
+[2026-03-12 12:33:25] vos.app        INFO     Disk: 178.1GB free on C:
+[2026-03-12 12:33:25] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-12 12:33:25] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-12 12:33:25] vos.updater    DEBUG    No update needed (current: 2.3.3, remote: 2.3.3)
+[2026-03-12 12:33:25] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-12 12:33:25] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-12 12:33:25] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-12 12:33:25] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-12 12:33:54] vos.app        INFO     Speed: 25.3↓ / 4.3↑ Mbps
+[2026-03-12 12:33:54] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-12 12:33:54] vos.app        INFO     Running ping task sequentially
+[2026-03-12 12:34:33] vos.app        INFO     Ping: 63/100 (MARGINAL)
+[2026-03-12 12:34:33] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-12 12:34:33] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'vpn', 'disk', 'specs', 'chrome', 'ping']
+[2026-03-12 12:34:33] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-12 13:33:25] vos.app        INFO     Starting scheduled auto-check (every 1 hour)
+[2026-03-12 13:33:25] vos.app        INFO     Starting diagnostics (silent)
+[2026-03-12 13:33:25] vos.app        INFO     Running all diagnostic tasks
+[2026-03-12 13:33:25] vos.vpn        INFO     No VPN detected
+[2026-03-12 13:33:25] vos.disk       INFO     Disk check: C: — 178.1GB free / 476GB total (62.6% used)
+[2026-03-12 13:33:25] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-12 13:33:25] vos.app        INFO     Disk: 178.1GB free on C:
+[2026-03-12 13:33:25] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-12 13:33:25] vos.updater    DEBUG    No update needed (current: 2.3.3, remote: 2.3.3)
+[2026-03-12 13:33:25] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-12 13:33:25] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-12 13:33:25] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-12 13:33:25] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-12 13:33:53] vos.app        INFO     Speed: 24.8↓ / 4.6↑ Mbps
+[2026-03-12 13:33:53] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-12 13:33:53] vos.app        INFO     Running ping task sequentially
+[2026-03-12 13:34:32] vos.app        INFO     Ping: 18/100 (CRITICAL)
+[2026-03-12 13:34:32] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-12 13:34:32] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'vpn', 'disk', 'specs', 'chrome', 'ping']
+[2026-03-12 13:34:33] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-12 14:33:25] vos.app        INFO     Starting scheduled auto-check (every 1 hour)
+[2026-03-12 14:33:25] vos.app        INFO     Starting diagnostics (silent)
+[2026-03-12 14:33:25] vos.app        INFO     Running all diagnostic tasks
+[2026-03-12 14:33:25] vos.disk       INFO     Disk check: C: — 178.1GB free / 476GB total (62.6% used)
+[2026-03-12 14:33:25] vos.vpn        INFO     No VPN detected
+[2026-03-12 14:33:25] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-12 14:33:25] vos.app        INFO     Disk: 178.1GB free on C:
+[2026-03-12 14:33:25] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-12 14:33:25] vos.updater    DEBUG    No update needed (current: 2.3.3, remote: 2.3.3)
+[2026-03-12 14:33:25] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-12 14:33:25] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-12 14:33:26] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-12 14:33:26] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-12 14:33:51] vos.app        INFO     Speed: 27.0↓ / 4.8↑ Mbps
+[2026-03-12 14:33:51] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-12 14:33:51] vos.app        INFO     Running ping task sequentially
+[2026-03-12 14:34:29] vos.app        INFO     Ping: 63/100 (MARGINAL)
+[2026-03-12 14:34:29] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-12 14:34:29] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'disk', 'vpn', 'specs', 'chrome', 'ping']
+[2026-03-12 14:34:30] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-12 15:33:25] vos.app        INFO     Starting scheduled auto-check (every 1 hour)
+[2026-03-12 15:33:25] vos.app        INFO     Starting diagnostics (silent)
+[2026-03-12 15:33:25] vos.app        INFO     Running all diagnostic tasks
+[2026-03-12 15:33:25] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-12 15:33:25] vos.disk       INFO     Disk check: C: — 178.1GB free / 476GB total (62.6% used)
+[2026-03-12 15:33:25] vos.vpn        INFO     No VPN detected
+[2026-03-12 15:33:25] vos.app        INFO     Disk: 178.1GB free on C:
+[2026-03-12 15:33:25] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-12 15:33:25] vos.updater    DEBUG    No update needed (current: 2.3.3, remote: 2.3.3)
+[2026-03-12 15:33:25] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-12 15:33:25] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-12 15:33:25] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-12 15:33:25] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-12 15:33:53] vos.app        INFO     Speed: 23.3↓ / 5.0↑ Mbps
+[2026-03-12 15:33:53] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-12 15:33:53] vos.app        INFO     Running ping task sequentially
+[2026-03-12 15:34:32] vos.app        INFO     Ping: 35/100 (MARGINAL)
+[2026-03-12 15:34:32] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-12 15:34:32] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'disk', 'vpn', 'specs', 'chrome', 'ping']
+[2026-03-12 15:34:33] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-12 16:33:25] vos.app        INFO     Starting scheduled auto-check (every 1 hour)
+[2026-03-12 16:33:25] vos.app        INFO     Starting diagnostics (silent)
+[2026-03-12 16:33:25] vos.app        INFO     Running all diagnostic tasks
+[2026-03-12 16:33:25] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-12 16:33:25] vos.disk       INFO     Disk check: C: — 178.0GB free / 476GB total (62.6% used)
+[2026-03-12 16:33:25] vos.vpn        INFO     No VPN detected
+[2026-03-12 16:33:25] vos.app        INFO     Disk: 178.0GB free on C:
+[2026-03-12 16:33:25] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-12 16:33:25] vos.updater    DEBUG    No update needed (current: 2.3.3, remote: 2.3.3)
+[2026-03-12 16:33:25] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-12 16:33:25] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-12 16:33:25] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-12 16:33:25] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-12 16:33:53] vos.app        INFO     Speed: 24.5↓ / 4.8↑ Mbps
+[2026-03-12 16:33:53] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-12 16:33:53] vos.app        INFO     Running ping task sequentially
+[2026-03-12 16:34:32] vos.app        INFO     Ping: 58/100 (MARGINAL)
+[2026-03-12 16:34:32] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-12 16:34:32] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'disk', 'vpn', 'specs', 'chrome', 'ping']
+[2026-03-12 16:34:32] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-12 17:33:25] vos.app        INFO     Starting scheduled auto-check (every 1 hour)
+[2026-03-12 17:33:25] vos.app        INFO     Starting diagnostics (silent)
+[2026-03-12 17:33:25] vos.app        INFO     Running all diagnostic tasks
+[2026-03-12 17:33:25] vos.vpn        INFO     No VPN detected
+[2026-03-12 17:33:25] vos.disk       INFO     Disk check: C: — 178.0GB free / 476GB total (62.6% used)
+[2026-03-12 17:33:25] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-12 17:33:25] vos.app        INFO     Disk: 178.0GB free on C:
+[2026-03-12 17:33:25] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-12 17:33:25] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-12 17:33:25] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-12 17:33:25] vos.updater    DEBUG    No update needed (current: 2.3.3, remote: 2.3.3)
+[2026-03-12 17:33:25] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-12 17:33:25] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-12 17:33:52] vos.app        INFO     Speed: 22.9↓ / 4.8↑ Mbps
+[2026-03-12 17:33:52] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-12 17:33:52] vos.app        INFO     Running ping task sequentially
+[2026-03-12 17:34:30] vos.app        INFO     Ping: 30/100 (POOR)
+[2026-03-12 17:34:30] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-12 17:34:30] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'vpn', 'disk', 'specs', 'chrome', 'ping']
+[2026-03-12 17:34:31] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-12 18:33:25] vos.app        INFO     Starting scheduled auto-check (every 1 hour)
+[2026-03-12 18:33:25] vos.app        INFO     Starting diagnostics (silent)
+[2026-03-12 18:33:25] vos.app        INFO     Running all diagnostic tasks
+[2026-03-12 18:33:25] vos.disk       INFO     Disk check: C: — 178.0GB free / 476GB total (62.6% used)
+[2026-03-12 18:33:25] vos.vpn        INFO     No VPN detected
+[2026-03-12 18:33:25] vos.app        INFO     Disk: 178.0GB free on C:
+[2026-03-12 18:33:25] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-12 18:33:25] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-12 18:33:25] vos.updater    DEBUG    No update needed (current: 2.3.3, remote: 2.3.3)
+[2026-03-12 18:33:25] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-12 18:33:25] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-12 18:33:26] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-12 18:33:26] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-12 18:33:55] vos.app        INFO     Speed: 23.5↓ / 4.7↑ Mbps
+[2026-03-12 18:33:55] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-12 18:33:55] vos.app        INFO     Running ping task sequentially
+[2026-03-12 18:34:33] vos.app        INFO     Ping: 0/100 (CRITICAL)
+[2026-03-12 18:34:33] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-12 18:34:33] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'disk', 'vpn', 'chrome', 'specs', 'ping']
+[2026-03-12 18:34:34] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-12 19:31:16] vos.app        INFO     Minimizing to tray...

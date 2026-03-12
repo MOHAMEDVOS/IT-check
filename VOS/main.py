@@ -221,8 +221,120 @@ class VOSApp(ctk.CTk):
             log.debug("Auto-check skipped: a check is already running")
             return
         log.info("Starting scheduled auto-check (every 1 hour)")
-        self._check_for_updates(silent=True)
-        self.start_diagnostics(silent=True)
+        self._run_silent_diagnostics()
+
+    # ─────────────── Silent diagnostics (no UI, no window pop) ───────────────
+    def _run_silent_diagnostics(self):
+        """Run all diagnostics silently — zero UI updates, window stays hidden."""
+        if self.running:
+            return
+        self.running = True
+        self._is_silent_check = True
+        log.info("Starting silent auto-check (no UI updates)")
+        threading.Thread(target=self._run_silent_worker, daemon=True).start()
+
+    def _run_silent_worker(self):
+        """Background worker: runs every check, stores results, posts to dashboard."""
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                futures = {
+                    executor.submit(self._silent_task_specs): "specs",
+                    executor.submit(self._silent_task_chrome): "chrome",
+                    executor.submit(self._silent_task_speed): "speed",
+                    executor.submit(self._silent_task_mic): "mic",
+                    executor.submit(self._silent_task_disk): "disk",
+                }
+                for future in concurrent.futures.as_completed(futures):
+                    name = futures[future]
+                    try:
+                        future.result()
+                        log.info(f"Silent task '{name}' completed")
+                    except Exception as e:
+                        log.error(f"Silent task '{name}' failed: {e}", exc_info=True)
+
+            # Ping runs sequentially (same as normal path)
+            self._silent_task_ping("8.8.8.8")
+        except Exception as e:
+            log.error(f"Silent auto-check failed: {e}", exc_info=True)
+        finally:
+            self.running = False
+            self._is_silent_check = False
+            # Post results to dashboard (pure HTTP, no UI)
+            self._post_results_to_dashboard()
+            # Check for updates silently (only touches footer text if update found,
+            # which is fine — it won't restore window)
+            self._do_update_check(silent=True)
+            log.info("Silent auto-check completed")
+
+    def _silent_task_specs(self):
+        try:
+            from modules.specs import get_system_specs
+            self.results["specs"] = get_system_specs()
+            log.info("Silent specs check done")
+        except Exception as e:
+            log.error(f"Silent specs check failed: {e}")
+
+    def _silent_task_chrome(self):
+        try:
+            from modules.chrome import check_chrome
+            self.results["chrome"] = check_chrome()
+            log.info("Silent chrome check done")
+        except Exception as e:
+            log.error(f"Silent chrome check failed: {e}")
+
+    def _silent_task_speed(self):
+        # VPN check
+        try:
+            from modules.vpn import check_vpn
+            vpn_info = check_vpn()
+            self.results["vpn"] = vpn_info
+        except Exception as e:
+            log.warning(f"Silent VPN check failed: {e}")
+        # Speed test
+        try:
+            from modules.speed import run_speedtest
+            res = run_speedtest()
+            def _parse(val):
+                try:
+                    return float(str(val).split()[0])
+                except Exception:
+                    return 0.0
+            res["_raw_down"] = _parse(res.get("download", "0"))
+            res["_raw_up"] = _parse(res.get("upload", "0"))
+            self.results["speed"] = res
+            log.info(f"Silent speed check done: {res['_raw_down']:.1f}↓ / {res['_raw_up']:.1f}↑")
+        except Exception as e:
+            log.error(f"Silent speed check failed: {e}")
+
+    def _silent_task_mic(self):
+        try:
+            from modules.mic import check_mic_level
+            res = check_mic_level()
+            self.results["mic"] = {
+                "level": res.get("level", 0),
+                "device": res.get("device_name", "Unknown"),
+                "type": res.get("device_type", "Unknown"),
+            }
+            log.info("Silent mic check done")
+        except Exception as e:
+            log.error(f"Silent mic check failed: {e}")
+
+    def _silent_task_disk(self):
+        try:
+            from modules.disk import check_disk_space
+            self.results["disk"] = check_disk_space()
+            log.info("Silent disk check done")
+        except Exception as e:
+            log.error(f"Silent disk check failed: {e}")
+
+    def _silent_task_ping(self, target):
+        try:
+            from modules.ping import run_ping
+            res = run_ping(target)
+            self.results["ping"] = res
+            log.info(f"Silent ping check done: {getattr(res, 'stability_score', '?')}/100")
+        except Exception as e:
+            log.error(f"Silent ping check failed: {e}")
 
     # ─────────────────────── System tray ───────────────────────
     def _on_unmap(self, event):
@@ -663,9 +775,9 @@ class VOSApp(ctk.CTk):
             log.info("User IS authorized. Un-hiding cards...")
             gap = 6
             # Place the hidden cards in row 1
-            # self.cards["ping"].grid( row=1, column=0, sticky="nsew", padx=(0, gap), pady=(0, gap))
             self.cards["speed"].grid(row=1, column=0, sticky="nsew", padx=(0, gap), pady=(0, gap))
             self.cards["mic"].grid(  row=1, column=1, sticky="nsew", padx=gap,      pady=(0, gap))
+            self.cards["ping"].grid( row=1, column=2, sticky="nsew", padx=(gap, 0), pady=(0, gap))
             
             # Allow Quick Drill button to be visible but disabled until scan ends
             self.quick_drill_btn.pack(side="top", fill="x", pady=(4, 0))
