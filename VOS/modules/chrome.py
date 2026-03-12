@@ -221,22 +221,34 @@ def check_chrome() -> ChromeResult:
     result.latest_milestone  = _get_milestone(latest)
     result.milestones_behind = max(0, result.latest_milestone - result.installed_milestone)
 
-    # ── Step 3: Smart comparison with staged rollout awareness ───────────────
-    if result.milestones_behind <= 1:
-        # Exact milestone match or 1 behind (staged rollout) — treat as fully up to date
+    # ── Step 3: Full-version comparison with Major/Minor distinction ─────────
+    if result.installed_version == result.latest_version:
         result.status       = "UP_TO_DATE"
         result.status_label = "✅ Up to Date"
         result.status_color = "#10B981"
-        result.note         = f"Your Chrome browser is up to date (Milestone {result.installed_milestone})."
+        result.note         = f"Your Chrome browser is up to date (v{result.installed_version})."
 
-    else:
-        # Two or more milestones behind — genuinely outdated
+    elif result.milestones_behind > 0:
+        # One or more milestones behind — Major update
         result.status       = "OUTDATED"
-        result.status_label = "⚠️ Update Available"
+        result.status_label = "⚠️ Major Update Available"
         result.status_color = "#EF4444"
         result.note         = (
-            f"You are {result.milestones_behind} milestones behind "
-            f"(Installed: {result.installed_milestone}, Latest: {result.latest_milestone}).\n"
+            f"A major Chrome update is available (Milestone {result.latest_milestone}).\n"
+            f"Installed: {result.installed_version}\n"
+            f"Latest: {result.latest_version}\n"
+            f"Open Chrome → Menu → Help → About Google Chrome to update."
+        )
+
+    else:
+        # Same milestone but different point release — Minor/Security update
+        result.status       = "OUTDATED"
+        result.status_label = "🔄 Minor Update Available"
+        result.status_color = "#F59E0B" # Amber/Orange for minor
+        result.note         = (
+            f"A minor/security update is available for Chrome {result.installed_milestone}.\n"
+            f"Installed: {result.installed_version}\n"
+            f"Latest: {result.latest_version}\n"
             f"Open Chrome → Menu → Help → About Google Chrome to update."
         )
 
