@@ -95,6 +95,12 @@
                     border-radius:6px; cursor:pointer; font-size:11px; transition:.2s; margin-right:4px; }
         .btn-copy:hover { border-color:#22c55e; color:#bbf7d0; background:#022c22; }
 
+        /* Freshness Highlights */
+        .date-cell { font-family: monospace; white-space: nowrap; }
+        .date-stale { color: #f87171 !important; font-weight: 600; /* Red for old data */ }
+        .date-warn { color: #fbbf24 !important; font-weight: 600; /* Yellow for yesterday */ }
+        .date-fresh { color: #34d399 !important; /* Green for today */ }
+
         /* Responsive */
         @media(max-width:1200px) { .detail-panel { grid-template-columns:1fr 1fr; } }
         @media(max-width:768px) { .detail-panel { grid-template-columns:1fr; } }
@@ -155,6 +161,55 @@
 <script>
 let allData = [];
 let sortCol = -1, sortAsc = true;
+const expandedAgents = new Set(); // Track expanded agent names
+
+// Helper: Format date string to stacked 12h format
+function formatDateTime12h(dateStr) {
+    if (!dateStr || dateStr === '—') return '—';
+    try {
+        const d = new Date(dateStr.replace(' ', 'T')); // Handle SQL format
+        if (isNaN(d.getTime())) return dateStr;
+        
+        const datePart = d.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric'
+        });
+        
+        const timePart = d.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+
+        return `<div class="date-stacked">
+                    <div>${datePart}</div>
+                    <div style="opacity:0.6; font-size:0.85em; margin-top:2px;">${timePart}</div>
+                </div>`;
+    } catch (e) {
+        return dateStr;
+    }
+}
+
+// Helper: Check freshness
+function getDateFreshnessClass(dateStr) {
+    if (!dateStr || dateStr === '—') return '';
+    try {
+        const d = new Date(dateStr.replace(' ', 'T'));
+        if (isNaN(d.getTime())) return '';
+        
+        const now = new Date();
+        const diffDays = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+        
+        const isToday = d.toDateString() === now.toDateString();
+        if (isToday) return 'date-fresh';
+        if (diffDays < 1) return 'date-warn'; // Yesterday
+        return 'date-stale'; // Older
+    } catch (e) {
+        return '';
+    }
+}
 
 // Team color palette — each team gets a unique, consistent color
 const TEAM_COLORS = [
@@ -307,6 +362,7 @@ async function copySummary(index, evt) {
 }
 
 function deleteAgent(name) {
+    if (!confirm('Are you sure you want to delete data for ' + name + '?')) return false;
     fetch('/api/results/' + encodeURIComponent(name), {
         method: 'DELETE',
         credentials: 'same-origin'
@@ -320,11 +376,15 @@ function deleteAgent(name) {
     return false;
 }
 
-function toggleDetail(i, evt) {
+function toggleDetail(name, i, evt) {
     // Don't toggle if clicking the delete or pdf button
     if (evt && evt.target && (evt.target.classList.contains('btn-delete') || evt.target.closest('.btn-delete') || evt.target.classList.contains('btn-pdf') || evt.target.closest('.btn-pdf'))) return;
     const row = document.getElementById('detail-' + i);
-    if (row) row.classList.toggle('open');
+    if (row) {
+        const isOpen = row.classList.toggle('open');
+        if (isOpen) expandedAgents.add(name);
+        else expandedAgents.delete(name);
+    }
 }
 
 function downloadPDF(name) {
@@ -352,8 +412,12 @@ function renderTable(data) {
         const dl = r.download_mbps || 0;
         if (dl > 0 && dl < 10) issues++;
 
+        const freshnessClass = getDateFreshnessClass(r.last_checked);
+        const formattedDate = formatDateTime12h(r.last_checked);
+        const isRowExpanded = expandedAgents.has(r.agent_name) ? 'open' : '';
+
         // Main row
-        html += `<tr onclick="toggleDetail(${i}, event)">
+        html += `<tr onclick="toggleDetail('${(r.agent_name||'').replace(/'/g, "\\'")}', ${i}, event)">
             <td style="color:#f472b6;font-weight:bold">${r.res_id || '—'}</td>
             <td><strong>${r.agent_name || '—'}</strong></td>
             <td>${teamPill(r.team)}</td>
@@ -367,7 +431,7 @@ function renderTable(data) {
             <td>${micPill(r.mic_level)}</td>
             <td><small style="color:#fbbf24">${r.notes || ''}</small></td>
             <td>${r.disk_space || '—'}</td>
-            <td><small style="color:#64748b">${r.last_checked || '—'}</small></td>
+            <td class="date-cell ${freshnessClass}">${formattedDate}</td>
             <td>
                 <div style="display:flex;align-items:center">
                     <button class="btn-copy" onclick="copySummary(${i}, event); return false;" title="Copy summary to clipboard">Copy</button>
@@ -378,7 +442,7 @@ function renderTable(data) {
         </tr>`;
 
         // Detail row
-        html += `<tr class="detail-row" id="detail-${i}"><td colspan="13"><div class="detail-panel">
+        html += `<tr class="detail-row ${isRowExpanded}" id="detail-${i}"><td colspan="13"><div class="detail-panel">
             <div class="detail-section">
                 <h4>SYSTEM</h4>
                 <div class="detail-row-item"><span class="label">RES-ID</span><span class="value" style="color:#f472b6;font-weight:bold">${r.res_id || '—'}</span></div>
@@ -408,7 +472,7 @@ function renderTable(data) {
                 <div class="detail-row-item"><span class="label">Disk Free</span><span class="value">${r.disk_space || '—'}</span></div>
                 <div class="detail-row-item"><span class="label">Disk Used</span><span class="value">${r.disk_used_pct ? r.disk_used_pct + '%' : '—'}</span></div>
                 <div class="detail-row-item"><span class="label">AnyDesk ID</span><span class="value" style="color:#00d4aa">${r.anydesk_id || '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Last Check</span><span class="value">${r.last_checked || '—'}</span></div>
+                <div class="detail-row-item"><span class="label">Last Check</span><span class="value">${formatDateTime12h(r.last_checked) || '—'}</span></div>
             </div>
         </div></td></tr>`;  // detail-row colspan updated for VPN & notes columns
     });
@@ -439,22 +503,30 @@ function fetchResults() {
         .then(data => {
             allData = data;
             const q = document.getElementById('searchBox').value.toLowerCase();
-            const filtered = q ? data.filter(r => (r.agent_name||'').toLowerCase().includes(q) || (r.anydesk_id||'').toLowerCase().includes(q)) : data;
+            const filtered = q ? data.filter(r => 
+                (r.agent_name||'').toLowerCase().includes(q) || 
+                (r.anydesk_id||'').toLowerCase().includes(q) ||
+                (r.res_id||'').toLowerCase().includes(q)
+            ) : data;
             renderTable(filtered);
             document.getElementById('lastUpdated').textContent =
-                'Last updated: ' + new Date().toLocaleTimeString() + ' · Auto-refreshes every 30s';
+                'Last updated: ' + new Date().toLocaleTimeString() + ' · Auto-refreshes every 5s';
         })
         .catch(() => {});
 }
 
 document.getElementById('searchBox').addEventListener('input', function() {
     const q = this.value.toLowerCase();
-    const filtered = q ? allData.filter(r => (r.agent_name||'').toLowerCase().includes(q) || (r.anydesk_id||'').toLowerCase().includes(q)) : allData;
+    const filtered = q ? allData.filter(r => 
+        (r.agent_name||'').toLowerCase().includes(q) || 
+        (r.anydesk_id||'').toLowerCase().includes(q) ||
+        (r.res_id||'').toLowerCase().includes(q)
+    ) : allData;
     renderTable(filtered);
 });
 
 fetchResults();
-setInterval(fetchResults, 30000);
+setInterval(fetchResults, 5000);
 </script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 {
   "latest_version": "2.3.2",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Update v2.3.2: Adjusted Microphone Fix threshold - the fix button now appears for any level below 100%."
+  "release_notes": "Update v2.3.2: Modern Dashboard Experience\n- Added Real-Time (5s) Refresh Rate\n- Added RES-ID Search Support\n- Added 12h Time Formatting & Row Expansion Memory\n- Improved Space Efficiency with Stackable Layout\n- Adjusted Mic Fix button visibility (triggers below 100%)"
 }

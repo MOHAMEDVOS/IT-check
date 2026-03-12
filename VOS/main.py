@@ -36,6 +36,7 @@ import multiprocessing
 import concurrent.futures
 import os
 import json
+import argparse
 
 import pystray
 from PIL import Image, ImageTk
@@ -149,10 +150,16 @@ class VOSApp(ctk.CTk):
         # Close button (X) now minimizes to the system tray.
         self.protocol("WM_DELETE_WINDOW", self._to_tray)
 
-        self.after(200, self._check_startup_name)
-        self.after(500, self._check_for_updates)
         # First automated check in 1 hour, then every 1 hour
         self.after(AUTO_CHECK_INTERVAL_MS, self._run_auto_check)
+
+        # Handle startup mode (Background flag)
+        if getattr(sys, '_started_in_background', False):
+            self.withdraw()
+            log.info("App started in background mode (withdrawn to tray)")
+        else:
+            self.after(200, self._check_startup_name)
+            self.after(500, self._check_for_updates)
 
     # ─────────────────────── Gradient background ───────────────────────
     def _setup_gradient_bg(self):
@@ -1314,7 +1321,7 @@ class VOSApp(ctk.CTk):
 
 
 
-def enforce_single_instance():
+def enforce_single_instance(restore=True):
     try:
         import ctypes
         kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
@@ -1324,7 +1331,11 @@ def enforce_single_instance():
             
         ERROR_ALREADY_EXISTS = 183
         if ctypes.get_last_error() == ERROR_ALREADY_EXISTS:
-            # Another instance is already running. Wait, let's find the window and show it.
+            if not restore:
+                # Quietly exit if we are in background mode
+                sys.exit(0)
+
+            # Another instance is already running. Find the window and show it.
             user32 = ctypes.WinDLL('user32', use_last_error=True)
             from thresholds import APP_NAME
             window_title = f"{APP_NAME} - Vital Operations Scanner"
@@ -1339,7 +1350,14 @@ def enforce_single_instance():
         return None
 
 if __name__ == "__main__":
-    _mutex = enforce_single_instance()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--background", action="store_true", help="Start or run in background without restoring window")
+    args, unknown = parser.parse_known_args()
+
+    # Pass background state to app instance via a temporary system attribute
+    sys._started_in_background = args.background
+
+    _mutex = enforce_single_instance(restore=not args.background)
     # Required for PyInstaller on Windows: prevents child processes from
     # spawning new GUI windows when multiprocessing is used (e.g. by deps).
     multiprocessing.freeze_support()
