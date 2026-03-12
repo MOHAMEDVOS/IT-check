@@ -257,6 +257,19 @@ def dashboard():
     return render_template("dashboard.html")
 
 
+@app.route("/favicon.ico")
+def favicon():
+    """Serve the favicon."""
+    # Use cache-busting by adding a version if needed, or just serve with correct headers
+    return send_file(os.path.join(APP_DIR, "assets", "IT.ico"), mimetype='image/x-icon')
+
+
+@app.route("/assets/<path:filename>")
+def serve_assets(filename):
+    """Serve files from the assets directory."""
+    return send_file(os.path.join(APP_DIR, "assets", filename))
+
+
 @app.route("/api/results", methods=["GET"])
 @require_login
 def get_results():

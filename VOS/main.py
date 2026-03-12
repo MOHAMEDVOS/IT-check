@@ -54,6 +54,7 @@ from gui.cards import (
     MicCard, DiskCard
 )
 from gui.dialogs import NameDialog
+from modules.auth import check_authorization
 
 log = get_logger("app")
 
@@ -139,6 +140,8 @@ class VOSApp(ctk.CTk):
 
         self.results = {}
         self.running = False
+        self.is_authorized = False  # Track auth status
+        self._is_silent_check = False
         self._tray_icon = None  # pystray Icon, created on first minimize (currently unused)
 
         # Close button (X) now minimizes to the system tray.
@@ -209,7 +212,7 @@ class VOSApp(ctk.CTk):
             log.debug("Auto-check skipped: a check is already running")
             return
         log.info("Starting scheduled auto-check (every 1 hour)")
-        self._check_for_updates()
+        self._check_for_updates(silent=True)
         self.start_diagnostics(silent=True)
 
     # ─────────────────────── System tray ───────────────────────
@@ -237,6 +240,10 @@ class VOSApp(ctk.CTk):
         self.deiconify()
         self.lift()
         self.focus_force()
+
+    def is_app_hidden(self):
+        """Check if the app is currently minimized or hidden in tray."""
+        return self.state() in ["iconic", "withdrawn"]
 
     def _quit_app(self):
         """Exit app and remove tray icon."""
@@ -350,6 +357,53 @@ class VOSApp(ctk.CTk):
             self.emp_card.pack(side="left", padx=(0, 20))
 
 
+        # Center Area: BMO Animated GIF
+        self.logo_frame = ctk.CTkFrame(self.header, fg_color="transparent")
+        self.logo_frame.pack(side="left", expand=True)
+        
+        self._bmo_frames = []
+        self._bmo_delay = 100
+        self._bmo_animating = False
+        self._bmo_after_id = None
+        self._bmo_frame_index = 0
+        try:
+            base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+            gif_path = os.path.join(base_path, "assets", "bmo.gif")
+            if os.path.exists(gif_path):
+                img = Image.open(gif_path)
+                resample = getattr(Image, "Resampling", Image).LANCZOS
+                try:
+                    while True:
+                        frame = img.copy()
+                        if frame.mode == "P":
+                            frame = frame.convert("RGBA")
+                        elif frame.mode != "RGBA" and frame.mode != "RGB":
+                            frame = frame.convert("RGB")
+                        # Resized to 140x140 for header
+                        if frame.size != (140, 140):
+                            frame = frame.resize((140, 140), resample)
+                        self._bmo_frames.append(ImageTk.PhotoImage(frame))
+                        img.seek(img.tell() + 1)
+                except EOFError:
+                    pass
+                self._bmo_delay = img.info.get("duration", 100) or 100
+                if self._bmo_delay < 20:
+                    self._bmo_delay = 50
+            if self._bmo_frames:
+                self._bmo_label = tk.Label(self.logo_frame, image=self._bmo_frames[0], bg=colors["BG"])
+                self._bmo_label.pack()
+            else:
+                self._bmo_label = None
+                # Fallback to static icon if GIF fails
+                icon_path = os.path.join(base_path, "assets", "IT.ico")
+                if os.path.exists(icon_path):
+                    img = Image.open(icon_path)
+                    logo_img = ctk.CTkImage(light_image=img, dark_image=img, size=(64, 64))
+                    logo_lbl = ctk.CTkLabel(self.logo_frame, image=logo_img, text="")
+                    logo_lbl.pack()
+        except Exception as e:
+            log.debug(f"BMO GIF load skipped: {e}")
+            self._bmo_label = None
 
         # Buttons: Check My System + Quick Drill (under it)
         self.btn_frame = ctk.CTkFrame(self.header, fg_color="transparent")
@@ -371,14 +425,15 @@ class VOSApp(ctk.CTk):
             corner_radius=6, height=28, command=self._clear_chrome_data,
             state="disabled",
         )
+        self.quick_drill_btn.pack(side="top", fill="x", pady=(4, 0))
 
     def _build_footer(self):
         self.footer_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.footer_frame.pack(side="bottom", fill="x", pady=(0, 6))
         self.footer_lbl = ctk.CTkLabel(
             self.footer_frame,
-            text="VOS  ·  Developed by Mohamed Abdo  ·  Hi!",
-            font=get_font("Outfit", 9), text_color=colors["DIM_TEXT"],
+            text="VOS  ·  Developed by Mohamed Abdo",
+            font=get_font("Outfit", 9, "bold"), text_color="#FFFFFF",
         )
         self.footer_lbl.pack()
 
@@ -412,48 +467,14 @@ class VOSApp(ctk.CTk):
         self.cards["chrome"].grid(row=0, column=1, sticky="nsew", padx=gap,     pady=(0, gap))
         self.cards["disk"].grid(  row=0, column=2, sticky="nsew", padx=(gap, 0), pady=(0, gap))
 
-        # BMO animated GIF (same size/placement as previous IT logo)
-        self._bmo_frames = []
-        self._bmo_delay = 100
-        self._bmo_animating = False
-        self._bmo_after_id = None
-        self._bmo_frame_index = 0
-        try:
-            base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-            gif_path = os.path.join(base_path, "assets", "bmo.gif")
-            if os.path.exists(gif_path):
-                img = Image.open(gif_path)
-                resample = getattr(Image, "Resampling", Image).LANCZOS
-                try:
-                    while True:
-                        frame = img.copy()
-                        if frame.mode == "P":
-                            frame = frame.convert("RGBA")
-                        elif frame.mode != "RGBA" and frame.mode != "RGB":
-                            frame = frame.convert("RGB")
-                        if frame.size != (260, 260):
-                            frame = frame.resize((260, 260), resample)
-                        self._bmo_frames.append(ImageTk.PhotoImage(frame))
-                        img.seek(img.tell() + 1)
-                except EOFError:
-                    pass
-                self._bmo_delay = img.info.get("duration", 100) or 100
-                if self._bmo_delay < 20:
-                    self._bmo_delay = 50
-            if self._bmo_frames:
-                bmo_container = tk.Frame(self.scroll_frame, bg=colors["BG"])
-                self._bmo_label = tk.Label(bmo_container, image=self._bmo_frames[0], bg=colors["BG"])
-                self._bmo_label.pack()
-                bmo_container.grid(row=1, column=0, columnspan=3, pady=(32, 0), sticky="n")
-            else:
-                self._bmo_label = None
-        except Exception as e:
-            log.debug(f"BMO GIF load skipped: {e}")
-            self._bmo_label = None
+        # Initially hidden cards, will be shown if authorized:
+        # self.cards["ping"].grid(...)
+        # self.cards["speed"].grid(...)
+        # self.cards["mic"].grid(...)
 
     def _start_bmo_animation(self):
         """Start BMO GIF animation (called when check begins)."""
-        if not self._bmo_frames or not self._bmo_label or self._bmo_animating:
+        if not self._bmo_frames or not self._bmo_label or self._bmo_animating or self._is_silent_check:
             return
         self._bmo_animating = True
         self._bmo_frame_index = 0
@@ -537,10 +558,10 @@ class VOSApp(ctk.CTk):
 
 
     # ─────────────────────── Auto-Update Check ───────────────────────
-    def _check_for_updates(self):
-        threading.Thread(target=self._do_update_check, daemon=True).start()
+    def _check_for_updates(self, silent=False):
+        threading.Thread(target=self._do_update_check, args=(silent,), daemon=True).start()
 
-    def _do_update_check(self):
+    def _do_update_check(self, silent=False):
         try:
             from modules.updater import check_for_update, apply_update
             result = check_for_update()
@@ -563,7 +584,7 @@ class VOSApp(ctk.CTk):
                     )
                     
                     # Create "Update Now" button next to footer
-                    if dl_url:
+                    if dl_url and not silent and not self.is_app_hidden():
                         update_btn = ctk.CTkButton(
                             self.btn_frame,
                             text="🔔  Update Now",
@@ -600,6 +621,50 @@ class VOSApp(ctk.CTk):
                 current_res_id=self.res_id,
                 on_close=self._on_info_saved,
             )
+        else:
+            self._trigger_auth_check()
+
+    def _trigger_auth_check(self):
+        """Kick off the background authorization check."""
+        # Visual feedback during check:
+        # We could add an unobtrusive loading spinner or text somewhere if desired.
+        threading.Thread(target=self._do_auth_check, daemon=True).start()
+
+    def _do_auth_check(self):
+        # We need both an ID and Name
+        if not self.res_id or not self.emp_name:
+            self.after(0, self._apply_auth_ui, False)
+            return
+
+        is_auth = check_authorization(self.res_id, self.emp_name)
+        log.info(f"Authorization check completed. Result: {is_auth}")
+        self.after(0, self._apply_auth_ui, is_auth)
+
+    def _apply_auth_ui(self, is_authorized):
+        self.is_authorized = is_authorized
+        if is_authorized:
+            log.info("User IS authorized. Un-hiding cards...")
+            gap = 6
+            # Place the hidden cards in row 1
+            # self.cards["ping"].grid( row=1, column=0, sticky="nsew", padx=(0, gap), pady=(0, gap))
+            self.cards["speed"].grid(row=1, column=0, sticky="nsew", padx=(0, gap), pady=(0, gap))
+            self.cards["mic"].grid(  row=1, column=1, sticky="nsew", padx=gap,      pady=(0, gap))
+            
+            # Allow Quick Drill button to be visible but disabled until scan ends
+            self.quick_drill_btn.pack(side="top", fill="x", pady=(4, 0))
+        else:
+            log.info("User is NOT authorized. Keeping restricted UI hidden.")
+            # Remove hidden cards if they were previously showing
+            self.cards["ping"].grid_forget()
+            self.cards["speed"].grid_forget()
+            self.cards["mic"].grid_forget()
+            
+            # Reposition the BMO animation back to row 1
+            if self._bmo_label and self._bmo_label.master:
+                self._bmo_label.master.grid(row=1, column=0, columnspan=3, pady=(32, 0), sticky="n")
+            
+            # Ensure restricted buttons are completely hidden
+            self.quick_drill_btn.pack_forget()
 
     def _on_info_saved(self):
         cfg = load_config()
@@ -615,12 +680,15 @@ class VOSApp(ctk.CTk):
 
         if self.emp_name and self.anydesk_id:
             self.emp_card.pack(side="left", padx=(0, 20))
+            
+        self._trigger_auth_check()
 
     # ─────────────────────── Diagnostics ───────────────────────
     def start_diagnostics(self, silent=False):
         if self.running:
             return
         self.running = True
+        self._is_silent_check = silent
 
         if not silent:
             self._start_bmo_animation()
@@ -706,10 +774,19 @@ class VOSApp(ctk.CTk):
         self.after(0, self._finish_diagnostics)
 
     def _finish_diagnostics(self):
+        was_silent = self._is_silent_check
         self.running = False
+        self._is_silent_check = False
+        
         self._stop_bmo_animation()
-        self.run_btn.configure(state="normal", text="🔍  Check My System")
-        self.quick_drill_btn.configure(state="normal")
+        
+        if not was_silent:
+            self.run_btn.configure(state="normal", text="🔍  Check My System")
+            if self.is_authorized:
+                self.quick_drill_btn.configure(state="normal")
+            else:
+                self.quick_drill_btn.configure(state="disabled")
+        
         self.update_observations()
         threading.Thread(target=self._post_results_to_dashboard, daemon=True).start()
 

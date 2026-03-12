@@ -1,8 +1,9 @@
 {
-    "employee_name": "Mohamed ibrahim Abdo",
-    "anydesk_id": "1 585 322 949",
+    "employee_name": "Ahmed Ali AbdelNabi Hemdan",
+    "anydesk_id": "123 5545 657",
+    "team": "",
+    "res_id": "RES-1588",
     "dashboard_url": "https://mohamed404.pythonanywhere.com",
-    "api_key": "sysprobe-default-key",
-    "theme": "dark",
-    "update_check_url": ""
+    "api_key": "vos-default-key",
+    "theme": "dark"
 }

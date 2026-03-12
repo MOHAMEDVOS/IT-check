@@ -28,20 +28,14 @@ class BaseCard(ctk.CTkFrame):
         self._glow_size = (0, 0)
         self._glow_img_subtle = None
         self._glow_img_strong = None
-
-        self._glow_label = tk.Label(self, bd=0, highlightthickness=0, bg=colors["BG"])
-        self._glow_label.place(relx=0, rely=0, relwidth=1, relheight=1)
-
         self.inner = ctk.CTkFrame(
             self,
             fg_color=colors["CARD_BG"],
             corner_radius=10,
-            border_width=1,
+            border_width=2,
             border_color=colors["BORDER"],
         )
-        # Space for the glow around the surface
-        self._glow_pad = 12
-        self.inner.pack(fill="both", expand=True, padx=self._glow_pad, pady=self._glow_pad)
+        self.inner.pack(fill="both", expand=True, padx=0, pady=0)
 
         # Hover: subtle border glow (bound after children exist)
         # Header
@@ -113,102 +107,25 @@ class BaseCard(ctk.CTkFrame):
         # Default visual state
         self._apply_visual_state()
 
-        # Generate glow bitmaps once we know final size
-        self.bind("<Configure>", self._on_configure)
-
     def _bind_hover_to_children(self, widget):
         for w in widget.winfo_children():
+            # Skip binding to widgets that should handle their own events if any
             w.bind("<Enter>", self._on_hover_enter)
             w.bind("<Leave>", self._on_hover_leave)
             self._bind_hover_to_children(w)
 
-    def _on_configure(self, event=None):
-        """Debounced glow bitmap regeneration on resize."""
-        if self._glow_after:
-            try:
-                self.after_cancel(self._glow_after)
-            except Exception:
-                pass
-        self._glow_after = self.after(80, self._ensure_glow_images)
-
-    def _ensure_glow_images(self):
-        """Create/refresh glow images for current widget size."""
-        self._glow_after = None
-        try:
-            w = max(50, int(self.winfo_width()))
-            h = max(50, int(self.winfo_height()))
-        except Exception:
-            return
-
-        if (w, h) == self._glow_size and self._glow_img_subtle and self._glow_img_strong:
-            return
-
-        self._glow_size = (w, h)
-        pad = self._glow_pad
-        radius = 14
-
-        def _hex_to_rgb(hex_color: str):
-            hc = (hex_color or "#000000").lstrip("#")
-            try:
-                return int(hc[0:2], 16), int(hc[2:4], 16), int(hc[4:6], 16)
-            except Exception:
-                return (79, 125, 255)
-
-        glow_rgb = _hex_to_rgb(colors.get("ACCENT", "#4F7DFF"))
-
-        def _make(strength: str):
-            if strength == "strong":
-                alpha = 170
-                blur = 20
-            else:
-                alpha = 85
-                blur = 16
-
-            img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-            draw = ImageDraw.Draw(img)
-            x0, y0 = pad - 2, pad - 2
-            x1, y1 = w - pad + 2, h - pad + 2
-            # IMPORTANT: draw STROKE (ring) only, then blur.
-            # A filled rect + blur produces a big square-ish haze.
-            ring_w = 8 if strength == "strong" else 6
-            for i in range(3):
-                draw.rounded_rectangle(
-                    [x0 + i, y0 + i, x1 - i, y1 - i],
-                    radius=max(0, radius - i),
-                    outline=(glow_rgb[0], glow_rgb[1], glow_rgb[2], alpha),
-                    width=ring_w,
-                )
-            img = img.filter(ImageFilter.GaussianBlur(blur))
-            return ImageTk.PhotoImage(img)
-
-        try:
-            self._glow_img_subtle = _make("subtle")
-            self._glow_img_strong = _make("strong")
-            self._apply_visual_state()
-        except Exception:
-            # If PIL fails, just keep going without glow
-            self._glow_img_subtle = None
-            self._glow_img_strong = None
-
     def _apply_visual_state(self):
-        """Apply glow bitmap + glass surface styling based on hover/checking state."""
+        """Update the internal card border color based on hover/checking state."""
         surface = colors["CARD_HOVER"] if self._hovered else colors["CARD_BG"]
-        if self._glow_label is not None:
-            img = None
-            if self._hovered or (self._is_checking and self._pulse_on):
-                img = self._glow_img_strong
-            else:
-                img = self._glow_img_subtle
-            try:
-                if img is not None:
-                    self._glow_label.configure(image=img, bg=colors["BG"])
-                    self._glow_label.image = img
-                else:
-                    self._glow_label.configure(image="", bg=colors["BG"])
-            except Exception:
-                pass
+        
+        # Accent pulse/hover
+        if self._hovered or (self._is_checking and self._pulse_on):
+            border = colors["ACCENT"]
+        else:
+            border = colors["BORDER"]
+            
         try:
-            self.inner.configure(fg_color=surface)
+            self.inner.configure(fg_color=surface, border_color=border)
         except Exception:
             pass
 
@@ -224,8 +141,8 @@ class BaseCard(ctk.CTkFrame):
                 return
             try:
                 x, y = self.winfo_pointerxy()
-                w = self.winfo_containing(x, y)
-                current = w
+                containing = self.winfo_containing(x, y)
+                current = containing
                 while current:
                     if current == self:
                         return

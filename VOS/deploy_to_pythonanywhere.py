@@ -20,6 +20,7 @@ FILES = {
     os.path.join("templates", "login.html"): "SysProbe/templates/login.html",
     os.path.join("modules", "email_alerts.py"): "SysProbe/modules/email_alerts.py",
     os.path.join("modules", "__init__.py"): "SysProbe/modules/__init__.py",
+    os.path.join("assets", "IT.ico"): "SysProbe/assets/IT.ico",
 }
 
 
