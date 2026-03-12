@@ -660,10 +660,6 @@ class VOSApp(ctk.CTk):
             self.cards["speed"].grid_forget()
             self.cards["mic"].grid_forget()
             
-            # Reposition the BMO animation back to row 1
-            if self._bmo_label and self._bmo_label.master:
-                self._bmo_label.master.grid(row=1, column=0, columnspan=3, pady=(32, 0), sticky="n")
-            
             # Ensure restricted buttons are completely hidden
             self.quick_drill_btn.pack_forget()
 
