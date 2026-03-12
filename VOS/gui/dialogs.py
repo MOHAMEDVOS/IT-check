@@ -250,11 +250,7 @@ class NameDialog(ctk.CTkToplevel):
             cfg["anydesk_id"] = anydesk
             cfg["team"] = self.team_entry.get().strip()
             cfg["res_id"] = self.res_id_entry.get().strip()
-            # Always set default dashboard URL and API key
-            if not cfg.get("dashboard_url"):
-                cfg["dashboard_url"] = "https://mohamed404.pythonanywhere.com"
-            if not cfg.get("api_key"):
-                cfg["api_key"] = "vos-default-key"
+            # Always set theme default if missing
             if not cfg.get("theme"):
                 cfg["theme"] = "dark"
             _save_config(cfg)

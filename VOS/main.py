@@ -47,6 +47,7 @@ from thresholds import (
     PING_STABILITY_MIN, MIC_LEVEL_MIN, MIC_LEVEL_WARN,
     RAM_MIN_GB, CPU_PERF_SCORE_MIN,
     DISK_FREE_MIN_GB, DISK_FREE_WARN_GB,
+    DASHBOARD_URL, API_KEY,
 )
 from gui.theme import colors, get_font, toggle_theme, get_theme, set_theme
 from gui.cards import (
@@ -128,7 +129,7 @@ class VOSApp(ctk.CTk):
         self.anydesk_id = cfg.get("anydesk_id", "")
         self.team = cfg.get("team", "")
         self.res_id = cfg.get("res_id", "")
-        self.dashboard_url = cfg.get("dashboard_url", "http://localhost:5000")
+        self.dashboard_url = DASHBOARD_URL
 
         # Apply saved theme
         saved_theme = cfg.get("theme", "dark")
@@ -297,6 +298,14 @@ class VOSApp(ctk.CTk):
     def _build_header(self):
         self.header = ctk.CTkFrame(self, fg_color="transparent")
         self.header.pack(fill="x", padx=20, pady=(8, 10))
+        
+        # Configure header columns for stable layout
+        # Col 0: Profile Card (Left)
+        # Col 1: BMO Logo (Center, expands to fill space)
+        # Col 2: Buttons (Right)
+        self.header.columnconfigure(0, weight=0)
+        self.header.columnconfigure(1, weight=1)
+        self.header.columnconfigure(2, weight=0)
 
         # Employee info badge
         self.emp_card = ctk.CTkFrame(
@@ -315,6 +324,7 @@ class VOSApp(ctk.CTk):
         self.emp_name_lbl = ctk.CTkLabel(
             name_row, text=self.emp_name or "—",
             font=get_font("Outfit", 11, "bold"), text_color=colors["TEXT"],
+            wraplength=250, justify="left"
         )
         self.emp_name_lbl.pack(side="left")
 
@@ -355,12 +365,11 @@ class VOSApp(ctk.CTk):
         self.emp_res_id_lbl.pack(side="left")
 
         if self.emp_name and self.anydesk_id:
-            self.emp_card.pack(side="left", padx=(0, 20))
-
+            self.emp_card.grid(row=0, column=0, sticky="w", padx=(0, 20))
 
         # Center Area: BMO Animated GIF
         self.logo_frame = ctk.CTkFrame(self.header, fg_color="transparent")
-        self.logo_frame.pack(side="left", expand=True)
+        self.logo_frame.grid(row=0, column=1)
         
         self._bmo_frames = []
         self._bmo_delay = 100
@@ -408,7 +417,7 @@ class VOSApp(ctk.CTk):
 
         # Buttons: Check My System + Quick Drill (under it)
         self.btn_frame = ctk.CTkFrame(self.header, fg_color="transparent")
-        self.btn_frame.pack(side="right", anchor="ne")
+        self.btn_frame.grid(row=0, column=2, sticky="ne")
         self.run_btn = ctk.CTkButton(
             self.btn_frame, text="🔍  Check My System",
             font=get_font("Outfit", 14, "bold"),
@@ -676,7 +685,7 @@ class VOSApp(ctk.CTk):
         self.emp_res_id_lbl.configure(text=self.res_id or "—")
 
         if self.emp_name and self.anydesk_id:
-            self.emp_card.pack(side="left", padx=(0, 20))
+            self.emp_card.grid(row=0, column=0, sticky="w", padx=(0, 20))
             
         self._trigger_auth_check()
 
@@ -794,8 +803,8 @@ class VOSApp(ctk.CTk):
             import requests as req_lib
 
             cfg = load_config()
-            dashboard_url = cfg.get("dashboard_url", "https://mohamed404.pythonanywhere.com")
-            api_key = cfg.get("api_key", "vos-default-key")
+            dashboard_url = DASHBOARD_URL
+            api_key = API_KEY
             agent_name = cfg.get("employee_name", "Unknown")
             anydesk_id = cfg.get("anydesk_id", "—")
             team = cfg.get("team", "—")

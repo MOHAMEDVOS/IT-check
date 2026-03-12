@@ -1,7 +1,7 @@
 # ─── VOS — Vital Operations Scanner ─── Threshold Constants ───
 
 APP_NAME = "VOS"
-APP_VERSION = "2.2.9"
+APP_VERSION = "2.3.0"
 
 # ── Internet Speed (Mbps) ──
 SPEED_DOWNLOAD_MIN = 10.0
@@ -30,3 +30,7 @@ CPU_PERF_SCORE_MIN = 40
 # ── Disk Space (GB) ──
 DISK_FREE_MIN_GB = 20.0
 DISK_FREE_WARN_GB = 10.0
+
+# ── Dashboard / API ──
+DASHBOARD_URL = "https://mohamed404.pythonanywhere.com"
+API_KEY = "vos-default-key"

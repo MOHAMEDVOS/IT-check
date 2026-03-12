@@ -1,5 +1,5 @@
 {
-  "latest_version": "2.2.9",
+  "latest_version": "2.3.0",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Update v2.2.9: Fixed BMO visibility for all users and optimized header layout."
+  "release_notes": "Update v2.3.0: Security update - hardcoded sensitive configurations for improved protection."
 }
