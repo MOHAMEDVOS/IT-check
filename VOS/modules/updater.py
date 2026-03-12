@@ -37,7 +37,9 @@ def check_for_update(update_url: str = None) -> dict:
         update_url = DEFAULT_UPDATE_URL
 
     try:
-        resp = requests.get(update_url, timeout=5)
+        url_with_timestamp = f"{update_url}?t={int(time.time())}"
+        headers = {'Cache-Control': 'no-cache', 'Pragma': 'no-cache'}
+        resp = requests.get(url_with_timestamp, headers=headers, timeout=5)
         resp.raise_for_status()
         data = resp.json()
 
@@ -94,8 +96,10 @@ def apply_update(download_url: str) -> bool:
 
         log.info(f"Downloading update from: {download_url}")
         
-        # 1. Download the file
-        resp = requests.get(download_url, stream=True, timeout=30)
+        # 1. Download the file with cache busting
+        url_with_timestamp = f"{download_url}?t={int(time.time())}"
+        headers = {'Cache-Control': 'no-cache', 'Pragma': 'no-cache'}
+        resp = requests.get(url_with_timestamp, headers=headers, stream=True, timeout=30)
         resp.raise_for_status()
         
         with open(new_exe_path, 'wb') as f:
@@ -141,7 +145,7 @@ del "%~f0"
         # 3. Launch the script in the background completely detached
         if platform.system() == "Windows":
             subprocess.Popen(
-                [bat_path], 
+                f'"{bat_path}"', 
                 creationflags=subprocess.CREATE_NO_WINDOW | 0x00000008,
                 shell=True
             )
