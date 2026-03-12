@@ -1,7 +1,7 @@
 # ─── VOS — Vital Operations Scanner ─── Threshold Constants ───
 
 APP_NAME = "VOS"
-APP_VERSION = "2.3.1"
+APP_VERSION = "2.3.2"
 
 # ── Internet Speed (Mbps) ──
 SPEED_DOWNLOAD_MIN = 10.0
@@ -20,7 +20,7 @@ PING_COUNT = 20
 PING_ROUNDS = 3
 
 # ── Microphone ──
-MIC_LEVEL_MIN = 50
+MIC_LEVEL_MIN = 100
 MIC_LEVEL_WARN = 20
 
 # ── System Specs ──
