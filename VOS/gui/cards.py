@@ -355,12 +355,12 @@ class PingCard(BaseCard):
         self.target.insert(0, "8.8.8.8")
 
         self.verdict = ctk.CTkLabel(
-            target_fr,
+            self.content,
             text="",
-            font=get_font("Outfit", 12, "bold"),
+            font=get_font("Outfit", 14, "bold"),
             text_color=colors.get("GOOD", colors["SUCCESS"]),
         )
-        self.verdict.pack(side="left", padx=(8, 0))
+        self.verdict.pack(anchor="w", padx=10, pady=(4, 0))
 
         # Results textbox
         self.content_text = ctk.CTkTextbox(

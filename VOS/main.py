@@ -497,6 +497,17 @@ class VOSApp(ctk.CTk):
         )
         self.emp_res_id_lbl.pack(side="left")
 
+        # Edit Button
+        self.edit_profile_btn = ctk.CTkButton(
+            inner, text="✎ Edit Profile",
+            font=get_font("Outfit", 10, "bold"),
+            fg_color="transparent", text_color=colors["ACCENT"],
+            hover_color=colors["BORDER"],
+            height=20, width=80,
+            command=self._open_profile_editor
+        )
+        self.edit_profile_btn.pack(pady=(6, 0))
+
         if self.emp_name and self.anydesk_id:
             self.emp_card.grid(row=0, column=0, sticky="w", padx=(0, 20))
 
@@ -747,6 +758,17 @@ class VOSApp(ctk.CTk):
             )
         else:
             self._trigger_auth_check()
+
+    def _open_profile_editor(self):
+        NameDialog(
+            self,
+            current_name=self.emp_name,
+            current_anydesk=self.anydesk_id,
+            current_dashboard_url=self.dashboard_url,
+            current_team=self.team,
+            current_res_id=self.res_id,
+            on_close=self._on_info_saved,
+        )
 
     def _trigger_auth_check(self):
         threading.Thread(target=self._do_auth_check, daemon=True).start()
@@ -1105,11 +1127,11 @@ class VOSApp(ctk.CTk):
 
             verdict_str = res.verdict.upper()
             if verdict_str in ["EXCELLENT", "GOOD", "FAIR"]:
-                text = f"{verdict_str} : Good Connection – Your network is stable. No issues detected."
+                text = "Good Connection – Your network is stable. No issues detected."
             elif verdict_str in ["MARGINAL", "UNSTABLE"]:
-                text = f"{verdict_str} : Unstable Connection – Your network is fluctuating and may affect calls."
+                text = "Unstable Connection – Your network is fluctuating and may affect calls."
             else:
-                text = f"{verdict_str} : Poor Connection – Your connection is unstable and may cause call drops or delays."
+                text = "Poor Connection – Your connection is unstable and may cause call drops or delays."
 
             def _update_ok():
                 self.cards["ping"].update_content(text.strip())
