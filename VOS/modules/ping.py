@@ -97,125 +97,48 @@ def _build_latency_distribution(samples: List[int]) -> str:
 
 def _score_and_verdict(result: PingResult) -> tuple:
     """
-    Strict VoIP scoring 0–100. Weighted:
-      - Consistency (std_dev + range)  25%  (distribution spread matters!)
-      - Jitter                         25%  (critical for voice)
-      - Avg RTT                        20%  (latency matters for calls)
-      - Packet Loss                    20%
-      - Spike Count                    10%
+    Distribution-Based Ping Scoring.
+    Decides connection quality strictly based on Standard Deviation and 
+    the percentage of pings exceeding a dynamic baseline.
     Returns (score, verdict, color, notes[])
     """
     notes = []
-    score = 100
+    
+    if not result.samples:
+        return 0, "CRITICAL", "#EF4444", ["Ping failed entirely"]
 
-    # ── 1. Consistency / Distribution penalty (NEW — 25 pts) ─────────────────
-    #    This catches the exact scenario: 40ms ×21 | 45ms ×15 | 50ms ×3 | 60ms ×1
-    #    Even if jitter looks "ok", spread across buckets = inconsistent
-    if result.samples:
-        ping_range = result.max_rtt - result.min_rtt
-        if result.std_dev <= CONSISTENCY_GOOD_MS and ping_range <= 5:
-            pass  # Rock solid — all pings land in same bucket
-        elif result.std_dev <= CONSISTENCY_OK_MS and ping_range <= 15:
-            score -= 10
-            notes.append(f"Ping spread {result.min_rtt}-{result.max_rtt}ms (σ={result.std_dev}ms) — minor inconsistency")
-        elif result.std_dev <= 15 or ping_range <= 30:
-            score -= 15
-            notes.append(f"Ping spread {result.min_rtt}-{result.max_rtt}ms (σ={result.std_dev}ms) — inconsistent, may cause audio artifacts")
-        else:
-            score -= 30
-            notes.append(f"Ping spread {result.min_rtt}-{result.max_rtt}ms (σ={result.std_dev}ms) — very unstable for VoIP")
+    baseline = result.min_rtt
+    total_samples = len(result.samples)
+    
+    # Count how many pings spike more than 20ms above the absolute best ping
+    far_pings = sum(1 for ms in result.samples if ms > baseline + 20)
+    far_pings_pct = (far_pings / total_samples) * 100
+    std_dev = result.std_dev
 
-    # ── 2. Jitter penalty (25 pts) ───────────────────────────────────────────
-    if result.jitter <= JITTER_GOOD_MS:
-        pass  # Excellent (0-5 ms)
-    elif result.jitter <= JITTER_OK_MS:
-        score -= 5
-        notes.append(f"Jitter {result.jitter}ms — good")
-    elif result.jitter < JITTER_PROBLEM_MS:
-        score -= 8
-        notes.append(f"Jitter {result.jitter}ms — acceptable, but some fluctuations")
-    elif result.jitter <= 15:
-        score -= 20
-        notes.append(f"Jitter {result.jitter}ms — can cause problems (choppy audio likely)")
-    elif result.jitter <= 30:
-        score -= 30
-        notes.append(f"High jitter {result.jitter}ms — expect choppy, robotic audio")
-    else:
-        score -= 40
-        notes.append(f"Severe jitter {result.jitter}ms — calls will be heavily distorted")
+    # Calculate Jitter (just for dashboard reporting)
+    result.jitter = _calc_jitter(result.samples)
 
-    # ── 3. Avg RTT penalty (20 pts) ──────────────────────────────────────────
-    if result.avg_rtt <= AVG_GOOD_MS:
-        pass  # Great
-    elif result.avg_rtt <= AVG_OK_MS:
-        score -= 12
-        notes.append(f"Latency {result.avg_rtt:.0f}ms — noticeable delay, talk-over-talk on calls")
-    elif result.avg_rtt <= 80:
-        score -= 20
-        notes.append(f"Latency {result.avg_rtt:.0f}ms — significant delay, awkward pauses in conversation")
-    elif result.avg_rtt <= 120:
-        score -= 30
-        notes.append(f"High latency {result.avg_rtt:.0f}ms — callers will talk over each other constantly")
-    else:
-        score -= 40
-        notes.append(f"Very high latency {result.avg_rtt:.0f}ms — unusable for professional calls")
-
-    # ── 4. Packet loss penalty (20 pts) ──────────────────────────────────────
-    if result.packet_loss_pct == 0:
-        pass
-    elif result.packet_loss_pct <= LOSS_OK_PCT:
-        score -= 10
-        notes.append(f"{result.packet_loss_pct}% loss — rare audio dropouts possible")
-    elif result.packet_loss_pct <= 1:
-        score -= 15
-        notes.append(f"{result.packet_loss_pct}% loss — some words will be cut off")
-    elif result.packet_loss_pct <= 3:
-        score -= 25
-        notes.append(f"{result.packet_loss_pct}% loss — frequent missing audio chunks")
-    else:
-        score -= 35
-        notes.append(f"{result.packet_loss_pct}% loss — severe: entire sentences will drop")
-
-    # ── 5. Spike penalty (10 pts) ────────────────────────────────────────────
-    spike_rate = (result.spike_count / len(result.samples) * 100) if result.samples else 0
-    if result.spike_count == 0:
-        pass
-    elif result.spike_count <= 2:
-        score -= 8
-        notes.append(f"{result.spike_count} spike(s) detected — brief delay bursts during calls")
-    elif result.spike_count <= 5:
-        score -= 15
-        notes.append(f"{result.spike_count} spikes ({spike_rate:.0f}%) — repeated lag bursts, callers hear gaps")
-    elif spike_rate <= 20:
-        score -= 20
-        notes.append(f"{result.spike_count} spikes ({spike_rate:.0f}%) — frequent lag, unreliable for calls")
-    else:
-        score -= 35
-        notes.append(f"{result.spike_count} spikes ({spike_rate:.0f}%) — connection too unstable for any voice work")
-
-    score = max(0, score)
-
-    # ── Verdict (balanced cutoffs: POOR only for clearly bad connections) ───
-    if score >= 92:
-        verdict, color = "EXCELLENT", "#22D3EE"
-        notes.insert(0, "Rock-solid for Readymode calls")
-    elif score >= 80:
-        verdict, color = "GOOD", "#22D3EE"
-        notes.insert(0, "Good enough for calls, minor room for improvement")
-    elif score >= 65:
-        verdict, color = "FAIR", "#F59E0B"
-        notes.insert(0, "Usable but expect occasional call quality issues")
-    elif score >= 35:
-        verdict, color = "MARGINAL", "#F97316"
-        # Softer wording for marginal connections — strong warning is reserved for POOR/CRITICAL
-        notes.insert(0, "Connection is marginal but usually OK — keep an eye on call quality")
-    elif score >= 20:
+    # ── Rule 3: Critical / Poor
+    if far_pings_pct > 10.0 or std_dev > 15.0 or result.packet_loss_pct > 3.0:
+        score = 25
         verdict, color = "POOR", "#EF4444"
-        notes.insert(0, "Calls will have frequent audio problems — action required")
-    else:
-        verdict, color = "CRITICAL", "#EF4444"
-        notes.insert(0, "Connection unusable for calls — DO NOT use for customer calls")
+        notes.append(f"Severely unstable: {far_pings_pct:.1f}% of pings spiked heavily (σ={std_dev}ms).")
+        notes.append("Calls will drop or have massive delays.")
 
+    # ── Rule 2: Fair / Unstable
+    elif far_pings_pct > 0.0 or std_dev > 5.0 or result.packet_loss_pct > 0.0:
+        score = 60
+        verdict, color = "MARGINAL", "#F97316"
+        notes.append(f"Fluctuating network. {far_pings_pct:.1f}% of pings spiked above baseline.")
+        notes.append("Audio might become robotic or choppy briefly.")
+
+    # ── Rule 1: Good / Excellent
+    else:
+        score = 95
+        verdict, color = "GOOD", "#22D3EE"
+        notes.append("Rock-solid connection. 0% of pings spiked above baseline.")
+        notes.append(f"Standard deviation perfectly tight at {std_dev}ms.")
+        
     return score, verdict, color, notes
 
 

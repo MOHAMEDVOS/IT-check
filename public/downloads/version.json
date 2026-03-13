@@ -1,5 +1,5 @@
 {
-  "latest_version": "2.3.9",
+  "latest_version": "2.4.0",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Update v2.3.9: Fixed display discrepancy where Fair connections were showing as Unstable to users."
+  "release_notes": "Update v2.4.0: Major Core Update - Ping scoring completely rewritten to evaluate bucket distributions and spike percentages to accurately detect unstable networks."
 }
