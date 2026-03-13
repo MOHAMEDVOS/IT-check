@@ -1,5 +1,5 @@
 {
-  "latest_version": "2.3.7",
+  "latest_version": "2.3.8",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Update v2.3.7: Application Bug Fixes (Thread safety, tray minimize, UI debouncing, and mutex ordering)."
+  "release_notes": "Update v2.3.8: UI Improvement - Simplified connection status display to plain English instead of technical internet numbers."
 }

@@ -1103,15 +1103,12 @@ class VOSApp(ctk.CTk):
                 self.after(0, _update_err)
                 return
 
-            text = (
-                f"Score  : {res.stability_score}/100 ({res.verdict})\n"
-                f"Jitter : {res.jitter} ms | Avg: {res.avg_rtt:.0f} ms\n"
-                f"Loss   : {res.packet_loss_pct}% | Spikes: {res.spike_count}\n\n"
-            )
-            for note in res.call_quality_notes[:2]:
-                text += f"• {note}\n"
-            if res.latency_distribution:
-                text += f"\nDist   : {res.latency_distribution}"
+            if res.verdict.upper() == "GOOD":
+                text = "Good Connection – Your network is stable. No issues detected."
+            elif res.verdict.upper() in ["FAIR", "UNSTABLE"]:
+                text = "Unstable Connection – Your network is fluctuating and may affect calls."
+            else:
+                text = "Poor Connection – Your connection is unstable and may cause call drops or delays."
 
             def _update_ok():
                 self.cards["ping"].update_content(text.strip())
