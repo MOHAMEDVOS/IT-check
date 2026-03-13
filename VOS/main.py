@@ -141,14 +141,17 @@ class VOSApp(ctk.CTk):
         self._build_cards()
 
         self.results = {}
+        # FIX 4: Lock to protect self.results from concurrent thread writes
+        self._results_lock = threading.Lock()
         self.running = False
-        self.is_authorized = False  # Track auth status
+        self.is_authorized = False
         self._is_silent_check = False
-        self._update_btn = None
-        self._tray_icon = None  # pystray Icon, created on first minimize (currently unused)
+        # FIX 3: Removed dead _update_btn field (was set to None and never used)
+        self._tray_icon = None
 
-        # Close button (X) now minimizes to the system tray.
+        # FIX 1: Connect _on_unmap so minimizing sends app to tray
         self.protocol("WM_DELETE_WINDOW", self._to_tray)
+        self.bind("<Unmap>", self._on_unmap)
 
         # First automated check in 1 hour, then every 1 hour
         self.after(AUTO_CHECK_INTERVAL_MS, self._run_auto_check)
@@ -183,7 +186,19 @@ class VOSApp(ctk.CTk):
             def _rgb_to_hex(r, g, b):
                 return f"#{r:02x}{g:02x}{b:02x}"
 
-            def _redraw(*args):
+            # FIX (Warning): debounce gradient redraws so window resize doesn't lag
+            self._gradient_after_id = None
+
+            def _schedule_redraw(*args):
+                if self._gradient_after_id is not None:
+                    try:
+                        self.after_cancel(self._gradient_after_id)
+                    except Exception:
+                        pass
+                self._gradient_after_id = self.after(50, _redraw)
+
+            def _redraw():
+                self._gradient_after_id = None
                 try:
                     w = self._gradient_canvas.winfo_width()
                     h = self._gradient_canvas.winfo_height()
@@ -207,7 +222,7 @@ class VOSApp(ctk.CTk):
                 except Exception:
                     pass
 
-            self._gradient_canvas.bind("<Configure>", _redraw)
+            self._gradient_canvas.bind("<Configure>", _schedule_redraw)
             self.after(100, _redraw)
         except Exception as e:
             log.debug(f"Gradient bg skipped: {e}")
@@ -215,7 +230,6 @@ class VOSApp(ctk.CTk):
     # ─────────────────────── Auto-check (every 1 hour) ───────────────────────
     def _run_auto_check(self):
         """Run full system check in the background, then schedule the next one."""
-        # Schedule next run regardless (keeps 1‑hour cycle)
         self.after(AUTO_CHECK_INTERVAL_MS, self._run_auto_check)
         if self.running:
             log.debug("Auto-check skipped: a check is already running")
@@ -252,24 +266,22 @@ class VOSApp(ctk.CTk):
                     except Exception as e:
                         log.error(f"Silent task '{name}' failed: {e}", exc_info=True)
 
-            # Ping runs sequentially (same as normal path)
             self._silent_task_ping("8.8.8.8")
         except Exception as e:
             log.error(f"Silent auto-check failed: {e}", exc_info=True)
         finally:
             self.running = False
             self._is_silent_check = False
-            # Post results to dashboard (pure HTTP, no UI)
             self._post_results_to_dashboard()
-            # Check for updates silently (only touches footer text if update found,
-            # which is fine — it won't restore window)
             self._do_update_check(silent=True)
             log.info("Silent auto-check completed")
 
     def _silent_task_specs(self):
         try:
             from modules.specs import get_system_specs
-            self.results["specs"] = get_system_specs()
+            result = get_system_specs()
+            with self._results_lock:
+                self.results["specs"] = result
             log.info("Silent specs check done")
         except Exception as e:
             log.error(f"Silent specs check failed: {e}")
@@ -277,7 +289,9 @@ class VOSApp(ctk.CTk):
     def _silent_task_chrome(self):
         try:
             from modules.chrome import check_chrome
-            self.results["chrome"] = check_chrome()
+            result = check_chrome()
+            with self._results_lock:
+                self.results["chrome"] = result
             log.info("Silent chrome check done")
         except Exception as e:
             log.error(f"Silent chrome check failed: {e}")
@@ -287,7 +301,8 @@ class VOSApp(ctk.CTk):
         try:
             from modules.vpn import check_vpn
             vpn_info = check_vpn()
-            self.results["vpn"] = vpn_info
+            with self._results_lock:
+                self.results["vpn"] = vpn_info
         except Exception as e:
             log.warning(f"Silent VPN check failed: {e}")
         # Speed test
@@ -301,8 +316,9 @@ class VOSApp(ctk.CTk):
                     return 0.0
             res["_raw_down"] = _parse(res.get("download", "0"))
             res["_raw_up"] = _parse(res.get("upload", "0"))
-            self.results["speed"] = res
-            log.info(f"Silent speed check done: {res['_raw_down']:.1f}↓ / {res['_raw_up']:.1f}↑")
+            with self._results_lock:
+                self.results["speed"] = res
+            log.info(f"Silent speed check done: {res['_raw_down']:.1f}down / {res['_raw_up']:.1f}up")
         except Exception as e:
             log.error(f"Silent speed check failed: {e}")
 
@@ -310,11 +326,13 @@ class VOSApp(ctk.CTk):
         try:
             from modules.mic import check_mic_level
             res = check_mic_level()
-            self.results["mic"] = {
+            mic_data = {
                 "level": res.get("level", 0),
                 "device": res.get("device_name", "Unknown"),
                 "type": res.get("device_type", "Unknown"),
             }
+            with self._results_lock:
+                self.results["mic"] = mic_data
             log.info("Silent mic check done")
         except Exception as e:
             log.error(f"Silent mic check failed: {e}")
@@ -322,7 +340,9 @@ class VOSApp(ctk.CTk):
     def _silent_task_disk(self):
         try:
             from modules.disk import check_disk_space
-            self.results["disk"] = check_disk_space()
+            result = check_disk_space()
+            with self._results_lock:
+                self.results["disk"] = result
             log.info("Silent disk check done")
         except Exception as e:
             log.error(f"Silent disk check failed: {e}")
@@ -331,7 +351,8 @@ class VOSApp(ctk.CTk):
         try:
             from modules.ping import run_ping
             res = run_ping(target)
-            self.results["ping"] = res
+            with self._results_lock:
+                self.results["ping"] = res
             log.info(f"Silent ping check done: {getattr(res, 'stability_score', '?')}/100")
         except Exception as e:
             log.error(f"Silent ping check failed: {e}")
@@ -349,11 +370,9 @@ class VOSApp(ctk.CTk):
             if self._tray_icon is None:
                 self._tray_icon = self._create_tray_icon()
                 self._tray_icon.run_detached()
-            
             self.withdraw()
         except Exception as e:
             log.error(f"Failed to minimize to tray: {e}")
-            # Fallback: just minimize normally if tray fails
             self.iconify()
 
     def _from_tray(self):
@@ -386,7 +405,6 @@ class VOSApp(ctk.CTk):
                 img = Image.open(icon_path)
                 if hasattr(img, "convert"):
                     img = img.convert("RGBA")
-                # Tray icons are small; use 32x32 or 64x64
                 w, h = img.size
                 if w > 64 or h > 64:
                     resample = getattr(Image, "Resampling", Image)
@@ -396,7 +414,7 @@ class VOSApp(ctk.CTk):
         except Exception as e:
             log.debug(f"Tray icon image load failed: {e}")
             from PIL import Image
-            img = Image.new("RGBA", (32, 32), (0, 210, 255, 255))  # Accent-colored square fallback
+            img = Image.new("RGBA", (32, 32), (0, 210, 255, 255))
 
         app = self
 
@@ -417,11 +435,7 @@ class VOSApp(ctk.CTk):
     def _build_header(self):
         self.header = ctk.CTkFrame(self, fg_color="transparent")
         self.header.pack(fill="x", padx=20, pady=(8, 10))
-        
-        # Configure header columns for stable layout
-        # Col 0: Profile Card (Left)
-        # Col 1: BMO Logo (Center, expands to fill space)
-        # Col 2: Buttons (Right)
+
         self.header.columnconfigure(0, weight=0)
         self.header.columnconfigure(1, weight=1)
         self.header.columnconfigure(2, weight=0)
@@ -489,7 +503,7 @@ class VOSApp(ctk.CTk):
         # Center Area: BMO Animated GIF
         self.logo_frame = ctk.CTkFrame(self.header, fg_color="transparent")
         self.logo_frame.grid(row=0, column=1)
-        
+
         self._bmo_frames = []
         self._bmo_delay = 100
         self._bmo_animating = False
@@ -508,7 +522,6 @@ class VOSApp(ctk.CTk):
                             frame = frame.convert("RGBA")
                         elif frame.mode != "RGBA" and frame.mode != "RGB":
                             frame = frame.convert("RGB")
-                        # Resized to 140x140 for header
                         if frame.size != (140, 140):
                             frame = frame.resize((140, 140), resample)
                         self._bmo_frames.append(ImageTk.PhotoImage(frame))
@@ -523,7 +536,6 @@ class VOSApp(ctk.CTk):
                 self._bmo_label.pack()
             else:
                 self._bmo_label = None
-                # Fallback to static icon if GIF fails
                 icon_path = os.path.join(base_path, "assets", "IT.ico")
                 if os.path.exists(icon_path):
                     img = Image.open(icon_path)
@@ -534,7 +546,7 @@ class VOSApp(ctk.CTk):
             log.debug(f"BMO GIF load skipped: {e}")
             self._bmo_label = None
 
-        # Buttons: Check My System + Quick Drill (under it)
+        # Buttons
         self.btn_frame = ctk.CTkFrame(self.header, fg_color="transparent")
         self.btn_frame.grid(row=0, column=2, sticky="ne")
         self.run_btn = ctk.CTkButton(
@@ -546,6 +558,9 @@ class VOSApp(ctk.CTk):
             corner_radius=8, height=45, command=self.start_diagnostics,
         )
         self.run_btn.pack(side="top", fill="x", pady=(0, 4))
+
+        # FIX 2: Create button but do NOT pack it here.
+        # _apply_auth_ui is the only place that shows/hides it.
         self.quick_drill_btn = ctk.CTkButton(
             self.btn_frame, text="Quick Drill !",
             font=get_font("Outfit", 10, "bold"),
@@ -554,7 +569,7 @@ class VOSApp(ctk.CTk):
             corner_radius=6, height=28, command=self._clear_chrome_data,
             state="disabled",
         )
-        self.quick_drill_btn.pack(side="top", fill="x", pady=(4, 0))
+        # intentionally NOT calling .pack() here
 
     def _build_footer(self):
         self.footer_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -567,7 +582,6 @@ class VOSApp(ctk.CTk):
         self.footer_lbl.pack()
 
     def _build_cards(self):
-        # Compact grid: 3 columns, only key cards visible for agents
         self.scroll_frame = ctk.CTkScrollableFrame(
             self, fg_color="transparent", corner_radius=0,
             scrollbar_button_color=colors["BORDER"],
@@ -589,20 +603,11 @@ class VOSApp(ctk.CTk):
         }
 
         gap = 6
-        # Visible to agents: only high-level cards (specs, Chrome, disk).
-        # Network & mic details still run and are sent to the dashboard,
-        # but their cards are hidden to avoid confusing users.
         self.cards["specs"].grid( row=0, column=0, sticky="nsew", padx=(0, gap), pady=(0, gap))
         self.cards["chrome"].grid(row=0, column=1, sticky="nsew", padx=gap,     pady=(0, gap))
         self.cards["disk"].grid(  row=0, column=2, sticky="nsew", padx=(gap, 0), pady=(0, gap))
 
-        # Initially hidden cards, will be shown if authorized:
-        # self.cards["ping"].grid(...)
-        # self.cards["speed"].grid(...)
-        # self.cards["mic"].grid(...)
-
     def _start_bmo_animation(self):
-        """Start BMO GIF animation (called when check begins)."""
         if not self._bmo_frames or not self._bmo_label or self._bmo_animating or self._is_silent_check:
             return
         self._bmo_animating = True
@@ -610,7 +615,6 @@ class VOSApp(ctk.CTk):
         self._tick_bmo_frame()
 
     def _tick_bmo_frame(self):
-        """Advance to next GIF frame."""
         if not self._bmo_animating or not self._bmo_frames or not self._bmo_label:
             return
         try:
@@ -621,7 +625,6 @@ class VOSApp(ctk.CTk):
             self._bmo_animating = False
 
     def _stop_bmo_animation(self):
-        """Stop BMO GIF animation (called when check finishes)."""
         self._bmo_animating = False
         if self._bmo_after_id is not None:
             try:
@@ -636,13 +639,11 @@ class VOSApp(ctk.CTk):
                 pass
 
     def _clear_chrome_data(self):
-        """Show confirmation dialog, then trigger clearing of Chrome data."""
         from gui.dialogs import LogoutConfirmDialog
 
         def _on_confirm():
-            # Disable button and show loading state
             self.quick_drill_btn.configure(
-                state="disabled", 
+                state="disabled",
                 text="⏳ Clearing... (Chrome will close)",
                 text_color=colors["WARNING"]
             )
@@ -657,11 +658,10 @@ class VOSApp(ctk.CTk):
             if success:
                 def _update_success():
                     self.quick_drill_btn.configure(
-                        state="normal", 
+                        state="normal",
                         text="✅ Cache, Cookies & Settings Cleared",
                         text_color=colors["SUCCESS"]
                     )
-                    # Reset button text after 4 seconds
                     self.after(4000, lambda: self.quick_drill_btn.configure(
                         text="Quick Drill !", text_color=colors["TEXT"]
                     ))
@@ -670,7 +670,7 @@ class VOSApp(ctk.CTk):
             else:
                 def _update_fail():
                     self.quick_drill_btn.configure(
-                        state="normal", 
+                        state="normal",
                         text="❌ Failed to clear Chrome data",
                         text_color=colors["ERROR"]
                     )
@@ -685,7 +685,6 @@ class VOSApp(ctk.CTk):
                 state="normal", text="Quick Drill !", text_color=colors["TEXT"]
             ))
 
-
     # ─────────────────────── Auto-Update Check ───────────────────────
     def _check_for_updates(self, silent=False):
         threading.Thread(target=self._do_update_check, args=(silent,), daemon=True).start()
@@ -697,22 +696,18 @@ class VOSApp(ctk.CTk):
             if result and result.get("update_available"):
                 new_ver = result.get("latest_version", "?")
                 dl_url = result.get("download_url", "")
-                
-                # Double check to avoid false positives
+
                 if str(new_ver) == str(APP_VERSION):
                     log.debug(f"Update check: Skipping false positive (both are {new_ver})")
                     return
 
                 log.info(f"Update check: Current={APP_VERSION}, Latest={new_ver} -> UPDATE AVAILABLE")
-                
+
                 def _show_update_ui():
-                    # Update footer text
                     self.footer_lbl.configure(
                         text=f"🔔 Update available: v{new_ver}",
                         text_color=colors["WARNING"],
                     )
-                    
-                    # Create "Update Now" button next to footer
                     if dl_url and not silent and not self.is_app_hidden():
                         update_btn = ctk.CTkButton(
                             self.btn_frame,
@@ -725,12 +720,12 @@ class VOSApp(ctk.CTk):
                             height=32,
                         )
                         update_btn.pack(fill="x", pady=(0, 4))
-                        
+
                         def _on_update_click():
                             update_btn.configure(state="disabled", text="⏳ Downloading...")
                             self.footer_lbl.configure(text="Downloading update, please wait...", text_color=colors["SUCCESS"])
                             threading.Thread(target=apply_update, args=(dl_url,), daemon=True).start()
-                            
+
                         update_btn.configure(command=_on_update_click)
 
                 self.after(0, _show_update_ui)
@@ -754,41 +749,31 @@ class VOSApp(ctk.CTk):
             self._trigger_auth_check()
 
     def _trigger_auth_check(self):
-        """Kick off the background authorization check."""
-        # Visual feedback during check:
-        # We could add an unobtrusive loading spinner or text somewhere if desired.
         threading.Thread(target=self._do_auth_check, daemon=True).start()
 
     def _do_auth_check(self):
-        # We need both an ID and Name
         if not self.res_id or not self.emp_name:
             self.after(0, self._apply_auth_ui, False)
             return
-
         is_auth = check_authorization(self.res_id, self.emp_name)
         log.info(f"Authorization check completed. Result: {is_auth}")
         self.after(0, self._apply_auth_ui, is_auth)
 
     def _apply_auth_ui(self, is_authorized):
         self.is_authorized = is_authorized
+        gap = 6
         if is_authorized:
             log.info("User IS authorized. Un-hiding cards...")
-            gap = 6
-            # Place the hidden cards in row 1
             self.cards["speed"].grid(row=1, column=0, sticky="nsew", padx=(0, gap), pady=(0, gap))
             self.cards["mic"].grid(  row=1, column=1, sticky="nsew", padx=gap,      pady=(0, gap))
             self.cards["ping"].grid( row=1, column=2, sticky="nsew", padx=(gap, 0), pady=(0, gap))
-            
-            # Allow Quick Drill button to be visible but disabled until scan ends
+            # FIX 2: single canonical pack location for quick_drill_btn
             self.quick_drill_btn.pack(side="top", fill="x", pady=(4, 0))
         else:
             log.info("User is NOT authorized. Keeping restricted UI hidden.")
-            # Remove hidden cards if they were previously showing
             self.cards["ping"].grid_forget()
             self.cards["speed"].grid_forget()
             self.cards["mic"].grid_forget()
-            
-            # Ensure restricted buttons are completely hidden
             self.quick_drill_btn.pack_forget()
 
     def _on_info_saved(self):
@@ -805,7 +790,7 @@ class VOSApp(ctk.CTk):
 
         if self.emp_name and self.anydesk_id:
             self.emp_card.grid(row=0, column=0, sticky="w", padx=(0, 20))
-            
+
         self._trigger_auth_check()
 
     # ─────────────────────── Diagnostics ───────────────────────
@@ -818,12 +803,13 @@ class VOSApp(ctk.CTk):
         if not silent:
             self._start_bmo_animation()
             self.run_btn.configure(state="disabled", text="⏳  Checking...")
-        
+
         log.info(f"Starting diagnostics {'(silent)' if silent else ''}")
 
-        self.results = {}
-        self.results["speed"] = {"_raw_down": 0.0, "_raw_up": 0.0}
-        self.results["mic"] = {"level": 0, "device": "Unknown"}
+        with self._results_lock:
+            self.results = {}
+            self.results["speed"] = {"_raw_down": 0.0, "_raw_up": 0.0}
+            self.results["mic"] = {"level": 0, "device": "Unknown"}
 
         target = self.cards["ping"].target.get() or "8.8.8.8"
 
@@ -844,7 +830,6 @@ class VOSApp(ctk.CTk):
             if hasattr(c, 'reset_vpn_status'):
                 c.reset_vpn_status()
             if hasattr(c, 'type_val') and not hasattr(c, 'down_num'):
-                # Reset MicCard type & hide fix button
                 c.type_val.configure(text="—")
                 if hasattr(c, 'hide_fix_btn'):
                     c.hide_fix_btn()
@@ -867,7 +852,6 @@ class VOSApp(ctk.CTk):
                 executor.submit(self._task_speed): "speed",
                 executor.submit(self._task_disk): "disk",
             }
-            ping_future = None
 
             for future in concurrent.futures.as_completed(futures):
                 name = futures[future]
@@ -880,7 +864,6 @@ class VOSApp(ctk.CTk):
                         "Something went wrong", colors["ERROR"]
                     ))
 
-        # 4. Finally, run Ping SEQUENTIALLY after everything else to avoid interference
         log.info("Running ping task sequentially")
         try:
             self._task_ping(target)
@@ -902,16 +885,16 @@ class VOSApp(ctk.CTk):
         was_silent = self._is_silent_check
         self.running = False
         self._is_silent_check = False
-        
+
         self._stop_bmo_animation()
-        
+
         if not was_silent:
             self.run_btn.configure(state="normal", text="🔍  Check My System")
             if self.is_authorized:
                 self.quick_drill_btn.configure(state="normal")
             else:
                 self.quick_drill_btn.configure(state="disabled")
-        
+
         self.update_observations()
         threading.Thread(target=self._post_results_to_dashboard, daemon=True).start()
 
@@ -929,8 +912,11 @@ class VOSApp(ctk.CTk):
             team = cfg.get("team", "—")
             res_id = cfg.get("res_id", "—")
 
-            # Build summary strings
-            specs = self.results.get("specs", {})
+            # FIX 4: Take a snapshot of results under lock before reading
+            with self._results_lock:
+                results_snapshot = dict(self.results)
+
+            specs = results_snapshot.get("specs", {})
             cpu_model = specs.get("cpu_model", "—").split("@")[0].strip()
             ram_str = specs.get("total_ram", "—").split()[0].split(".")[0] if specs.get("total_ram") else "—"
             gpu_name = specs.get("gpu_name", "—")
@@ -938,8 +924,7 @@ class VOSApp(ctk.CTk):
             cpu_label = specs.get("cpu_label", "—")
             pc_specs = f"{cpu_model} / {ram_str}GB RAM" if cpu_model != "—" else "—"
 
-            # Chrome
-            chrome_res = self.results.get("chrome", None)
+            chrome_res = results_snapshot.get("chrome", None)
             chrome_str = "—"
             chrome_status = "—"
             if chrome_res and hasattr(chrome_res, "status"):
@@ -951,8 +936,7 @@ class VOSApp(ctk.CTk):
                 else:
                     chrome_str = "—"
 
-            # Connection Stability — full details
-            ping_res = self.results.get("ping", None)
+            ping_res = results_snapshot.get("ping", None)
             conn_str = "—"
             ping_details = {}
             if ping_res and hasattr(ping_res, "stability_score"):
@@ -968,21 +952,18 @@ class VOSApp(ctk.CTk):
                     "distribution": getattr(ping_res, "latency_distribution", ""),
                 }
 
-            # Internet Speed — full details
-            speed_res = self.results.get("speed", {})
+            speed_res = results_snapshot.get("speed", {})
             raw_down = speed_res.get("_raw_down", 0)
             raw_up = speed_res.get("_raw_up", 0)
             conn_type = speed_res.get("connection_type", "—")
-            speed_str = f"{raw_down:.1f}↓ / {raw_up:.1f}↑ Mbps" if (raw_down or raw_up) else "—"
+            speed_str = f"{raw_down:.1f}down / {raw_up:.1f}up Mbps" if (raw_down or raw_up) else "—"
 
-            # Microphone — include device name AND type
-            mic_res = self.results.get("mic", {})
+            mic_res = results_snapshot.get("mic", {})
             mic_lvl = mic_res.get("level", 0)
             mic_device = f"{mic_res.get('device', '—')} — {mic_res.get('type', '—')}"
             mic_str = f"{mic_lvl}/100" if mic_lvl else "—"
 
-            # Disk
-            disk_res = self.results.get("disk", {})
+            disk_res = results_snapshot.get("disk", {})
             disk_free = disk_res.get("free_gb", 0)
             disk_total = disk_res.get("total_gb", 0)
             disk_pct = disk_res.get("used_pct", 0)
@@ -1010,10 +991,10 @@ class VOSApp(ctk.CTk):
                 "disk_space":           disk_str,
                 "disk_free_gb":         round(disk_free, 1) if disk_free else 0,
                 "disk_used_pct":        round(disk_pct, 1) if disk_pct else 0,
-                "vpn_active":           self.results.get("vpn", {}).get("active", False),
-                "vpn_name":             self.results.get("vpn", {}).get("vpn_name", ""),
+                "vpn_active":           results_snapshot.get("vpn", {}).get("active", False),
+                "vpn_name":             results_snapshot.get("vpn", {}).get("vpn_name", ""),
                 "last_checked":         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "notes":                self.results.get("mic", {}).get("notes", ""),
+                "notes":                results_snapshot.get("mic", {}).get("notes", ""),
             }
 
             headers = {}
@@ -1028,14 +1009,13 @@ class VOSApp(ctk.CTk):
             log.debug(f"Dashboard POST failed (silent): {e}")
 
     # ─────────────────────── Task Implementations ───────────────────────
-    # All GUI updates are wrapped in self.after(0, ...) for thread safety (#9)
-
     def _task_specs(self):
         self.after(0, lambda: self.cards["specs"].update_status("Checking...", colors["WARNING"]))
         try:
             from modules.specs import get_system_specs
             res = get_system_specs()
-            self.results["specs"] = res
+            with self._results_lock:
+                self.results["specs"] = res
 
             model = res['cpu_model'].split('@')[0].strip()
             ram_val = res['total_ram'].split()[0].split('.')[0]
@@ -1059,7 +1039,8 @@ class VOSApp(ctk.CTk):
         try:
             from modules.chrome import check_chrome
             res = check_chrome()
-            self.results["chrome"] = res
+            with self._results_lock:
+                self.results["chrome"] = res
 
             if res.error or res.status == "NOT_INSTALLED":
                 msg = res.error if res.error else res.note
@@ -1070,7 +1051,6 @@ class VOSApp(ctk.CTk):
                 return
 
             def _update_ok():
-                # Simple status only — no version numbers
                 if res.status == "UP_TO_DATE":
                     status_txt = "Chrome is up to date"
                     status_color = colors["SUCCESS"]
@@ -1112,7 +1092,8 @@ class VOSApp(ctk.CTk):
                     0, lambda m=msg: self.cards["ping"].update_status(m, colors["WARNING"])
                 ),
             )
-            self.results["ping"] = res
+            with self._results_lock:
+                self.results["ping"] = res
 
             if res.error:
                 def _update_err():
@@ -1150,11 +1131,11 @@ class VOSApp(ctk.CTk):
     def _task_speed(self):
         self.after(0, lambda: self.cards["speed"].update_status("Measuring speed...", colors["WARNING"]))
 
-        # ── VPN Check (runs before speed test) ──
         try:
             from modules.vpn import check_vpn
             vpn_info = check_vpn()
-            self.results["vpn"] = vpn_info
+            with self._results_lock:
+                self.results["vpn"] = vpn_info
 
             def _update_vpn():
                 self.cards["speed"].update_vpn_status(
@@ -1167,7 +1148,6 @@ class VOSApp(ctk.CTk):
         except Exception as e:
             log.warning(f"VPN check failed: {e}")
 
-        # ── Speed Test ──
         try:
             from modules.speed import run_speedtest
             res = run_speedtest()
@@ -1180,10 +1160,10 @@ class VOSApp(ctk.CTk):
 
             raw_down = _parse_mbps(res.get("download", "0"))
             raw_up = _parse_mbps(res.get("upload", "0"))
-
             res["_raw_down"] = raw_down
             res["_raw_up"] = raw_up
-            self.results["speed"] = res
+            with self._results_lock:
+                self.results["speed"] = res
 
             def _update():
                 self.cards["speed"].update_speed(
@@ -1197,7 +1177,7 @@ class VOSApp(ctk.CTk):
                 self.cards["speed"].update_status("Done ✓", colors["SUCCESS"])
 
             self.after(0, _update)
-            log.info(f"Speed: {raw_down:.1f}↓ / {raw_up:.1f}↑ Mbps")
+            log.info(f"Speed: {raw_down:.1f}down / {raw_up:.1f}up Mbps")
         except Exception as e:
             log.error(f"Speed test failed: {e}", exc_info=True)
             self.after(0, lambda: self.cards["speed"].update_status(
@@ -1212,7 +1192,8 @@ class VOSApp(ctk.CTk):
             dev_name = res.get("device_name", "Unknown")
             dev_type = res.get("device_type", "Unknown")
             err = res.get("error")
-            self.results["mic"] = {"level": lvl, "device": dev_name, "type": dev_type}
+            with self._results_lock:
+                self.results["mic"] = {"level": lvl, "device": dev_name, "type": dev_type}
 
             def _update():
                 txt = dev_name[:60] + "..." if len(dev_name) > 60 else dev_name
@@ -1241,31 +1222,29 @@ class VOSApp(ctk.CTk):
 
     def _auto_fix_mic(self):
         try:
-            old_lvl = self.results.get("mic", {}).get("level", "0")
+            with self._results_lock:
+                old_lvl = self.results.get("mic", {}).get("level", "0")
             from modules.mic import set_mic_level
             success = set_mic_level(1.0)
             if success:
-                import threading
                 def _re_run_and_upload():
                     self._task_mic()
-                    # Add dedicated note instead of appending to the name
-                    if "mic" in self.results:
-                        self.results["mic"]["notes"] = f"Fix mic triggered (From {old_lvl} to 100)"
-                    
+                    with self._results_lock:
+                        if "mic" in self.results:
+                            self.results["mic"]["notes"] = f"Fix mic triggered (From {old_lvl} to 100)"
                     self.after(600, self.update_observations)
                     self.after(1000, lambda: threading.Thread(target=self._post_results_to_dashboard, daemon=True).start())
-                    
                 threading.Thread(target=_re_run_and_upload, daemon=True).start()
         except Exception as e:
-            import logging
-            logging.getLogger("vos.app").error(f"Failed to auto-fix mic: {e}")
+            log.error(f"Failed to auto-fix mic: {e}")
 
     def _task_disk(self):
         self.after(0, lambda: self.cards["disk"].update_status("Checking disk...", colors["WARNING"]))
         try:
             from modules.disk import check_disk_space
             res = check_disk_space()
-            self.results["disk"] = res
+            with self._results_lock:
+                self.results["disk"] = res
 
             free_gb = res.get("free_gb", 0)
             total_gb = res.get("total_gb", 1)
@@ -1297,15 +1276,17 @@ class VOSApp(ctk.CTk):
 
     # ─────────────────────── Observations ───────────────────────
     def update_observations(self):
-        # 1. System Specs
-        if "specs" in self.results:
+        # Take a safe snapshot first
+        with self._results_lock:
+            results_snapshot = dict(self.results)
+
+        if "specs" in results_snapshot:
             w = []
-            res = self.results["specs"]
+            res = results_snapshot["specs"]
             try:
                 ram_str = str(res.get("total_ram", "8.0")).split()[0]
                 ram_gb = float(ram_str)
                 is_weak = res.get("perf_score", 100) < CPU_PERF_SCORE_MIN
-
                 if ram_gb < RAM_MIN_GB or is_weak:
                     w.append({
                         "title": "Your Computer May Struggle",
@@ -1316,10 +1297,9 @@ class VOSApp(ctk.CTk):
                 log.warning(f"Observations: specs check failed: {e}")
             self.cards["specs"].set_feedback(w)
 
-        # 2. Ping Stability
-        if "ping" in self.results:
+        if "ping" in results_snapshot:
             w = []
-            res = self.results["ping"]
+            res = results_snapshot["ping"]
             score = getattr(res, 'stability_score', 100)
             if score < PING_STABILITY_MIN:
                 w.append({
@@ -1336,10 +1316,9 @@ class VOSApp(ctk.CTk):
                 })
             self.cards["ping"].set_feedback(w)
 
-        # 3. Microphone Level
-        if "mic" in self.results:
+        if "mic" in results_snapshot:
             w = []
-            res = self.results["mic"]
+            res = results_snapshot["mic"]
             try:
                 lvl = float(res.get("level", 100))
                 if lvl < MIC_LEVEL_MIN:
@@ -1350,10 +1329,9 @@ class VOSApp(ctk.CTk):
                 log.warning(f"Observations: mic check failed: {e}")
             self.cards["mic"].set_feedback(w)
 
-        # 4. Internet Speed
-        if "speed" in self.results:
+        if "speed" in results_snapshot:
             w = []
-            res = self.results["speed"]
+            res = results_snapshot["speed"]
             try:
                 down = float(res.get("_raw_down", res.get("download", 0)))
                 up = float(res.get("_raw_up", res.get("upload", 0)))
@@ -1376,8 +1354,7 @@ class VOSApp(ctk.CTk):
             except Exception as e:
                 log.warning(f"Observations: speed check failed: {e}")
 
-            # VPN Warning
-            vpn = self.results.get("vpn", {})
+            vpn = results_snapshot.get("vpn", {})
             if vpn.get("active"):
                 w.append({
                     "title": "VPN Connection Detected",
@@ -1388,13 +1365,11 @@ class VOSApp(ctk.CTk):
                     ),
                     "steps": [],
                 })
-
             self.cards["speed"].set_feedback(w)
 
-        # 5. Browser Version
-        if "chrome" in self.results:
+        if "chrome" in results_snapshot:
             w = []
-            res = self.results["chrome"]
+            res = results_snapshot["chrome"]
             status = getattr(res, 'status', "")
             if status == "OUTDATED":
                 w.append({
@@ -1409,10 +1384,9 @@ class VOSApp(ctk.CTk):
                 })
             self.cards["chrome"].set_feedback(w)
 
-        # 6. Disk Space
-        if "disk" in self.results:
+        if "disk" in results_snapshot:
             w = []
-            res = self.results["disk"]
+            res = results_snapshot["disk"]
             try:
                 free_gb = float(res.get("free_gb", 100))
                 if free_gb < DISK_FREE_MIN_GB:
@@ -1431,6 +1405,9 @@ class VOSApp(ctk.CTk):
             self.cards["disk"].set_feedback(w)
 
 
+# FIX (Warning): store at module level so Python's garbage collector
+# never releases the mutex while the app is running
+_MUTEX = None
 
 
 def enforce_single_instance(restore=True):
@@ -1440,14 +1417,11 @@ def enforce_single_instance(restore=True):
         hMutex = kernel32.CreateMutexW(None, False, "Global\\VOS_App_SingleInstance_Mutex")
         if not hMutex:
             return None
-            
+
         ERROR_ALREADY_EXISTS = 183
         if ctypes.get_last_error() == ERROR_ALREADY_EXISTS:
             if not restore:
-                # Quietly exit if we are in background mode
                 sys.exit(0)
-
-            # Another instance is already running. Find the window and show it.
             user32 = ctypes.WinDLL('user32', use_last_error=True)
             from thresholds import APP_NAME
             window_title = f"{APP_NAME} - Vital Operations Scanner"
@@ -1456,22 +1430,21 @@ def enforce_single_instance(restore=True):
                 user32.ShowWindow(hwnd, 9)  # SW_RESTORE
                 user32.SetForegroundWindow(hwnd)
             sys.exit(0)
-            
-        return hMutex  # Keep the handle alive for the lifetime of this process
-    except Exception as e:
+
+        return hMutex
+    except Exception:
         return None
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--background", action="store_true", help="Start or run in background without restoring window")
     args, unknown = parser.parse_known_args()
 
-    # Pass background state to app instance via a temporary system attribute
     sys._started_in_background = args.background
 
-    _mutex = enforce_single_instance(restore=not args.background)
-    # Required for PyInstaller on Windows: prevents child processes from
-    # spawning new GUI windows when multiprocessing is used (e.g. by deps).
     multiprocessing.freeze_support()
+    # FIX (Warning): store at module level so GC doesn't release it early
+    _MUTEX = enforce_single_instance(restore=not args.background)
     app = VOSApp()
     app.mainloop()
