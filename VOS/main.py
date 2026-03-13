@@ -1323,8 +1323,8 @@ class VOSApp(ctk.CTk):
             score = getattr(res, 'stability_score', 100)
             if score < PING_STABILITY_MIN:
                 w.append({
-                    "title": "Unstable Internet Connection",
-                    "desc": "Your connection is dropping or fluctuating too much for reliable calls.",
+                    "title": "Connection Issue",
+                    "desc": "Ask IT to verify if your ping results require action.",
                     "steps": [
                         "Clear your browser's cache and cookies",
                         "Close all open browser tabs",
