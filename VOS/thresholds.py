@@ -1,7 +1,7 @@
 # ─── VOS — Vital Operations Scanner ─── Threshold Constants ───
 
 APP_NAME = "VOS"
-APP_VERSION = "2.4.0"
+APP_VERSION = "2.4.2"
 
 # ── Internet Speed (Mbps) ──
 SPEED_DOWNLOAD_MIN = 10.0

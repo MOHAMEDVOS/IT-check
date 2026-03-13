@@ -1103,12 +1103,13 @@ class VOSApp(ctk.CTk):
                 self.after(0, _update_err)
                 return
 
-            if res.verdict.upper() in ["EXCELLENT", "GOOD", "FAIR"]:
-                text = "Good Connection – Your network is stable. No issues detected."
-            elif res.verdict.upper() == "MARGINAL":
-                text = "Unstable Connection – Your network is fluctuating and may affect calls."
+            verdict_str = res.verdict.upper()
+            if verdict_str in ["EXCELLENT", "GOOD", "FAIR"]:
+                text = f"{verdict_str} : Good Connection – Your network is stable. No issues detected."
+            elif verdict_str in ["MARGINAL", "UNSTABLE"]:
+                text = f"{verdict_str} : Unstable Connection – Your network is fluctuating and may affect calls."
             else:
-                text = "Poor Connection – Your connection is unstable and may cause call drops or delays."
+                text = f"{verdict_str} : Poor Connection – Your connection is unstable and may cause call drops or delays."
 
             def _update_ok():
                 self.cards["ping"].update_content(text.strip())

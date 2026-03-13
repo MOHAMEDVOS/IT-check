@@ -234,10 +234,7 @@ def check_chrome() -> ChromeResult:
         result.status_label = "⚠️ Major Update Available"
         result.status_color = "#EF4444"
         result.note         = (
-            f"A major Chrome update is available (Milestone {result.latest_milestone}).\n"
-            f"Installed: {result.installed_version}\n"
-            f"Latest: {result.latest_version}\n"
-            f"Open Chrome → Menu → Help → About Google Chrome to update."
+            "Open Chrome → Menu → Help → About Google Chrome to update."
         )
 
     else:
@@ -246,10 +243,7 @@ def check_chrome() -> ChromeResult:
         result.status_label = "🔄 Minor Update Available"
         result.status_color = "#F59E0B" # Amber/Orange for minor
         result.note         = (
-            f"A minor/security update is available for Chrome {result.installed_milestone}.\n"
-            f"Installed: {result.installed_version}\n"
-            f"Latest: {result.latest_version}\n"
-            f"Open Chrome → Menu → Help → About Google Chrome to update."
+            "Open Chrome → Menu → Help → About Google Chrome to update."
         )
 
     return result

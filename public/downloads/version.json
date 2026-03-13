@@ -1,5 +1,5 @@
 {
-  "latest_version": "2.4.0",
+  "latest_version": "2.4.2",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Update v2.4.0: Major Core Update - Ping scoring completely rewritten to evaluate bucket distributions and spike percentages to accurately detect unstable networks."
+  "release_notes": "Update v2.4.2: UI Refinement - Added exact Ping verdict prefixes (e.g. MARGINAL, GOOD) directly to the connection advice text."
 }
