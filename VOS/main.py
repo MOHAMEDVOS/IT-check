@@ -1103,9 +1103,9 @@ class VOSApp(ctk.CTk):
                 self.after(0, _update_err)
                 return
 
-            if res.verdict.upper() == "GOOD":
+            if res.verdict.upper() in ["EXCELLENT", "GOOD", "FAIR"]:
                 text = "Good Connection – Your network is stable. No issues detected."
-            elif res.verdict.upper() in ["FAIR", "UNSTABLE"]:
+            elif res.verdict.upper() == "MARGINAL":
                 text = "Unstable Connection – Your network is fluctuating and may affect calls."
             else:
                 text = "Poor Connection – Your connection is unstable and may cause call drops or delays."
