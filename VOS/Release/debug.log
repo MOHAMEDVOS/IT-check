@@ -1044,3 +1044,80 @@ RuntimeError: main thread is not in main loop
 [2026-03-14 00:42:07] vos.app        INFO     Task 'ping' completed successfully
 [2026-03-14 00:42:07] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'vpn', 'disk', 'chrome', 'specs', 'ping']
 [2026-03-14 00:42:08] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-14 00:54:25] vos.app        DEBUG    Gradient bg skipped: wrong # args: should be ".!canvas lower tagOrId ?belowThis?"
+[2026-03-14 00:54:26] vos.app        INFO     Authorization check completed. Result: True
+[2026-03-14 00:54:26] vos.app        INFO     User IS authorized. Un-hiding cards...
+[2026-03-14 00:54:26] vos.updater    DEBUG    No update needed (current: 2.4.5, remote: 2.4.5)
+[2026-03-14 00:54:27] vos.app        INFO     Starting diagnostics 
+[2026-03-14 00:54:27] vos.app        INFO     Running all diagnostic tasks
+[2026-03-14 00:54:27] vos.vpn        INFO     No VPN detected
+[2026-03-14 00:54:27] vos.disk       INFO     Disk check: C: — 179.2GB free / 476GB total (62.3% used)
+[2026-03-14 00:54:27] vos.app        INFO     Disk: 179.2GB free on C:
+[2026-03-14 00:54:27] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-14 00:54:27] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-14 00:54:28] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-14 00:54:28] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-14 00:54:29] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-14 00:54:29] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-14 00:54:55] vos.app        INFO     Speed: 23.4down / 4.6up Mbps
+[2026-03-14 00:54:55] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-14 00:54:55] vos.app        INFO     Running ping task sequentially
+[2026-03-14 00:55:34] vos.app        INFO     Ping: 25/100 (POOR)
+[2026-03-14 00:55:34] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-14 00:55:34] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'vpn', 'disk', 'chrome', 'specs', 'ping']
+[2026-03-14 00:55:35] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-14 00:55:46] vos.app        INFO     Starting diagnostics 
+[2026-03-14 00:55:47] vos.app        INFO     Running all diagnostic tasks
+[2026-03-14 00:55:47] vos.disk       INFO     Disk check: C: — 179.2GB free / 476GB total (62.3% used)
+[2026-03-14 00:55:47] vos.vpn        INFO     No VPN detected
+[2026-03-14 00:55:47] vos.app        INFO     Disk: 179.2GB free on C:
+[2026-03-14 00:55:47] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-14 00:55:47] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-14 00:55:47] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-14 00:55:47] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-14 00:55:49] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-14 00:55:49] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-14 00:56:17] vos.app        INFO     Speed: 25.3down / 4.3up Mbps
+[2026-03-14 00:56:17] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-14 00:56:17] vos.app        INFO     Running ping task sequentially
+[2026-03-14 00:56:59] vos.app        INFO     Ping: 25/100 (POOR)
+[2026-03-14 00:56:59] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-14 00:56:59] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'disk', 'vpn', 'chrome', 'specs', 'ping']
+[2026-03-14 00:57:00] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-14 00:58:57] vos.app        INFO     Starting diagnostics 
+[2026-03-14 00:58:58] vos.app        INFO     Running all diagnostic tasks
+[2026-03-14 00:58:58] vos.vpn        INFO     No VPN detected
+[2026-03-14 00:58:58] vos.disk       INFO     Disk check: C: — 179.2GB free / 476GB total (62.3% used)
+[2026-03-14 00:58:58] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-14 00:58:58] vos.app        INFO     Disk: 179.2GB free on C:
+[2026-03-14 00:58:58] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-14 00:58:59] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-14 00:58:59] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-14 00:59:00] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-14 00:59:00] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-14 00:59:30] vos.app        INFO     Minimizing to tray...
+[2026-03-14 01:00:01] vos.app        ERROR    Speed test failed: main thread is not in main loop
+Traceback (most recent call last):
+  File "main.py", line 1199, in _task_speed
+  File "tkinter\__init__.py", line 887, in after
+  File "tkinter\__init__.py", line 1712, in _register
+RuntimeError: main thread is not in main loop
+[2026-03-14 01:00:02] vos.app        ERROR    Task 'speed' failed: main thread is not in main loop
+Traceback (most recent call last):
+  File "main.py", line 1199, in _task_speed
+  File "tkinter\__init__.py", line 887, in after
+  File "tkinter\__init__.py", line 1712, in _register
+RuntimeError: main thread is not in main loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "main.py", line 881, in _run_all
+  File "concurrent\futures\_base.py", line 443, in result
+  File "concurrent\futures\_base.py", line 395, in __get_result
+  File "concurrent\futures\thread.py", line 86, in run
+  File "concurrent\futures\thread.py", line 73, in run
+  File "main.py", line 1203, in _task_speed
+  File "tkinter\__init__.py", line 887, in after
+  File "tkinter\__init__.py", line 1712, in _register
+RuntimeError: main thread is not in main loop

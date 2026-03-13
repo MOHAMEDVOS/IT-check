@@ -1131,7 +1131,7 @@ class VOSApp(ctk.CTk):
             elif verdict_str in ["MARGINAL", "UNSTABLE"]:
                 text = "Ask IT to verify if your ping results require action."
             else:
-                text = "Ask IT to verify if your ping results require action."
+                text = "Poor Connection – Your connection is unstable and may cause call drops or delays."
 
             def _update_ok():
                 self.cards["ping"].update_content(text.strip())
@@ -1323,8 +1323,8 @@ class VOSApp(ctk.CTk):
             score = getattr(res, 'stability_score', 100)
             if score < PING_STABILITY_MIN:
                 w.append({
-                    "title": "Connection Issue",
-                    "desc": "Ask IT to verify if your ping results require action.",
+                    "title": "Unstable Internet Connection",
+                    "desc": "Your connection is dropping or fluctuating too much for reliable calls.",
                     "steps": [
                         "Clear your browser's cache and cookies",
                         "Close all open browser tabs",
