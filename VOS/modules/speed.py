@@ -25,6 +25,20 @@ UPLOAD_URL = "https://speed.cloudflare.com/__up"
 TIMEOUT = 45  # Increased timeout for slower connections
 
 
+def get_network_name() -> str:
+    """Get the SSID/Profile name of the connected network on Windows."""
+    try:
+        import subprocess
+        cmd = ["powershell", "-Command", "(Get-NetConnectionProfile).Name"]
+        result = subprocess.check_output(cmd, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW).decode().strip()
+        # If multiple profiles, take the first one; if empty, return "Unknown"
+        if "\n" in result:
+            result = result.split("\n")[0].strip()
+        return result if result else "Unknown"
+    except Exception:
+        return "Unknown"
+
+
 def get_connection_type() -> str:
     """Detect whether active connection is Wi-Fi or Ethernet."""
     try:
@@ -154,6 +168,7 @@ def run_speedtest(callback=None) -> dict:
             "jitter":          "—",
             "server":          "Cloudflare CDN (Multi-Stream)",
             "connection_type": connection_type,
+            "network_name":    get_network_name(),
             "error":           None
         }
 

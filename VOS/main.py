@@ -1193,6 +1193,7 @@ class VOSApp(ctk.CTk):
                     latency=str(res.get("latency", "")),
                     jitter=str(res.get("jitter", "")),
                     conn_type=res.get("connection_type", ""),
+                    network_name=res.get("network_name", "Unknown")
                 )
                 self.cards["speed"].update_status("Done ✓", colors["SUCCESS"])
 
