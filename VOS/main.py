@@ -110,7 +110,7 @@ class VOSApp(ctk.CTk):
             icon_path = os.path.join(base_path, "assets", "IT.ico")
             self.iconbitmap(icon_path)
             import ctypes
-            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("vos.app.2.1")
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(f"vos.app.{APP_VERSION}")
         except Exception as e:
             log.debug(f"Icon load skipped: {e}")
 
@@ -1201,7 +1201,7 @@ class VOSApp(ctk.CTk):
                 self.cards["speed"].update_status("Done ✓", colors["SUCCESS"])
 
             self.after(0, _update)
-            log.info(f"Speed: {raw_down:.1f}down / {raw_up:.1f}up Mbps (Network: {res.get('network_name', 'Unknown')})")
+            log.info(f"Speed: {raw_down:.1f}↓ / {raw_up:.1f}↑ Mbps (Network: {res.get('network_name', 'Unknown')})")
         except Exception as e:
             log.error(f"Speed test failed: {e}", exc_info=True)
             self.after(0, lambda: self.cards["speed"].update_status(
