@@ -95,7 +95,7 @@ def save_config(data):
 class VOSApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title(f"{APP_NAME} - Vital Operations Scanner")
+        self.title(f"{APP_NAME} v{APP_VERSION} - Vital Operations Scanner")
         self.geometry("980x620")
         self.minsize(900, 540)
         self.configure(fg_color=colors["BG"])
