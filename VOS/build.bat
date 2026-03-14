@@ -34,8 +34,10 @@ python -m PyInstaller ^
 
 echo.
 echo ============================================
-if exist dist\VOS.exe (
-  echo  BUILD SUCCESSFUL — dist\VOS.exe ready
+if exist Release\VOS.exe (
+  echo  BUILD SUCCESSFUL — Release\VOS.exe ready
+  echo  Copying to public downloads...
+  copy /y Release\VOS.exe ..\public\downloads\vos.exe
 ) else (
   echo  BUILD FAILED — check output above
 )
