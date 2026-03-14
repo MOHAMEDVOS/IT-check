@@ -1015,7 +1015,6 @@ class VOSApp(ctk.CTk):
                 "disk_used_pct":        round(disk_pct, 1) if disk_pct else 0,
                 "vpn_active":           results_snapshot.get("vpn", {}).get("active", False),
                 "vpn_name":             results_snapshot.get("vpn", {}).get("vpn_name", ""),
-                "network_name":         speed_res.get("network_name", "Unknown"),
                 "last_checked":         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "notes":                results_snapshot.get("mic", {}).get("notes", ""),
             }
@@ -1187,7 +1186,6 @@ class VOSApp(ctk.CTk):
                 self.results["speed"] = res
 
             def _update():
-                net_name = res.get("network_name", "Unknown")
 
                 self.cards["speed"].update_speed(
                     down_mbps=raw_down,
@@ -1195,13 +1193,12 @@ class VOSApp(ctk.CTk):
                     server=res.get("server", ""),
                     latency=str(res.get("latency", "")),
                     jitter=str(res.get("jitter", "")),
-                    conn_type=res.get("connection_type", ""),
-                    network_name=net_name
+                    conn_type=res.get("connection_type", "")
                 )
                 self.cards["speed"].update_status("Done ✓", colors["SUCCESS"])
 
             self.after(0, _update)
-            log.info(f"Speed: {raw_down:.1f}↓ / {raw_up:.1f}↑ Mbps (Network: {res.get('network_name', 'Unknown')})")
+            log.info(f"Speed: {raw_down:.1f}↓ / {raw_up:.1f}↑ Mbps")
         except Exception as e:
             log.error(f"Speed test failed: {e}", exc_info=True)
             self.after(0, lambda: self.cards["speed"].update_status(

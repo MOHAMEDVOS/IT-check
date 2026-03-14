@@ -446,20 +446,6 @@ class SpeedCard(BaseCard):
         )
         self._err_lbl.grid(row=2, column=0, columnspan=2, sticky="w", pady=0)
 
-        # Network Name
-        ctk.CTkLabel(
-            self.content,
-            text="Network",
-            font=get_font("Outfit", 11),
-            text_color=colors["DIM_TEXT"],
-        ).grid(row=3, column=0, sticky="w", pady=0)
-        self.network_val = ctk.CTkLabel(
-            self.content,
-            text="—",
-            font=get_font("Outfit", 11, "bold"),
-            text_color=colors["ACCENT"],
-        )
-        self.network_val.grid(row=3, column=1, sticky="e", padx=(8, 0), pady=0)
 
         # ── VPN Status Section ──
         self._vpn_sep = ctk.CTkFrame(self.content, fg_color=colors["BORDER"], height=1)
@@ -508,11 +494,10 @@ class SpeedCard(BaseCard):
         self.vpn_status_val.configure(text="—", text_color=colors["DIM_TEXT"])
         self.vpn_name_val.grid_remove()
 
-    def update_speed(self, down_mbps, up_mbps, server="", latency="", jitter="", conn_type="", network_name=""):
+    def update_speed(self, down_mbps, up_mbps, server="", latency="", jitter="", conn_type=""):
         from thresholds import SPEED_DOWNLOAD_MIN, SPEED_DOWNLOAD_WARN, SPEED_UPLOAD_MIN, SPEED_UPLOAD_WARN
 
         self.type_val.configure(text=conn_type if conn_type else "—")
-        self.network_val.configure(text=network_name if network_name else "—")
 
         down_color = (
             colors.get("GOOD", colors["SUCCESS"]) if down_mbps >= SPEED_DOWNLOAD_MIN

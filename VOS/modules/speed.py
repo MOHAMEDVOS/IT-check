@@ -25,87 +25,6 @@ UPLOAD_URL = "https://speed.cloudflare.com/__up"
 TIMEOUT = 45  # Increased timeout for slower connections
 
 
-def get_network_name() -> str:
-    """
-    Get the SSID/Profile name of the connected network on Windows.
-    Handles both Wi-Fi and Ethernet with high reliability.
-    Removes trailing Windows numbers (e.g. "Home 3" -> "Home").
-    """
-    import subprocess
-    import re
-    import json
-
-    try:
-        # Source 1: PowerShell Connection Profile (Primary for both Wi-Fi and Ethernet)
-        # Using ConvertTo-Json for robust parsing and sorting by connectivity
-        ps_cmd = (
-            "Get-NetConnectionProfile | "
-            "Sort-Object IPv4Connectivity -Descending | "
-            "Select-Object Name, IPv4Connectivity | "
-            "ConvertTo-Json"
-        )
-        cmd = ["powershell", "-ExecutionPolicy", "Bypass", "-Command", ps_cmd]
-        
-        profile_names = []
-        try:
-            # We use creationflags to hide the window
-            raw_output = subprocess.check_output(cmd, stderr=subprocess.DEVNULL, creationflags=0x08000000)
-            
-            # Decoding with fallback strategy for localized systems
-            output = ""
-            for enc in ['utf-8', 'cp1252', 'cp1256', 'latin-1']:
-                try:
-                    output = raw_output.decode(enc).strip()
-                    if output: break
-                except:
-                    continue
-            if not output:
-                output = raw_output.decode(errors='replace').strip()
-
-            if output:
-                data = json.loads(output)
-                # data can be a list if multiple profiles, or a dict if only one
-                profiles = data if isinstance(data, list) else [data]
-                for p in profiles:
-                    name = p.get("Name", "")
-                    if name and "unidentified" not in name.lower():
-                        profile_names.append(name)
-        except Exception:
-            pass
-
-        # Source 2: Netsh fallback (Specific to Wi-Fi SSID if profile is generic/empty)
-        ssid = ""
-        try:
-            cmd_wifi = ["netsh", "wlan", "show", "interfaces"]
-            # We also use broad decoding here
-            raw_wifi = subprocess.check_output(cmd_wifi, stderr=subprocess.DEVNULL, creationflags=0x08000000)
-            output_wifi = raw_wifi.decode(errors='replace')
-            for line in output_wifi.split("\n"):
-                if " SSID" in line and ":" in line:
-                    ssid = line.split(":")[1].strip()
-                    break
-        except Exception:
-            pass
-
-        # Decision Logic
-        final_name = ""
-        if profile_names:
-            final_name = profile_names[0]
-            # If the profile name is generic "Network" and we have a specific SSID, prefer the SSID
-            if final_name.lower() == "network" and ssid:
-                final_name = ssid
-        elif ssid:
-            final_name = ssid
-        
-        # Cleanup: Remove Windows auto-increment numbers (e.g. "Home 2", "Home 3")
-        if final_name:
-            # Matches any space followed by one or more digits at the end of the string
-            final_name = re.sub(r'\s+\d+$', '', final_name)
-            return final_name
-            
-        return "Unknown"
-    except Exception:
-        return "Unknown"
 
 
 def get_connection_type() -> str:
@@ -237,7 +156,6 @@ def run_speedtest(callback=None) -> dict:
             "jitter":          "—",
             "server":          "Cloudflare CDN (Multi-Stream)",
             "connection_type": connection_type,
-            "network_name":    get_network_name(),
             "error":           None
         }
 
