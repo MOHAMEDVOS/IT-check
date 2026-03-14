@@ -352,7 +352,7 @@ class PingCard(BaseCard):
             font=get_font("JetBrainsMono NFP", 10),
         )
         self.target.pack(side="left")
-        self.target.insert(0, "8.8.8.8")
+        self.target.insert(0, PING_DEFAULT_TARGET)
 
         self.verdict = ctk.CTkLabel(
             self.content,

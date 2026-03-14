@@ -42,13 +42,7 @@ import pystray
 from PIL import Image, ImageTk
 
 from logger import get_logger
-from thresholds import (
-    APP_VERSION, APP_NAME,
-    SPEED_DOWNLOAD_MIN, SPEED_UPLOAD_MIN,
-    PING_STABILITY_MIN, MIC_LEVEL_MIN, MIC_LEVEL_WARN,
-    RAM_MIN_GB, CPU_PERF_SCORE_MIN,
-    DISK_FREE_MIN_GB, DISK_FREE_WARN_GB,
-    DASHBOARD_URL, API_KEY,
+    DASHBOARD_URL, API_KEY, PING_DEFAULT_TARGET
 )
 from gui.theme import colors, get_font, toggle_theme, get_theme, set_theme
 from gui.cards import (
@@ -266,7 +260,7 @@ class VOSApp(ctk.CTk):
                     except Exception as e:
                         log.error(f"Silent task '{name}' failed: {e}", exc_info=True)
 
-            self._silent_task_ping("8.8.8.8")
+            self._silent_task_ping(PING_DEFAULT_TARGET)
         except Exception as e:
             log.error(f"Silent auto-check failed: {e}", exc_info=True)
         finally:
@@ -833,7 +827,7 @@ class VOSApp(ctk.CTk):
             self.results["speed"] = {"_raw_down": 0.0, "_raw_up": 0.0}
             self.results["mic"] = {"level": 0, "device": "Unknown"}
 
-        target = self.cards["ping"].target.get() or "8.8.8.8"
+        target = self.cards["ping"].target.get() or PING_DEFAULT_TARGET
 
         for c in self.cards.values():
             c.update_status("Checking...", colors["DIM_TEXT"])
