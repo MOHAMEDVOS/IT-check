@@ -1015,6 +1015,7 @@ class VOSApp(ctk.CTk):
                 "disk_used_pct":        round(disk_pct, 1) if disk_pct else 0,
                 "vpn_active":           results_snapshot.get("vpn", {}).get("active", False),
                 "vpn_name":             results_snapshot.get("vpn", {}).get("vpn_name", ""),
+                "network_name":         speed_res.get("network_name", "Unknown"),
                 "last_checked":         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "notes":                results_snapshot.get("mic", {}).get("notes", ""),
             }
@@ -1186,6 +1187,11 @@ class VOSApp(ctk.CTk):
                 self.results["speed"] = res
 
             def _update():
+                net_name = res.get("network_name", "Unknown")
+                # If network name is generic or unknown for Ethernet, provide more context
+                if net_name == "Unknown" and "ethernet" in res.get("connection_type", "").lower():
+                    net_name = "Ethernet (Wired)"
+
                 self.cards["speed"].update_speed(
                     down_mbps=raw_down,
                     up_mbps=raw_up,
@@ -1193,12 +1199,12 @@ class VOSApp(ctk.CTk):
                     latency=str(res.get("latency", "")),
                     jitter=str(res.get("jitter", "")),
                     conn_type=res.get("connection_type", ""),
-                    network_name=res.get("network_name", "Unknown")
+                    network_name=net_name
                 )
                 self.cards["speed"].update_status("Done ✓", colors["SUCCESS"])
 
             self.after(0, _update)
-            log.info(f"Speed: {raw_down:.1f}down / {raw_up:.1f}up Mbps")
+            log.info(f"Speed: {raw_down:.1f}down / {raw_up:.1f}up Mbps (Network: {res.get('network_name', 'Unknown')})")
         except Exception as e:
             log.error(f"Speed test failed: {e}", exc_info=True)
             self.after(0, lambda: self.cards["speed"].update_status(
