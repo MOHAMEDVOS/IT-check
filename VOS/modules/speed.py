@@ -26,15 +26,49 @@ TIMEOUT = 45  # Increased timeout for slower connections
 
 
 def get_network_name() -> str:
-    """Get the SSID/Profile name of the connected network on Windows."""
+    """
+    Get the SSID/Profile name of the connected network on Windows.
+    Handles both Wi-Fi and Ethernet, falling back to literal SSID if needed.
+    Removes trailing Windows numbers (e.g. "Home 3" -> "Home").
+    """
     try:
         import subprocess
+        import re
+
+        # Source 1: Network Connection Profile (Works for both Wi-Fi and Ethernet)
         cmd = ["powershell", "-Command", "(Get-NetConnectionProfile).Name"]
-        result = subprocess.check_output(cmd, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW).decode().strip()
-        # If multiple profiles, take the first one; if empty, return "Unknown"
-        if "\n" in result:
-            result = result.split("\n")[0].strip()
-        return result if result else "Unknown"
+        try:
+            profile_name = subprocess.check_output(cmd, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode().strip()
+            if "\n" in profile_name:
+                profile_name = profile_name.split("\n")[0].strip()
+        except Exception:
+            profile_name = ""
+
+        # Source 2: Netsh fallback (Specifically for Wi-Fi SSID if profile is generic/empty)
+        ssid = ""
+        try:
+            cmd_wifi = ["netsh", "wlan", "show", "interfaces"]
+            output = subprocess.check_output(cmd_wifi, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode()
+            for line in output.split("\n"):
+                if " SSID" in line and ":" in line:
+                    ssid = line.split(":")[1].strip()
+                    break
+        except Exception:
+            pass
+
+        # Decision Logic: Prioritize SSID for Wi-Fi, Profile for Ethernet
+        # If profile is generic "Network" or empty, and we have an SSID, use SSID
+        final_name = profile_name
+        if (not profile_name or profile_name.lower() == "network") and ssid:
+            final_name = ssid
+        
+        # Cleanup: Remove Windows auto-increment numbers (e.g. "Home 2", "Home 3")
+        if final_name:
+            # Matches any space followed by one or more digits at the end of the string
+            final_name = re.sub(r'\s+\d+$', '', final_name)
+            return final_name
+            
+        return "Unknown"
     except Exception:
         return "Unknown"
 
