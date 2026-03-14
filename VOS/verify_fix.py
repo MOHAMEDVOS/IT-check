@@ -1,38 +1,27 @@
-import subprocess
-import time
+
 import sys
 import os
 
-def test_background_flag():
-    print("Testing VOS with --background flag...")
+# Add the current directory to path so we can import modules
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    from modules.speed import get_network_name, get_connection_type
     
-    # Path to the script we want to test
-    script_path = os.path.join(os.getcwd(), "main.py")
+    print("Testing Network Detection Fix...")
+    print("-" * 30)
     
-    # 1. Start the first instance in background mode
-    print("Launching first instance with --background...")
-    proc1 = subprocess.Popen([sys.executable, script_path, "--background"], 
-                             creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+    conn_type = get_connection_type()
+    net_name = get_network_name()
     
-    time.sleep(5) # Wait for it to initialize and grab the mutex
+    print(f"Detected Connection Type : {conn_type}")
+    print(f"Detected Network Name    : {net_name}")
+    print("-" * 30)
     
-    # 2. Try to launch a second instance with --background
-    print("Launching second instance with --background (should exit immediately without restoring proc1)...")
-    start_time = time.time()
-    proc2 = subprocess.run([sys.executable, script_path, "--background"], timeout=10)
-    end_time = time.time()
-    
-    print(f"Second instance exited with code: {proc2.returncode}")
-    print(f"Time taken for second instance: {end_time - start_time:.2f}s")
-    
-    if proc2.returncode == 0:
-        print("SUCCESS: Second instance exited quietly.")
+    if net_name != "Unknown":
+        print("RESULT: SUCCESS - Network name identified.")
     else:
-        print(f"FAILURE: Second instance exited with code {proc2.returncode}")
+        print("RESULT: FAILED - Network name is still 'Unknown'.")
 
-    # Cleanup
-    print("Cleaning up...")
-    proc1.terminate()
-
-if __name__ == "__main__":
-    test_background_flag()
+except Exception as e:
+    print(f"Test crashed: {e}")
