@@ -28,23 +28,31 @@ TIMEOUT = 45  # Increased timeout for slower connections
 def get_network_name() -> str:
     """
     Get the SSID/Profile name of the connected network on Windows.
-    Handles both Wi-Fi and Ethernet, falling back to literal SSID if needed.
+    Handles both Wi-Fi and Ethernet with high reliability.
     Removes trailing Windows numbers (e.g. "Home 3" -> "Home").
     """
     try:
         import subprocess
         import re
 
-        # Source 1: Network Connection Profile (Works for both Wi-Fi and Ethernet)
-        cmd = ["powershell", "-Command", "(Get-NetConnectionProfile).Name"]
+        # Source 1: PowerShell Connection Profile (Primary for both Wi-Fi and Ethernet)
+        # We query all names and pick the first one that has internet connectivity or is not "Unidentified"
+        ps_cmd = (
+            "Get-NetConnectionProfile | "
+            "Sort-Object IPv4Connectivity -Descending | "
+            "Select-Object -ExpandProperty Name"
+        )
+        cmd = ["powershell", "-ExecutionPolicy", "Bypass", "-Command", ps_cmd]
+        
+        profile_names = []
         try:
-            profile_name = subprocess.check_output(cmd, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode().strip()
-            if "\n" in profile_name:
-                profile_name = profile_name.split("\n")[0].strip()
+            output = subprocess.check_output(cmd, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode().strip()
+            if output:
+                profile_names = [line.strip() for line in output.split("\n") if line.strip() and "unidentified" not in line.lower()]
         except Exception:
-            profile_name = ""
+            pass
 
-        # Source 2: Netsh fallback (Specifically for Wi-Fi SSID if profile is generic/empty)
+        # Source 2: Netsh fallback (Specific to Wi-Fi SSID if profile is generic/empty)
         ssid = ""
         try:
             cmd_wifi = ["netsh", "wlan", "show", "interfaces"]
@@ -56,10 +64,14 @@ def get_network_name() -> str:
         except Exception:
             pass
 
-        # Decision Logic: Prioritize SSID for Wi-Fi, Profile for Ethernet
-        # If profile is generic "Network" or empty, and we have an SSID, use SSID
-        final_name = profile_name
-        if (not profile_name or profile_name.lower() == "network") and ssid:
+        # Decision Logic
+        final_name = ""
+        if profile_names:
+            final_name = profile_names[0]
+            # If the profile name is generic "Network" and we have a specific SSID, prefer the SSID
+            if final_name.lower() == "network" and ssid:
+                final_name = ssid
+        elif ssid:
             final_name = ssid
         
         # Cleanup: Remove Windows auto-increment numbers (e.g. "Home 2", "Home 3")

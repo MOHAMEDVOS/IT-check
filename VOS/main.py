@@ -1188,9 +1188,6 @@ class VOSApp(ctk.CTk):
 
             def _update():
                 net_name = res.get("network_name", "Unknown")
-                # If network name is generic or unknown for Ethernet, provide more context
-                if net_name == "Unknown" and "ethernet" in res.get("connection_type", "").lower():
-                    net_name = "Ethernet (Wired)"
 
                 self.cards["speed"].update_speed(
                     down_mbps=raw_down,

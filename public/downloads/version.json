@@ -1,5 +1,5 @@
 {
-  "latest_version": "2.4.9",
+  "latest_version": "2.5.0",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "v2.4.9: Included network name in dashboard and improved Ethernet detection."
+  "release_notes": "v2.5.0: Fixed Ethernet network naming to show profiles like 'Home' correctly."
 }
