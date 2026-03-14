@@ -42,6 +42,12 @@ import pystray
 from PIL import Image, ImageTk
 
 from logger import get_logger
+from thresholds import (
+    APP_VERSION, APP_NAME,
+    SPEED_DOWNLOAD_MIN, SPEED_UPLOAD_MIN,
+    PING_STABILITY_MIN, MIC_LEVEL_MIN, MIC_LEVEL_WARN,
+    RAM_MIN_GB, CPU_PERF_SCORE_MIN,
+    DISK_FREE_MIN_GB, DISK_FREE_WARN_GB,
     DASHBOARD_URL, API_KEY, PING_DEFAULT_TARGET
 )
 from gui.theme import colors, get_font, toggle_theme, get_theme, set_theme

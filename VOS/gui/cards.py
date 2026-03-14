@@ -9,7 +9,7 @@ import customtkinter as ctk
 import tkinter as tk
 from PIL import Image, ImageDraw, ImageFilter, ImageTk
 from gui.theme import colors, get_font
-from thresholds import MIC_LEVEL_MIN, MIC_LEVEL_WARN
+from thresholds import MIC_LEVEL_MIN, MIC_LEVEL_WARN, PING_DEFAULT_TARGET
 
 
 class BaseCard(ctk.CTkFrame):
