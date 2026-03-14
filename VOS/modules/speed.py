@@ -31,24 +31,45 @@ def get_network_name() -> str:
     Handles both Wi-Fi and Ethernet with high reliability.
     Removes trailing Windows numbers (e.g. "Home 3" -> "Home").
     """
-    try:
-        import subprocess
-        import re
+    import subprocess
+    import re
+    import json
 
+    try:
         # Source 1: PowerShell Connection Profile (Primary for both Wi-Fi and Ethernet)
-        # We query all names and pick the first one that has internet connectivity or is not "Unidentified"
+        # Using ConvertTo-Json for robust parsing and sorting by connectivity
         ps_cmd = (
             "Get-NetConnectionProfile | "
             "Sort-Object IPv4Connectivity -Descending | "
-            "Select-Object -ExpandProperty Name"
+            "Select-Object Name, IPv4Connectivity | "
+            "ConvertTo-Json"
         )
         cmd = ["powershell", "-ExecutionPolicy", "Bypass", "-Command", ps_cmd]
         
         profile_names = []
         try:
-            output = subprocess.check_output(cmd, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode().strip()
+            # We use creationflags to hide the window
+            raw_output = subprocess.check_output(cmd, stderr=subprocess.DEVNULL, creationflags=0x08000000)
+            
+            # Decoding with fallback strategy for localized systems
+            output = ""
+            for enc in ['utf-8', 'cp1252', 'cp1256', 'latin-1']:
+                try:
+                    output = raw_output.decode(enc).strip()
+                    if output: break
+                except:
+                    continue
+            if not output:
+                output = raw_output.decode(errors='replace').strip()
+
             if output:
-                profile_names = [line.strip() for line in output.split("\n") if line.strip() and "unidentified" not in line.lower()]
+                data = json.loads(output)
+                # data can be a list if multiple profiles, or a dict if only one
+                profiles = data if isinstance(data, list) else [data]
+                for p in profiles:
+                    name = p.get("Name", "")
+                    if name and "unidentified" not in name.lower():
+                        profile_names.append(name)
         except Exception:
             pass
 
@@ -56,8 +77,10 @@ def get_network_name() -> str:
         ssid = ""
         try:
             cmd_wifi = ["netsh", "wlan", "show", "interfaces"]
-            output = subprocess.check_output(cmd_wifi, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode()
-            for line in output.split("\n"):
+            # We also use broad decoding here
+            raw_wifi = subprocess.check_output(cmd_wifi, stderr=subprocess.DEVNULL, creationflags=0x08000000)
+            output_wifi = raw_wifi.decode(errors='replace')
+            for line in output_wifi.split("\n"):
                 if " SSID" in line and ":" in line:
                     ssid = line.split(":")[1].strip()
                     break
