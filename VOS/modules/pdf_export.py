@@ -108,7 +108,7 @@ def export_results_to_pdf(results: dict, agent_name: str = "Unknown",
     reasons = []
 
     # 1. Specs
-    cpu_label = specs.get("cpu_label", "").lower()
+    cpu_label = specs.get("cpu_label", specs.get("perf_label", "")).lower()
     if cpu_label != "approved":
         reasons.append("PC Specs do not meet the minimum requirements (Intel Core i5 6th Gen or higher)")
 
