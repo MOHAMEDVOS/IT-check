@@ -48,6 +48,8 @@ def check_for_update(update_url: str = None) -> dict:
         latest_tuple = _parse_version(latest)
 
         update_available = latest_tuple > current_tuple
+        
+        log.info(f"Version comparison: local={APP_VERSION} ({current_tuple}), remote={latest} ({latest_tuple}) -> Update={update_available}")
 
         result = {
             "update_available": update_available,
