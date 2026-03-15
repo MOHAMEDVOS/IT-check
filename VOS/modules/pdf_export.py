@@ -112,6 +112,18 @@ def export_results_to_pdf(results: dict, agent_name: str = "Unknown",
     if cpu_label != "approved":
         reasons.append("PC Specs do not meet the minimum requirements (Intel Core i5 6th Gen or higher)")
 
+    # 1b. RAM
+    import re
+    ram_str = str(specs.get("total_ram", ""))
+    ram_match = re.search(r'([\d.]+)', ram_str)
+    if ram_match:
+        try:
+            ram_val = float(ram_match.group(1))
+            if ram_val < 7.0:  # Allow 7.x since 8GB sometimes reads as 7.8GB usable
+                reasons.append(f"RAM does not meet minimum requirement (8GB) — Detected: {ram_str}")
+        except ValueError:
+            pass
+
     # 2. Connection type — Ethernet required
     conn_type = str(speed.get("connection_type", "")).lower()
     if "ethernet" not in conn_type and "eth" not in conn_type:
