@@ -1696,3 +1696,59 @@ RuntimeError: main thread is not in main loop
 [2026-03-14 23:22:08] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
 [2026-03-14 23:22:09] vos.updater    DEBUG    No update needed (current: 2.5.3, remote: 2.5.3)
 [2026-03-14 23:22:09] vos.app        INFO     Silent auto-check completed
+[2026-03-15 03:21:17] vos.app        DEBUG    Gradient bg skipped: wrong # args: should be ".!canvas lower tagOrId ?belowThis?"
+[2026-03-15 03:21:19] vos.app        INFO     Authorization check completed. Result: True
+[2026-03-15 03:21:19] vos.app        INFO     User IS authorized. Un-hiding cards...
+[2026-03-15 03:21:20] vos.updater    INFO     Version comparison: local=2.6.0 ((2, 6, 0)), remote=2.6.0 ((2, 6, 0)) -> Update=False
+[2026-03-15 03:21:20] vos.updater    DEBUG    No update needed (current: 2.6.0, remote: 2.6.0)
+[2026-03-15 03:21:28] vos.app        INFO     Starting diagnostics 
+[2026-03-15 03:21:29] vos.app        INFO     Running all diagnostic tasks
+[2026-03-15 03:21:29] vos.vpn        INFO     No VPN detected
+[2026-03-15 03:21:29] vos.disk       INFO     Disk check: C: — 181.7GB free / 476GB total (61.8% used)
+[2026-03-15 03:21:29] vos.app        INFO     Disk: 181.7GB free on C:
+[2026-03-15 03:21:29] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-15 03:21:29] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-15 03:21:30] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-15 03:21:30] vos.app        INFO     Minimizing to tray...
+[2026-03-15 03:21:30] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-15 03:21:32] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-15 03:21:32] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-15 03:22:08] vos.app        INFO     Speed: 24.0↓ / 3.1↑ Mbps
+[2026-03-15 03:22:08] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-15 03:22:08] vos.app        INFO     Running ping task sequentially
+[2026-03-15 03:22:50] vos.app        INFO     Ping: 25/100 (POOR)
+[2026-03-15 03:22:50] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-15 03:22:50] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'vpn', 'disk', 'chrome', 'specs', 'ping']
+[2026-03-15 03:22:51] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-15 03:24:28] vos.app        INFO     Minimizing to tray...
+[2026-03-15 03:24:47] vos.app        INFO     Starting diagnostics 
+[2026-03-15 03:24:47] vos.app        INFO     Running all diagnostic tasks
+[2026-03-15 03:24:47] vos.vpn        INFO     No VPN detected
+[2026-03-15 03:24:47] vos.disk       INFO     Disk check: C: — 181.7GB free / 476GB total (61.8% used)
+[2026-03-15 03:24:47] vos.app        INFO     Mic: 100/100 (Microphone Array (تقنية Intel® Smart Sound لأجهزة ميكروفون رقمية) - Built-in)
+[2026-03-15 03:24:47] vos.app        INFO     Disk: 181.7GB free on C:
+[2026-03-15 03:24:47] vos.app        INFO     Task 'disk' completed successfully
+[2026-03-15 03:24:48] vos.app        INFO     Chrome: UP_TO_DATE (v146)
+[2026-03-15 03:24:48] vos.app        INFO     Task 'chrome' completed successfully
+[2026-03-15 03:24:49] vos.app        INFO     Specs: 12th Gen Intel(R) Core(TM) i7-1255U, 16GB RAM, GPU: Intel(R) Iris(R) Xe Graphics
+[2026-03-15 03:24:49] vos.app        INFO     Task 'specs' completed successfully
+[2026-03-15 03:24:52] vos.app        INFO     Minimizing to tray...
+[2026-03-15 03:25:16] vos.app        INFO     Speed: 25.8↓ / 4.3↑ Mbps
+[2026-03-15 03:25:16] vos.app        INFO     Task 'speed' completed successfully
+[2026-03-15 03:25:16] vos.app        INFO     Running ping task sequentially
+[2026-03-15 03:25:17] vos.app        INFO     Authorization check completed. Result: False
+[2026-03-15 03:25:17] vos.app        INFO     User is NOT authorized. Keeping restricted UI hidden.
+[2026-03-15 03:25:39] vos.app        INFO     Authorization check completed. Result: True
+[2026-03-15 03:25:39] vos.app        INFO     User IS authorized. Un-hiding cards...
+[2026-03-15 03:25:55] vos.app        INFO     Ping: 25/100 (POOR)
+[2026-03-15 03:25:55] vos.app        INFO     Task 'ping' completed successfully
+[2026-03-15 03:25:55] vos.app        INFO     All tasks done. Results: ['speed', 'mic', 'vpn', 'disk', 'chrome', 'specs', 'ping']
+[2026-03-15 03:25:55] vos.app        INFO     Results posted to dashboard at https://mohamed404.pythonanywhere.com
+[2026-03-15 03:26:11] vos.app        DEBUG    Gradient bg skipped: wrong # args: should be ".!canvas lower tagOrId ?belowThis?"
+[2026-03-15 03:26:12] vos.app        INFO     Authorization check completed. Result: False
+[2026-03-15 03:26:12] vos.app        INFO     User is NOT authorized. Keeping restricted UI hidden.
+[2026-03-15 03:26:12] vos.updater    INFO     Version comparison: local=2.6.0 ((2, 6, 0)), remote=2.6.0 ((2, 6, 0)) -> Update=False
+[2026-03-15 03:26:12] vos.updater    DEBUG    No update needed (current: 2.6.0, remote: 2.6.0)
+[2026-03-15 03:26:20] vos.app        INFO     Authorization check completed. Result: True
+[2026-03-15 03:26:20] vos.app        INFO     User IS authorized. Un-hiding cards...
+[2026-03-15 03:26:25] vos.app        INFO     Minimizing to tray...

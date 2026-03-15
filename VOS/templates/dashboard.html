@@ -251,6 +251,8 @@ function connTypePill(type) {
 function statusPill(text) {
     if (!text || text === '—') return '<span class="pill pill-neutral">—</span>';
     const t = text.toLowerCase();
+    if (t === 'not approved') return '<span class="pill pill-bad">' + text + '</span>';
+    if (t === 'approved') return '<span class="pill pill-good">' + text + '</span>';
     if (t.includes('good') || t.includes('up_to_date') || t.includes('up to date')) return '<span class="pill pill-good">' + text + '</span>';
     if (t.includes('fair') || t.includes('warn')) return '<span class="pill pill-warn">' + text + '</span>';
     if (t.includes('poor') || t.includes('bad') || t.includes('outdated') || t.includes('needs update')) return '<span class="pill pill-bad">' + text + '</span>';
@@ -448,7 +450,7 @@ function renderTable(data) {
                 <div class="detail-row-item"><span class="label">RES-ID</span><span class="value" style="color:#f472b6;font-weight:bold">${r.res_id || '—'}</span></div>
                 <div class="detail-row-item"><span class="label">CPU</span><span class="value">${r.pc_specs || '—'}</span></div>
                 <div class="detail-row-item"><span class="label">GPU</span><span class="value">${r.gpu || '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Performance</span><span class="value">${r.cpu_label || '—'}</span></div>
+                <div class="detail-row-item"><span class="label">Performance</span><span class="value">${statusPill(r.cpu_label || '—')}</span></div>
                 <div class="detail-row-item"><span class="label">Chrome</span><span class="value">${r.chrome_version || '—'}</span></div>
             </div>
             <div class="detail-section">

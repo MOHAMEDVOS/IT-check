@@ -176,19 +176,11 @@ def _get_gpu_name() -> str:
 
 
 def _cpu_tier(score: int) -> str:
-    """Map perf_score to a simple, clear tier label for the dashboard."""
-    if score >= 250:
-        return "High-End"
-    elif score >= 160:
-        return "Upper Mid-Range"
-    elif score >= 110:
-        return "Mid-Range"
-    elif score >= 80:
-        return "Entry-Level"
-    elif score >= 50:
-        return "Low-End"
-    else:
-        return "Very Low-End"
+    """Map perf_score to Approved / Not Approved for the dashboard."""
+    from thresholds import CPU_PERF_SCORE_MIN
+    if score >= CPU_PERF_SCORE_MIN:
+        return "Approved"
+    return "Not Approved"
 
 
 def get_system_specs() -> dict:

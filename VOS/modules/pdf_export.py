@@ -107,7 +107,7 @@ def export_results_to_pdf(results: dict, agent_name: str = "Unknown",
             ["CPU", specs.get("cpu_model", "—")],
             ["RAM", specs.get("total_ram", "—")],
             ["GPU", specs.get("gpu_name", "—")],
-            ["Performance", specs.get("perf_label", "—")],
+            ["Performance", specs.get("cpu_label", specs.get("perf_label", "—"))],
         ]
         t = Table(data, colWidths=[40 * mm, 120 * mm])
         t.setStyle(TableStyle([
