@@ -1,5 +1,6 @@
 {
   "latest_version": "2.6.0",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Significant feature and aesthetic update: Custom title bar, redesigned Quick Drill, DNS flush tool, and improved input validation."
+  "release_notes": "Significant feature and aesthetic update: Custom title bar, redesigned Quick Drill, DNS flush tool, and improved input validation.",
+  "_timestamp": "2026-03-15T03:15:00"
 }
