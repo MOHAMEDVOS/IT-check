@@ -1,7 +1,7 @@
 # ─── VOS — Vital Operations Scanner ─── Threshold Constants ───
 
 APP_NAME = "VOS"
-APP_VERSION = "2.5.3"
+APP_VERSION = "2.6.0"
 PING_DEFAULT_TARGET = "resva.readymode.com"
 
 # ── Internet Speed (Mbps) ──
@@ -21,7 +21,7 @@ PING_COUNT = 20
 PING_ROUNDS = 3
 
 # ── Microphone ──
-MIC_LEVEL_MIN = 100
+MIC_LEVEL_MIN = 50
 MIC_LEVEL_WARN = 20
 
 # ── System Specs ──

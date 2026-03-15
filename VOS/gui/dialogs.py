@@ -86,8 +86,8 @@ class NameDialog(ctk.CTkToplevel):
         ).pack(anchor="w", pady=(0, 4))
         ctk.CTkLabel(
             main_fr,
-            text="We need your details before running checks.",
-            font=get_font("Outfit", 11),
+            text="Please enter your details to continue.",
+            font=get_font("Outfit", 12),
             text_color=colors["DIM_TEXT"],
         ).pack(anchor="w", pady=(0, 20))
 
@@ -154,26 +154,46 @@ class NameDialog(ctk.CTkToplevel):
         self.team_entry.pack(pady=(4, 12))
         self.team_entry.insert(0, current_team)
 
-        # RES-ID field
+        # RES-ID field (fixed "RES-" prefix)
         ctk.CTkLabel(
             main_fr,
             text="RES-ID",
             font=get_font("Outfit", 12),
             text_color=colors["DIM_TEXT"],
         ).pack(anchor="w")
-        self.res_id_entry = ctk.CTkEntry(
+        
+        res_fr = ctk.CTkFrame(
             main_fr,
-            placeholder_text="e.g. 96",
-            width=400,
-            height=40,
             fg_color=colors["CARD_BG"],
             border_color=colors["BORDER"],
             border_width=1,
+            height=40
+        )
+        res_fr.pack(fill="x", pady=(4, 12))
+        
+        ctk.CTkLabel(
+            res_fr,
+            text="RES-",
+            font=get_font("Outfit", 13, "bold"),
+            text_color=colors["TEXT"],
+        ).pack(side="left", padx=(12, 0))
+        
+        self.res_id_entry = ctk.CTkEntry(
+            res_fr,
+            placeholder_text="1304",
+            height=38,
+            fg_color="transparent",
+            border_width=0,
             text_color=colors["TEXT"],
             font=get_font("Outfit", 13),
         )
-        self.res_id_entry.pack(pady=(4, 12))
-        self.res_id_entry.insert(0, current_res_id)
+        self.res_id_entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        
+        # Strip "RES-" if it already exists in the config so we don't double it
+        display_res = current_res_id
+        if display_res.upper().startswith("RES-"):
+            display_res = display_res[4:]
+        self.res_id_entry.insert(0, display_res)
 
         self.err_lbl = ctk.CTkLabel(
             main_fr,
@@ -198,11 +218,19 @@ class NameDialog(ctk.CTkToplevel):
 
         self.name_entry.bind("<KeyRelease>", self._validate)
         self.anydesk_entry.bind("<KeyRelease>", self._validate)
+        self.res_id_entry.bind("<KeyRelease>", self._validate)
         self._validate()
 
     def _validate(self, event=None):
         name = self.name_entry.get().strip()
         anydesk = self.anydesk_entry.get().strip()
+
+        # Enforce numeric only on RES-ID
+        res_val = self.res_id_entry.get()
+        res_clean = "".join(filter(str.isdigit, res_val))
+        if res_val != res_clean:
+            self.res_id_entry.delete(0, "end")
+            self.res_id_entry.insert(0, res_clean)
 
         name_parts = [p for p in name.split() if p.strip()]
         is_name_valid = len(name_parts) >= 3
@@ -249,7 +277,9 @@ class NameDialog(ctk.CTkToplevel):
             cfg["employee_name"] = name
             cfg["anydesk_id"] = anydesk
             cfg["team"] = self.team_entry.get().strip()
-            cfg["res_id"] = self.res_id_entry.get().strip()
+            
+            res_val = self.res_id_entry.get().strip()
+            cfg["res_id"] = f"RES-{res_val}" if res_val else ""
             # Always set theme default if missing
             if not cfg.get("theme"):
                 cfg["theme"] = "dark"
@@ -279,86 +309,123 @@ class LogoutConfirmDialog(ctk.CTkToplevel):
     def __init__(self, master, on_confirm=None):
         super().__init__(master)
 
-        self.title("Confirmation Required")
-        self.geometry("440x300")
+        self.title("Quick Drill")
         self.configure(fg_color=colors["BG"])
         self.resizable(False, False)
-
         self.on_confirm_cb = on_confirm
 
+        # ── Size & center ────────────────────────────────────────────
+        dlg_w, dlg_h = 460, 320
+        self.geometry(f"{dlg_w}x{dlg_h}")
         self.update_idletasks()
-        x = master.winfo_x() + (master.winfo_width() // 2) - (440 // 2)
-        y = master.winfo_y() + (master.winfo_height() // 2) - (300 // 2)
+        x = master.winfo_x() + (master.winfo_width() // 2) - (dlg_w // 2)
+        y = master.winfo_y() + (master.winfo_height() // 2) - (dlg_h // 2)
         self.geometry(f"+{x}+{y}")
 
         self.transient(master)
         self.grab_set()
 
-        main_fr = ctk.CTkFrame(self, fg_color="transparent")
-        main_fr.pack(pady=24, padx=32, fill="both", expand=True)
+        # ── Dark title-bar (Windows DWM) ─────────────────────────────
+        try:
+            import ctypes
+            hwnd = ctypes.windll.user32.GetParent(self.winfo_id())
+            dwm = ctypes.windll.dwmapi
+            bg = colors.get("BG", "#0B0F14").lstrip("#")
+            r, g, b = int(bg[0:2], 16), int(bg[2:4], 16), int(bg[4:6], 16)
+            bgr = ctypes.c_int(r | (g << 8) | (b << 16))
+            dwm.DwmSetWindowAttribute(hwnd, 35, ctypes.byref(bgr), ctypes.sizeof(bgr))
+            dark = ctypes.c_int(1)
+            dwm.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(dark), ctypes.sizeof(dark))
+        except Exception:
+            pass
 
+        # ── Outer card ───────────────────────────────────────────────
+        card = ctk.CTkFrame(
+            self, fg_color=colors["CARD_BG"],
+            corner_radius=12, border_width=1, border_color=colors["BORDER"],
+        )
+        card.pack(fill="both", expand=True, padx=16, pady=16)
+
+        # Amber accent stripe at top
+        stripe = ctk.CTkFrame(card, fg_color="#D97706", height=4, corner_radius=0)
+        stripe.pack(fill="x", padx=20, pady=(16, 0))
+
+        inner = ctk.CTkFrame(card, fg_color="transparent")
+        inner.pack(fill="both", expand=True, padx=28, pady=(18, 20))
+
+        # ── Warning badge ────────────────────────────────────────────
+        badge_fr = ctk.CTkFrame(inner, fg_color="#2D1B00", corner_radius=6)
+        badge_fr.pack(fill="x", pady=(0, 14))
+        badge_inner = ctk.CTkFrame(badge_fr, fg_color="transparent")
+        badge_inner.pack(padx=12, pady=8)
         ctk.CTkLabel(
-            main_fr,
-            text="⚠️ Important",
-            font=get_font("Outfit", 16, "bold"),
-            text_color=colors["WARNING"],
-        ).pack(anchor="w", pady=(0, 10))
-        
+            badge_inner, text="⚠",
+            font=get_font("Outfit", 16),
+            text_color="#F59E0B",
+        ).pack(side="left", padx=(0, 8))
+        ctk.CTkLabel(
+            badge_inner,
+            text="Heads up — this will close Chrome",
+            font=get_font("Outfit", 12, "bold"),
+            text_color="#FBBF24",
+        ).pack(side="left")
+
+        # ── Message ──────────────────────────────────────────────────
         msg = (
-            "Please make sure you are logged out of the Readymode Dialer "
-            "before clearing cache and site settings.\n\n"
-            "This step is required. After clearing, close and reopen your browser."
+            "Please log out of the Readymode Dialer first.\n\n"
+            "This will clear your browser cache, cookies & site settings, "
+            "then flush your DNS cache. Re-open Chrome when done."
         )
         ctk.CTkLabel(
-            main_fr,
-            text=msg,
-            font=get_font("Outfit", 12),
-            text_color=colors["TEXT"],
-            justify="left",
-            wraplength=360
-        ).pack(anchor="w", pady=(0, 20))
+            inner, text=msg,
+            font=get_font("Outfit", 11),
+            text_color=colors["DIM_TEXT"],
+            justify="left", wraplength=370, anchor="w",
+        ).pack(fill="x", pady=(0, 16))
 
+        # ── Checkbox ─────────────────────────────────────────────────
         self.confirm_var = ctk.BooleanVar(value=False)
         self.checkbox = ctk.CTkCheckBox(
-            main_fr,
-            text="I confirm I have logged out of the Readymode Dialer",
+            inner,
+            text="I have logged out of the Readymode Dialer",
             variable=self.confirm_var,
             command=self._toggle_button,
-            font=get_font("Outfit", 11),
+            font=get_font("Outfit", 11, "bold"),
             text_color=colors["TEXT"],
-            fg_color=colors["ACCENT"],
-            hover_color=colors["ACCENT_HOVER"],
+            fg_color="#D97706",
+            hover_color="#B45309",
             border_color=colors["BORDER"],
+            checkmark_color="#FFFFFF",
+            corner_radius=4,
         )
-        self.checkbox.pack(anchor="w", pady=(0, 24))
+        self.checkbox.pack(anchor="w", pady=(0, 20))
 
-        btn_fr = ctk.CTkFrame(main_fr, fg_color="transparent")
+        # ── Buttons ──────────────────────────────────────────────────
+        btn_fr = ctk.CTkFrame(inner, fg_color="transparent")
         btn_fr.pack(fill="x")
 
         self.cancel_btn = ctk.CTkButton(
-            btn_fr,
-            text="Cancel",
-            font=get_font("Outfit", 12),
-            fg_color=colors["BORDER"],
-            hover_color=colors["CARD_BG"],
-            text_color=colors["TEXT"],
+            btn_fr, text="Cancel",
+            font=get_font("Outfit", 12, "bold"),
+            fg_color="transparent",
+            border_width=1, border_color=colors["BORDER"],
+            hover_color=colors["CARD_HOVER"],
+            text_color=colors["DIM_TEXT"],
             command=self.destroy,
-            height=36,
-            width=100,
-            corner_radius=8,
+            height=38, width=110, corner_radius=8,
         )
         self.cancel_btn.pack(side="left", padx=(0, 10))
 
         self.clear_btn = ctk.CTkButton(
-            btn_fr,
-            text="Clear Cache & Settings",
+            btn_fr, text="Run Quick Drill",
             font=get_font("Outfit", 12, "bold"),
-            fg_color=colors["WARNING"],
-            hover_color="#D97706", # darker amber
+            fg_color="#D97706",
+            hover_color="#B45309",
+            border_width=1, border_color="#F59E0B",
             text_color="#FFFFFF",
+            text_color_disabled="#888888",
             command=self._confirm,
-            height=36,
-            corner_radius=8,
+            height=38, corner_radius=8,
             state="disabled",
         )
         self.clear_btn.pack(side="left", fill="x", expand=True)

@@ -20,6 +20,7 @@ class BaseCard(ctk.CTkFrame):
         # - outer frame is transparent and holds the glow bitmap
         # - inner frame is the actual glass surface
         super().__init__(master, fg_color="transparent", corner_radius=12, **kwargs)
+        self._wrap_labels = []  # labels that need dynamic wraplength
         self._pulse_job = None
         self._is_checking = False
         self._hovered = False
@@ -106,6 +107,24 @@ class BaseCard(ctk.CTkFrame):
 
         # Default visual state
         self._apply_visual_state()
+
+        # Auto-adjust wraplength when card resizes
+        self.content.bind("<Configure>", self._on_content_resize)
+
+    def _on_content_resize(self, event=None):
+        """Dynamically update wraplength of registered labels to fit card width."""
+        try:
+            w = self.content.winfo_width()
+            if w < 10:
+                return
+            for lbl, ratio in self._wrap_labels:
+                lbl.configure(wraplength=max(60, int(w * ratio)))
+        except Exception:
+            pass
+
+    def _register_wrap_label(self, label, ratio=0.9):
+        """Register a label for dynamic wraplength. ratio = fraction of content width."""
+        self._wrap_labels.append((label, ratio))
 
     def _bind_hover_to_children(self, widget):
         for w in widget.winfo_children():
@@ -291,6 +310,7 @@ class SpecsCard(BaseCard):
             anchor="w",
         )
         self.cpu_val.grid(row=0, column=0, sticky="w", pady=(4, 2))
+        self._register_wrap_label(self.cpu_val, 0.55)
 
         self.mem_val = ctk.CTkLabel(
             self.content,
@@ -325,6 +345,7 @@ class ChromeCard(BaseCard):
         )
         self.note_lbl.grid(row=1, column=0, sticky="w", pady=(2, 0))
         self.note_lbl.configure(wraplength=260, justify="left")
+        self._register_wrap_label(self.note_lbl, 0.9)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -543,6 +564,7 @@ class MicCard(BaseCard):
             anchor="w",
         )
         self.dev_val.grid(row=0, column=1, sticky="nw", padx=(10, 0), pady=(0, 2))
+        self._register_wrap_label(self.dev_val, 0.65)
 
         ctk.CTkLabel(
             self.content,
@@ -560,10 +582,11 @@ class MicCard(BaseCard):
             anchor="w",
         )
         self.type_val.grid(row=1, column=1, sticky="nw", padx=(10, 0), pady=(0, 2))
+        self._register_wrap_label(self.type_val, 0.65)
 
         ctk.CTkLabel(
             self.content,
-            text="Signal Strength",
+            text="Mic Levels",
             font=get_font("Outfit", 11),
             text_color=colors["DIM_TEXT"],
         ).grid(row=2, column=0, sticky="nw", pady=(0, 2))

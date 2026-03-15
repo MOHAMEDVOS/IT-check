@@ -95,22 +95,46 @@ def save_config(data):
 class VOSApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title(f"{APP_NAME} v{APP_VERSION} - Vital Operations Scanner")
-        self.geometry("980x620")
-        self.minsize(900, 540)
+        self.title(f"{APP_NAME} - Vital Operations Scanner")
+        # Dynamic window sizing — fill ~90 % of the screen so everything is visible
+        self.update_idletasks()
+        scr_w = self.winfo_screenwidth()
+        scr_h = self.winfo_screenheight()
+        win_w = min(int(scr_w * 0.92), 1400)
+        win_h = min(int(scr_h * 0.88), 900)
+        x = (scr_w - win_w) // 2
+        y = max((scr_h - win_h) // 2 - 20, 0)
+        self.geometry(f"{win_w}x{win_h}+{x}+{y}")
+        self.minsize(850, 520)
         self.configure(fg_color=colors["BG"])
 
         # Subtle gradient background (canvas behind content)
         self._gradient_canvas = None
         self._setup_gradient_bg()
 
-        # Icon
+        # Icon + title-bar colour
         try:
             base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
             icon_path = os.path.join(base_path, "assets", "IT.ico")
             self.iconbitmap(icon_path)
             import ctypes
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(f"vos.app.{APP_VERSION}")
+
+            # Paint the Windows title bar to match the app background
+            try:
+                hwnd = ctypes.windll.user32.GetParent(self.winfo_id())
+                dwm = ctypes.windll.dwmapi
+                # Convert BG hex to BGR int for DWM
+                bg = colors.get("BG", "#0B0F14").lstrip("#")
+                r, g, b = int(bg[0:2], 16), int(bg[2:4], 16), int(bg[4:6], 16)
+                bgr_color = ctypes.c_int(r | (g << 8) | (b << 16))
+                # DWMWA_CAPTION_COLOR = 35
+                dwm.DwmSetWindowAttribute(hwnd, 35, ctypes.byref(bgr_color), ctypes.sizeof(bgr_color))
+                # DWMWA_USE_IMMERSIVE_DARK_MODE = 20 (white title text)
+                dark_mode = ctypes.c_int(1)
+                dwm.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(dark_mode), ctypes.sizeof(dark_mode))
+            except Exception as e:
+                log.debug(f"Title bar color skipped: {e}")
         except Exception as e:
             log.debug(f"Icon load skipped: {e}")
 
@@ -561,7 +585,7 @@ class VOSApp(ctk.CTk):
         self.btn_frame = ctk.CTkFrame(self.header, fg_color="transparent")
         self.btn_frame.grid(row=0, column=2, sticky="ne")
         self.run_btn = ctk.CTkButton(
-            self.btn_frame, text="🔍  Check My System",
+            self.btn_frame, text="Check My System",
             font=get_font("Outfit", 14, "bold"),
             fg_color=colors["ACCENT"], text_color="#FFFFFF",
             text_color_disabled="#FFFFFF",
@@ -573,11 +597,13 @@ class VOSApp(ctk.CTk):
         # FIX 2: Create button but do NOT pack it here.
         # _apply_auth_ui is the only place that shows/hides it.
         self.quick_drill_btn = ctk.CTkButton(
-            self.btn_frame, text="Quick Drill !",
-            font=get_font("Outfit", 10, "bold"),
-            fg_color=colors["BORDER"], text_color=colors["TEXT"],
-            hover_color=colors["WARNING"],
-            corner_radius=6, height=28, command=self._clear_chrome_data,
+            self.btn_frame, text="Quick Drill",
+            font=get_font("Outfit", 12, "bold"),
+            fg_color="#D97706", text_color="#FFFFFF",
+            text_color_disabled="#FFFFFF",
+            hover_color="#B45309",
+            border_width=1, border_color="#F59E0B",
+            corner_radius=8, height=36, command=self._clear_chrome_data,
             state="disabled",
         )
         # intentionally NOT calling .pack() here
@@ -601,7 +627,7 @@ class VOSApp(ctk.CTk):
         self.scroll_frame.pack(fill="both", expand=True, padx=16, pady=(0, 4))
         for c in range(3):
             self.scroll_frame.columnconfigure(c, weight=1, uniform="col")
-        self.scroll_frame.rowconfigure(0, weight=0, uniform="row")
+        self.scroll_frame.rowconfigure(0, weight=1, uniform="row")
         self.scroll_frame.rowconfigure(1, weight=1, uniform="row")
 
         self.cards = {
@@ -664,36 +690,72 @@ class VOSApp(ctk.CTk):
 
     def _do_clear_chrome_data(self):
         try:
+            # Phase 1: Clear Chrome data
             from modules.chrome import clear_chrome_data
-            success = clear_chrome_data()
-            if success:
+            chrome_ok = clear_chrome_data()
+            if chrome_ok:
+                log.info("Drill Phase 1: Chrome data cleared successfully.")
+            else:
+                log.warning("Drill Phase 1: Chrome data clear returned false.")
+
+            # Phase 2: Flush DNS
+            self.after(0, lambda: self.quick_drill_btn.configure(
+                text="⏳ Flushing DNS...", text_color=colors["WARNING"]
+            ))
+            dns_ok = False
+            try:
+                import subprocess
+                result = subprocess.run(
+                    ["ipconfig", "/flushdns"],
+                    capture_output=True, text=True, timeout=15,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                )
+                dns_ok = result.returncode == 0
+                if dns_ok:
+                    log.info("Drill Phase 2: DNS cache flushed successfully.")
+                else:
+                    log.warning(f"Drill Phase 2: DNS flush failed: {result.stderr.strip()}")
+            except Exception as e:
+                log.error(f"Drill Phase 2: DNS flush error: {e}")
+
+            # Final status
+            if chrome_ok and dns_ok:
                 def _update_success():
                     self.quick_drill_btn.configure(
                         state="normal",
-                        text="✅ Cache, Cookies & Settings Cleared",
+                        text="✅ Chrome Cleared & DNS Flushed",
                         text_color=colors["SUCCESS"]
                     )
                     self.after(4000, lambda: self.quick_drill_btn.configure(
-                        text="Quick Drill !", text_color=colors["TEXT"]
+                        text="Quick Drill", text_color="#FFFFFF"
                     ))
                 self.after(0, _update_success)
-                log.info("Chrome data successfully cleared.")
+            elif chrome_ok:
+                def _update_partial():
+                    self.quick_drill_btn.configure(
+                        state="normal",
+                        text="⚠️ Chrome OK, DNS flush failed",
+                        text_color=colors["WARNING"]
+                    )
+                    self.after(4000, lambda: self.quick_drill_btn.configure(
+                        text="Quick Drill", text_color="#FFFFFF"
+                    ))
+                self.after(0, _update_partial)
             else:
                 def _update_fail():
                     self.quick_drill_btn.configure(
                         state="normal",
-                        text="❌ Failed to clear Chrome data",
+                        text="❌ Drill failed",
                         text_color=colors["ERROR"]
                     )
                     self.after(4000, lambda: self.quick_drill_btn.configure(
-                        text="Quick Drill !", text_color=colors["TEXT"]
+                        text="Quick Drill", text_color="#FFFFFF"
                     ))
                 self.after(0, _update_fail)
-                log.warning("Chrome data clear returned false.")
         except Exception as e:
-            log.error(f"Failed to clear Chrome data: {e}", exc_info=True)
+            log.error(f"Quick Drill failed: {e}", exc_info=True)
             self.after(0, lambda: self.quick_drill_btn.configure(
-                state="normal", text="Quick Drill !", text_color=colors["TEXT"]
+                state="normal", text="Quick Drill", text_color="#FFFFFF"
             ))
 
     # ─────────────────────── Auto-Update Check ───────────────────────
@@ -911,7 +973,7 @@ class VOSApp(ctk.CTk):
         self._stop_bmo_animation()
 
         if not was_silent:
-            self.run_btn.configure(state="normal", text="🔍  Check My System")
+            self.run_btn.configure(state="normal", text="Check My System")
             if self.is_authorized:
                 self.quick_drill_btn.configure(state="normal")
             else:
@@ -1129,7 +1191,7 @@ class VOSApp(ctk.CTk):
             if verdict_str in ["EXCELLENT", "GOOD", "FAIR"]:
                 text = "Good Connection – Your network is stable. No issues detected."
             elif verdict_str in ["MARGINAL", "UNSTABLE"]:
-                text = "Ask IT to verify if your ping results require action."
+                text = "Marginal Connection – Please check with IT to see if any action is required for your connection."
             else:
                 text = "Poor Connection – Your connection is unstable and may cause call drops or delays."
 
