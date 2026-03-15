@@ -766,15 +766,16 @@ class VOSApp(ctk.CTk):
         try:
             from modules.updater import check_for_update, apply_update
             result = check_for_update()
-            if result and result.get("update_available"):
-                new_ver = result.get("latest_version", "?")
+            update_available = result and result.get("update_available")
+            new_ver = result.get("latest_version", "?") if result else "?"
+            
+            # Robust comparison: if strings match or version is same, it's not an update
+            if str(new_ver).strip().lower().lstrip('v') == str(APP_VERSION).strip().lower().lstrip('v'):
+                update_available = False
+
+            if update_available:
                 dl_url = result.get("download_url", "")
-
-                if str(new_ver) == str(APP_VERSION):
-                    log.debug(f"Update check: Skipping false positive (both are {new_ver})")
-                    return
-
-                log.info(f"Update check: Current={APP_VERSION}, Latest={new_ver} -> UPDATE AVAILABLE")
+                log.info(f"Update available: Current={APP_VERSION}, Latest={new_ver} -> SHOWING UI")
 
                 def _show_update_ui():
                     self.footer_lbl.configure(

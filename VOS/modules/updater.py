@@ -23,8 +23,10 @@ DEFAULT_UPDATE_URL = "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main
 def _parse_version(version_str: str) -> tuple:
     """Parse '2.1.0' into (2, 1, 0) for comparison."""
     try:
-        parts = version_str.strip().split(".")
-        return tuple(int(p) for p in parts)
+        # Strip 'v', whitespace, and handle common delimiters
+        v = version_str.strip().lower().lstrip('v').replace('-', '.').replace('_', '.')
+        parts = v.split(".")
+        return tuple(int(p) for p in parts if p.isdigit())
     except (ValueError, AttributeError):
         return (0, 0, 0)
 
