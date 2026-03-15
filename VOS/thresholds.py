@@ -1,7 +1,7 @@
 # ─── VOS — Vital Operations Scanner ─── Threshold Constants ───
 
 APP_NAME = "VOS"
-APP_VERSION = "2.7.0"
+APP_VERSION = "2.7.1"
 PING_DEFAULT_TARGET = "resva.readymode.com"
 
 # ── Internet Speed (Mbps) ──
@@ -26,7 +26,7 @@ MIC_LEVEL_WARN = 20
 
 # ── System Specs ──
 RAM_MIN_GB = 8
-CPU_PERF_SCORE_MIN = 40
+CPU_PERF_SCORE_MIN = 80
 
 # ── Disk Space (GB) ──
 DISK_FREE_MIN_GB = 20.0
