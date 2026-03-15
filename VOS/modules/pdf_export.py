@@ -37,9 +37,8 @@ def export_results_to_pdf(results: dict, agent_name: str = "Unknown",
     if output_dir is None:
         output_dir = os.path.join(os.path.expanduser("~"), "Desktop")
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    safe_name = agent_name.replace(" ", "_")[:20]
-    filename = f"VOS_Report_{safe_name}_{timestamp}.pdf"
+    safe_name = agent_name.strip()[:40]
+    filename = f"{safe_name}.pdf"
     filepath = os.path.join(output_dir, filename)
 
     doc = SimpleDocTemplate(filepath, pagesize=A4,
@@ -97,10 +96,87 @@ def export_results_to_pdf(results: dict, agent_name: str = "Unknown",
         ('LEFTPADDING', (0, 0), (-1, -1), 8),
     ]))
     elements.append(ht)
-    elements.append(Spacer(1, 10 * mm))
+    elements.append(Spacer(1, 6 * mm))
 
-    # System Specs
+    # ── Overall Assessment ──
+    from thresholds import CPU_PERF_SCORE_MIN
+
     specs = results.get("specs", {})
+    speed = results.get("speed", {})
+    mic = results.get("mic", {})
+
+    reasons = []
+
+    # 1. Specs
+    cpu_label = specs.get("cpu_label", "").lower()
+    if cpu_label != "approved":
+        reasons.append("PC Specs do not meet the minimum requirements (Intel Core i5 6th Gen or higher)")
+
+    # 2. Connection type — Ethernet required
+    conn_type = str(speed.get("connection_type", "")).lower()
+    if "ethernet" not in conn_type and "eth" not in conn_type:
+        reasons.append("Wi-Fi connection detected — Ethernet (wired) is required")
+
+    # 3. Speed — 10 Mbps down, 2 Mbps up
+    try:
+        dl = float(speed.get("download", speed.get("_raw_down", 0)) or 0)
+        ul = float(speed.get("upload", speed.get("_raw_up", 0)) or 0)
+    except (ValueError, TypeError):
+        dl, ul = 0.0, 0.0
+    if dl < 10.0 or ul < 2.0:
+        reasons.append(f"Internet speed below requirement — Need: 10 Mbps down / 2 Mbps up, Got: {dl} / {ul}")
+
+    # 4. Mic — USB required
+    mic_type = str(mic.get("type", "")).lower()
+    mic_device = str(mic.get("device", "")).lower()
+    if "usb" not in mic_type and "usb" not in mic_device:
+        mic_label = mic.get("type", mic.get("device", "Unknown"))
+        reasons.append(f"Microphone is not USB — Detected: {mic_label}")
+
+    is_approved = len(reasons) == 0
+
+    verdict_style = ParagraphStyle(
+        'Verdict', parent=styles['Normal'],
+        fontSize=16, fontName='Helvetica-Bold',
+        textColor=HexColor("#15803d") if is_approved else HexColor("#dc2626"),
+        spaceBefore=4, spaceAfter=4,
+    )
+    reason_style = ParagraphStyle(
+        'Reason', parent=styles['Normal'],
+        fontSize=10, textColor=HexColor("#991b1b"),
+        leftIndent=10, spaceAfter=2,
+    )
+
+    elements.append(Paragraph("Overall Assessment", heading_style))
+
+    # Verdict box
+    verdict_text = "APPROVED" if is_approved else "NOT APPROVED"
+    verdict_bg = HexColor("#dcfce7") if is_approved else HexColor("#fee2e2")
+    verdict_border = HexColor("#16a34a") if is_approved else HexColor("#dc2626")
+
+    verdict_data = [[Paragraph(verdict_text, verdict_style)]]
+    vt = Table(verdict_data, colWidths=[160 * mm])
+    vt.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), verdict_bg),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOX', (0, 0), (-1, -1), 1.5, verdict_border),
+        ('ROUNDEDCORNERS', [4, 4, 4, 4]),
+    ]))
+    elements.append(vt)
+
+    if reasons:
+        elements.append(Spacer(1, 3 * mm))
+        elements.append(Paragraph("Reasons:", ParagraphStyle(
+            'ReasonsHeader', parent=styles['Normal'],
+            fontSize=11, fontName='Helvetica-Bold',
+            textColor=HexColor("#450a0a"), spaceAfter=4,
+        )))
+        for r in reasons:
+            elements.append(Paragraph(f"- {r}", reason_style))
+
+    elements.append(Spacer(1, 6 * mm))
     if specs:
         elements.append(Paragraph("💻 System Specs", heading_style))
         data = [
