@@ -108,6 +108,22 @@
         /* Responsive */
         @media(max-width:1200px) { .detail-panel { grid-template-columns:1fr 1fr; } }
         @media(max-width:768px) { .detail-panel { grid-template-columns:1fr; } }
+
+        /* Newcomer view tabs */
+        .view-tabs { display:flex; gap:8px; align-items:center; }
+        .view-tab { padding:7px 18px; border-radius:8px; border:1px solid #1e293b; cursor:pointer;
+                    font-size:12px; font-weight:600; background:#141c2e; color:#94a3b8; transition:.2s; }
+        .view-tab:hover { border-color:#00d4aa; color:#00d4aa; }
+        .view-tab.active { background:#064e3b; border-color:#22c55e; color:#34d399; }
+        .view-tab.new-tab.active { background:#1e1b4b; border-color:#818cf8; color:#a78bfa; }
+        /* Newcomer separator banner */
+        .newcomer-banner { background:linear-gradient(90deg,#1e1b4b,#0d1220); border-left:3px solid #818cf8;
+                           padding:10px 32px; font-size:12px; color:#a78bfa; font-weight:600;
+                           letter-spacing:.5px; text-transform:uppercase; }
+        /* Speed pill */
+        .pill-speed-good { background:#064e3b; color:#34d399; }
+        .pill-speed-bad  { background:#450a0a; color:#f87171; }
+        .speed-pill-wrap { display:flex; flex-direction:column; gap:3px; }
     </style>
 </head>
 <body>
@@ -133,6 +149,10 @@
         <select id="teamFilter" class="search-box" style="width:160px;cursor:pointer">
             <option value="">All Teams</option>
         </select>
+        <div class="view-tabs">
+            <button class="view-tab active" id="tabAll" onclick="switchView('all')">All Agents</button>
+            <button class="view-tab new-tab" id="tabNew" onclick="switchView('new')">🆕 Newcomers</button>
+        </div>
     </div>
     <span class="last-updated" id="lastUpdated">Loading...</span>
 </div>
@@ -238,17 +258,40 @@ const TEAM_COLORS = [
     { bg:'#052e16', fg:'#4ade80' },  // green
 ];
 
+// Normalize team name so NEW / new / New are all treated as one team
+function normalizeTeam(name) {
+    if (!name) return name;
+    if (name.trim().toLowerCase() === 'new') return 'NEW';
+    return name.trim();
+}
+
 function teamHash(name) {
     let h = 0;
-    const s = (name || '').toLowerCase().trim();
+    const s = normalizeTeam(name || '').toLowerCase();
     for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
     return Math.abs(h);
 }
 
 function teamPill(name) {
-    if (!name || name === '—') return '<span class="pill pill-neutral">—</span>';
-    const c = TEAM_COLORS[teamHash(name) % TEAM_COLORS.length];
-    return `<span class="pill" style="background:${c.bg};color:${c.fg}">${name}</span>`;
+    const n = normalizeTeam(name);
+    if (!n || n === '—') return '<span class="pill pill-neutral">—</span>';
+    if (n === 'NEW') return '<span class="pill" style="background:#2e1065;color:#c084fc">NEW</span>';
+    const c = TEAM_COLORS[teamHash(n) % TEAM_COLORS.length];
+    return `<span class="pill" style="background:${c.bg};color:${c.fg}">${n}</span>`;
+}
+
+function speedPill(dlMbps, ulMbps) {
+    const dl = parseFloat(dlMbps || 0);
+    const ul = parseFloat(ulMbps || 0);
+    if (dl <= 0 && ul <= 0) return '<span class="pill pill-neutral">—</span>';
+    const dlOk = dl >= 10.0;
+    const ulOk = ul >= 2.0;
+    const dlClass = dlOk ? 'pill pill-speed-good' : 'pill pill-speed-bad';
+    const ulClass = ulOk ? 'pill pill-speed-good' : 'pill pill-speed-bad';
+    return `<div class="speed-pill-wrap">
+        <span class="${dlClass}">↓ ${dl} Mbps</span>
+        <span class="${ulClass}">↑ ${ul} Mbps</span>
+    </div>`;
 }
 
 function connTypePill(type) {
@@ -474,7 +517,7 @@ function renderTable(data) {
             <td>${statusPill(r.chrome_version)}</td>
             <td>${connTypePill(r.connection_type)}</td>
             <td>${pingStatusPill(ping.verdict)}</td>
-            <td>${(r.download_mbps || 0) > 0 ? '<span style="color:#34d399">↓' + r.download_mbps + '</span> / <span style="color:#60a5fa">↑' + r.upload_mbps + '</span> <small>Mbps</small>' : '—'}</td>
+            <td>${speedPill(r.download_mbps, r.upload_mbps)}</td>
             <td>${vpnPill(r.vpn_active, r.vpn_name)}</td>
             <td>${micDevicePill(r.mic_device)}</td>
             <td><small style="color:#fbbf24">${r.notes || ''}</small></td>
@@ -547,10 +590,39 @@ function sortTable(col) {
     renderTable(allData);
 }
 
+let currentView = 'all'; // 'all' or 'new'
+
+function switchView(view) {
+    currentView = view;
+    document.getElementById('tabAll').classList.toggle('active', view === 'all');
+    document.getElementById('tabNew').classList.toggle('active', view === 'new');
+    // Hide team filter when in newcomer view
+    document.getElementById('teamFilter').style.display = (view === 'new') ? 'none' : '';
+    applyFilters();
+}
+
 function applyFilters() {
     const q = document.getElementById('searchBox').value.toLowerCase();
     const team = document.getElementById('teamFilter').value;
     let filtered = allData;
+
+    // Normalize teams before filtering
+    filtered = filtered.map(r => ({ ...r, team: normalizeTeam(r.team) }));
+
+    if (currentView === 'new') {
+        // Show only newcomers (team === 'NEW')
+        filtered = filtered.filter(r => (r.team || '').toUpperCase() === 'NEW');
+    } else {
+        if (team) {
+            // If 'NEW' is selected in dropdown, match all normalized-NEW agents
+            if (team.toUpperCase() === 'NEW') {
+                filtered = filtered.filter(r => (r.team || '').toUpperCase() === 'NEW');
+            } else {
+                filtered = filtered.filter(r => (r.team || '') === team);
+            }
+        }
+    }
+
     if (q) {
         filtered = filtered.filter(r =>
             (r.agent_name||'').toLowerCase().includes(q) ||
@@ -558,18 +630,17 @@ function applyFilters() {
             (r.res_id||'').toLowerCase().includes(q)
         );
     }
-    if (team) {
-        filtered = filtered.filter(r => (r.team||'') === team);
-    }
     renderTable(filtered);
 }
 
 function updateTeamDropdown() {
-    const teams = [...new Set(allData.map(r => r.team).filter(Boolean))].sort();
+    // Normalize team names before building dropdown — deduplicate NEW/new/New into 'NEW'
+    const teams = [...new Set(allData.map(r => normalizeTeam(r.team)).filter(Boolean))].sort();
     const sel = document.getElementById('teamFilter');
-    const current = sel.value;
+    const current = normalizeTeam(sel.value) || '';
     sel.innerHTML = '<option value="">All Teams</option>' + teams.map(t => `<option value="${t}">${t}</option>`).join('');
-    sel.value = current;
+    // Restore selection if it still exists
+    if ([...sel.options].some(o => o.value === current)) sel.value = current;
 }
 
 function fetchResults() {
