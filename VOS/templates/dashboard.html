@@ -43,11 +43,12 @@
         .last-updated { font-size:11px; color:#64748b; }
 
         /* Table */
-        .table-wrap { padding:0 32px 32px; overflow-x:auto; }
+        .table-wrap { padding:0 32px 32px; overflow-x:auto; max-height:calc(100vh - 180px); }
         table { width:100%; border-collapse:collapse; }
         thead th { background:#0d1220; color:#64748b; font-size:11px; font-weight:600;
                    text-transform:uppercase; letter-spacing:.5px; padding:12px 14px; text-align:left;
-                   border-bottom:1px solid #1e293b; white-space:nowrap; cursor:pointer; user-select:none; }
+                   border-bottom:1px solid #1e293b; white-space:nowrap; cursor:pointer; user-select:none;
+                   position:sticky; top:0; z-index:10; }
         thead th:hover { color:#00d4aa; }
         tbody tr { border-bottom:1px solid #111827; transition:.15s; cursor:pointer; }
         tbody tr:hover { background:#111827; }
@@ -129,6 +130,33 @@
         .pill-speed-good { background:#064e3b; color:#34d399; }
         .pill-speed-bad  { background:#450a0a; color:#f87171; }
         .speed-pill-wrap { display:flex; flex-direction:column; gap:3px; }
+
+        /* Has Issues toggle */
+        .btn-issues { padding:7px 14px; border-radius:8px; border:1px solid #1e293b; cursor:pointer;
+                      font-size:12px; font-weight:600; background:#141c2e; color:#94a3b8; transition:.2s; }
+        .btn-issues:hover { border-color:#f59e0b; color:#fbbf24; }
+        .btn-issues.active { background:#451a03; border-color:#f59e0b; color:#fbbf24; }
+
+        /* Bulk action bar */
+        .bulk-bar { display:none; align-items:center; gap:12px; padding:10px 32px;
+                    background:linear-gradient(90deg,#141c2e,#0d1220); border-bottom:1px solid #1e293b; }
+        .bulk-bar.visible { display:flex; }
+        .bulk-bar .bulk-count { color:#00d4aa; font-weight:600; font-size:13px; }
+        .bulk-bar .btn-bulk { padding:6px 14px; border-radius:6px; border:1px solid #1e293b;
+                              cursor:pointer; font-size:12px; font-weight:600; transition:.2s; background:transparent; }
+        .bulk-bar .btn-bulk.grad { color:#a78bfa; border-color:#4c1d95; }
+        .bulk-bar .btn-bulk.grad:hover { background:#2e1065; color:#c4b5fd; }
+        .bulk-bar .btn-bulk.del { color:#f87171; border-color:#450a0a; }
+        .bulk-bar .btn-bulk.del:hover { background:#450a0a; color:#fca5a5; }
+        .bulk-bar .btn-bulk.clear { color:#94a3b8; }
+        .bulk-bar .btn-bulk.clear:hover { color:#e0e4ec; border-color:#64748b; }
+
+        /* Checkbox column */
+        .chk-col { width:36px; text-align:center; cursor:default; }
+        .chk-col input[type="checkbox"] { width:15px; height:15px; accent-color:#00d4aa; cursor:pointer; }
+        /* Tab count badge */
+        .tab-count { background:#1e293b; color:#94a3b8; font-size:10px; padding:1px 7px; border-radius:10px;
+                     margin-left:6px; font-weight:700; }
     </style>
 </head>
 <body>
@@ -155,21 +183,32 @@
             <option value="">All Teams</option>
         </select>
         <div class="view-tabs">
-            <button class="view-tab active" id="tabAll" onclick="switchView('all')">All Agents</button>
-            <button class="view-tab new-tab" id="tabNew" onclick="switchView('new')">Newcomers</button>
+            <button class="view-tab active" id="tabAll" onclick="switchView('all')">All Agents <span class="tab-count" id="countAll">0</span></button>
+            <button class="view-tab new-tab" id="tabNew" onclick="switchView('new')">Newcomers <span class="tab-count" id="countNew">0</span></button>
         </div>
         <select id="approvalFilter" class="search-box" style="width:160px;cursor:pointer;display:none" onchange="applyFilters()">
             <option value="">All Status</option>
             <option value="approved">Approved</option>
             <option value="not_approved">Not Approved</option>
         </select>
+        <button class="btn-issues" id="btnIssues" onclick="toggleIssuesFilter()">Has Issues</button>
     </div>
     <span class="last-updated" id="lastUpdated">Loading...</span>
+</div>
+
+<!-- Bulk action bar -->
+<div class="bulk-bar" id="bulkBar">
+    <span class="bulk-count"><span id="bulkCount">0</span> selected</span>
+    <button class="btn-bulk grad" id="bulkGrad" onclick="bulkGraduate()" style="display:none">Done (graduate)</button>
+    <button class="btn-bulk del" id="bulkDel" onclick="bulkDelete()">Delete selected</button>
+    <button class="btn-bulk clear" onclick="clearSelection()">Clear</button>
 </div>
 
 <div class="table-wrap">
 <table id="resultsTable">
     <thead>
+        <tr>
+            <th class="chk-col" onclick="event.stopPropagation()"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
             <th onclick="sortTable(0)">RES-ID ▵</th>
             <th onclick="sortTable(1)">Agent ▵</th>
             <th onclick="sortTable(2)">Team ▵</th>
@@ -188,7 +227,7 @@
         </tr>
     </thead>
     <tbody id="resultsBody">
-        <tr><td colspan="15">
+        <tr><td colspan="16">
             <div class="empty">
                 <div class="empty-icon">—</div>
                 <h3>No agents yet</h3>
@@ -508,7 +547,7 @@ function isAgentApproved(r) {
 function renderTable(data) {
     const tbody = document.getElementById('resultsBody');
     if (!data.length) {
-        tbody.innerHTML = '<tr><td colspan="15"><div class="empty"><div class="empty-icon">--</div><h3>No agents yet</h3><p>Run VOS on any machine and results appear here.</p></div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="16"><div class="empty"><div class="empty-icon">--</div><h3>No agents yet</h3><p>Run VOS on any machine and results appear here.</p></div></td></tr>';
         return;
     }
 
@@ -548,6 +587,7 @@ function renderTable(data) {
 
         // Main row
         html += `<tr class="${rowClass}" onclick="toggleDetail('${(r.agent_name||'').replace(/'/g, "\\'")}', ${i}, event)">
+            <td class="chk-col" onclick="event.stopPropagation()"><input type="checkbox" class="row-chk" data-agent="${(r.agent_name||'').replace(/"/g, '&quot;')}" onchange="updateBulkBar()"></td>
             <td style="color:#f472b6;font-weight:bold">${r.res_id || '—'}</td>
             <td><strong>${r.agent_name || '—'}</strong></td>
             <td>${teamPill(r.team)}</td>
@@ -615,6 +655,11 @@ function renderTable(data) {
     document.getElementById('issue-count').textContent = issues;
     document.getElementById('approved-count').textContent = approvedCount;
     document.getElementById('rejected-count').textContent = rejectedCount;
+
+    // Update tab counts
+    updateTabCounts();
+    // Keep bulk bar in sync
+    updateBulkBar();
 }
 
 function sortTable(col) {
@@ -633,6 +678,8 @@ function sortTable(col) {
 }
 
 let currentView = 'all'; // 'all' or 'new'
+let issuesFilterOn = false;
+const selectedAgents = new Set();
 
 function switchView(view) {
     currentView = view;
@@ -650,7 +697,24 @@ function switchView(view) {
     document.getElementById('badge-approved').style.display = (view === 'new') ? '' : 'none';
     document.getElementById('badge-rejected').style.display = (view === 'new') ? '' : 'none';
     
+    // Show/hide bulk graduate button
+    document.getElementById('bulkGrad').style.display = (view === 'new') ? '' : 'none';
+    document.getElementById('bulkDel').style.display = (view === 'new') ? 'none' : '';
+    
+    clearSelection();
     applyFilters();
+}
+
+// Has Issues toggle
+function toggleIssuesFilter() {
+    issuesFilterOn = !issuesFilterOn;
+    document.getElementById('btnIssues').classList.toggle('active', issuesFilterOn);
+    applyFilters();
+}
+
+function hasIssues(r) {
+    // Not approved = has issues
+    return !isAgentApproved(r);
 }
 
 function applyFilters() {
@@ -682,6 +746,11 @@ function applyFilters() {
         }
     }
 
+    // Has Issues filter
+    if (issuesFilterOn) {
+        filtered = filtered.filter(r => hasIssues(r));
+    }
+
     if (q) {
         filtered = filtered.filter(r =>
             (r.agent_name||'').toLowerCase().includes(q) ||
@@ -700,6 +769,75 @@ function updateTeamDropdown() {
     sel.innerHTML = '<option value="">All Teams</option>' + teams.map(t => `<option value="${t}">${t}</option>`).join('');
     // Restore selection if it still exists
     if ([...sel.options].some(o => o.value === current)) sel.value = current;
+}
+
+// Tab counts
+function updateTabCounts() {
+    const normalized = allData.map(r => ({ ...r, team: normalizeTeam(r.team) }));
+    const allCount = normalized.length;
+    const newCount = normalized.filter(r => (r.team || '').toUpperCase() === 'NEW').length;
+    document.getElementById('countAll').textContent = allCount;
+    document.getElementById('countNew').textContent = newCount;
+}
+
+// Checkbox / bulk actions
+function toggleSelectAll(masterCb) {
+    const cbs = document.querySelectorAll('.row-chk');
+    selectedAgents.clear();
+    cbs.forEach(cb => {
+        cb.checked = masterCb.checked;
+        if (masterCb.checked) selectedAgents.add(cb.dataset.agent);
+    });
+    updateBulkBar();
+}
+
+function updateBulkBar() {
+    // Rebuild selectedAgents from checked boxes
+    selectedAgents.clear();
+    document.querySelectorAll('.row-chk:checked').forEach(cb => selectedAgents.add(cb.dataset.agent));
+    const bar = document.getElementById('bulkBar');
+    const count = selectedAgents.size;
+    document.getElementById('bulkCount').textContent = count;
+    bar.classList.toggle('visible', count > 0);
+    // Update master checkbox state
+    const master = document.getElementById('selectAll');
+    const allCbs = document.querySelectorAll('.row-chk');
+    if (master && allCbs.length > 0) {
+        master.checked = count === allCbs.length;
+        master.indeterminate = count > 0 && count < allCbs.length;
+    }
+}
+
+function clearSelection() {
+    selectedAgents.clear();
+    document.querySelectorAll('.row-chk').forEach(cb => cb.checked = false);
+    const master = document.getElementById('selectAll');
+    if (master) { master.checked = false; master.indeterminate = false; }
+    updateBulkBar();
+}
+
+function bulkGraduate() {
+    const names = [...selectedAgents];
+    if (!names.length) return;
+    if (!confirm('Graduate ' + names.length + ' agent(s) out of Newcomers?\nTheir data will be kept in All Agents.')) return;
+    Promise.all(names.map(name =>
+        fetch('/api/results/' + encodeURIComponent(name) + '/graduate', {
+            method: 'PATCH', credentials: 'same-origin'
+        })
+    )).then(() => { clearSelection(); fetchResults(); })
+      .catch(e => alert('Bulk graduate failed: ' + e.message));
+}
+
+function bulkDelete() {
+    const names = [...selectedAgents];
+    if (!names.length) return;
+    if (!confirm('PERMANENTLY DELETE ' + names.length + ' agent(s)?\nThis cannot be undone.')) return;
+    Promise.all(names.map(name =>
+        fetch('/api/results/' + encodeURIComponent(name), {
+            method: 'DELETE', credentials: 'same-origin'
+        })
+    )).then(() => { clearSelection(); fetchResults(); })
+      .catch(e => alert('Bulk delete failed: ' + e.message));
 }
 
 function fetchResults() {
