@@ -658,7 +658,8 @@ function renderTable(data) {
 
     // Update tab counts
     updateTabCounts();
-    // Keep bulk bar in sync
+    // Restore checkbox state from selectedAgents set (survives re-renders)
+    restoreCheckboxes();
     updateBulkBar();
 }
 
@@ -783,18 +784,26 @@ function updateTabCounts() {
 // Checkbox / bulk actions
 function toggleSelectAll(masterCb) {
     const cbs = document.querySelectorAll('.row-chk');
-    selectedAgents.clear();
-    cbs.forEach(cb => {
-        cb.checked = masterCb.checked;
-        if (masterCb.checked) selectedAgents.add(cb.dataset.agent);
-    });
+    if (masterCb.checked) {
+        cbs.forEach(cb => { cb.checked = true; selectedAgents.add(cb.dataset.agent); });
+    } else {
+        cbs.forEach(cb => { cb.checked = false; selectedAgents.delete(cb.dataset.agent); });
+    }
     updateBulkBar();
 }
 
+function restoreCheckboxes() {
+    // After a re-render, re-check boxes that were previously selected
+    document.querySelectorAll('.row-chk').forEach(cb => {
+        cb.checked = selectedAgents.has(cb.dataset.agent);
+    });
+}
+
 function updateBulkBar() {
-    // Rebuild selectedAgents from checked boxes
-    selectedAgents.clear();
-    document.querySelectorAll('.row-chk:checked').forEach(cb => selectedAgents.add(cb.dataset.agent));
+    // Sync from DOM checkboxes (for manual clicks) — merge into selectedAgents
+    document.querySelectorAll('.row-chk').forEach(cb => {
+        if (cb.checked) selectedAgents.add(cb.dataset.agent);
+    });
     const bar = document.getElementById('bulkBar');
     const count = selectedAgents.size;
     document.getElementById('bulkCount').textContent = count;
@@ -803,8 +812,9 @@ function updateBulkBar() {
     const master = document.getElementById('selectAll');
     const allCbs = document.querySelectorAll('.row-chk');
     if (master && allCbs.length > 0) {
-        master.checked = count === allCbs.length;
-        master.indeterminate = count > 0 && count < allCbs.length;
+        const checkedCount = document.querySelectorAll('.row-chk:checked').length;
+        master.checked = checkedCount === allCbs.length;
+        master.indeterminate = checkedCount > 0 && checkedCount < allCbs.length;
     }
 }
 
