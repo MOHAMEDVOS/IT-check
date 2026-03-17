@@ -127,6 +127,7 @@ def _get_db():
             vpn_name TEXT DEFAULT '',
             last_checked TEXT NOT NULL,
             notes TEXT DEFAULT '',
+            graduated INTEGER DEFAULT 0,
             created_at TEXT DEFAULT (datetime('now'))
         )
     """)
@@ -161,6 +162,7 @@ def _get_db():
         ("vpn_name", "TEXT DEFAULT ''"),
         ("last_checked", "TEXT DEFAULT ''"),
         ("notes", "TEXT DEFAULT ''"),
+        ("graduated", "INTEGER DEFAULT 0"),
     ]
 
     for col_name, col_def in needed_cols:
@@ -305,18 +307,27 @@ def post_results():
                                datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     conn = _get_db()
+    
+    # Check if this agent is already graduated
+    row = conn.execute("SELECT graduated FROM results WHERE agent_name = ? ORDER BY id DESC LIMIT 1", (agent_name,)).fetchone()
+    is_graduated = 1 if (row and row["graduated"]) else 0
+    
+    team_val = payload.get("team", "—")
+    if is_graduated:
+        team_val = "—" # Force them out of NEW team
+        
     # Upsert: remove old records for this agent, then insert the latest
     conn.execute("DELETE FROM results WHERE agent_name = ?", (agent_name,))
     conn.execute("""
         INSERT INTO results (agent_name, anydesk_id, team, res_id, pc_specs, gpu, cpu_score, cpu_label,
             chrome_version, chrome_status, connection_type, connection_stability, ping_details,
             download_mbps, upload_mbps, internet_speed, mic_level, mic_device,
-            disk_space, disk_free_gb, disk_used_pct, vpn_active, vpn_name, last_checked, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            disk_space, disk_free_gb, disk_used_pct, vpn_active, vpn_name, last_checked, notes, graduated)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         agent_name,
         payload.get("anydesk_id", "—"),
-        payload.get("team", "—"),
+        team_val,
         payload.get("res_id", "—"),
         payload.get("pc_specs", "—"),
         payload.get("gpu", "—"),
@@ -339,6 +350,7 @@ def post_results():
         payload.get("vpn_name", ""),
         last_checked,
         payload.get("notes", ""),
+        is_graduated,
     ))
     conn.commit()
     conn.close()
@@ -368,11 +380,11 @@ def delete_agent(agent_name):
 @app.route("/api/results/<agent_name>/graduate", methods=["PATCH"])
 def graduate_agent(agent_name):
     """Remove an agent from the NEW team without deleting their data.
-    Sets team to '—' so they appear in All Agents but not in Newcomers."""
+    Sets team to '—' and graduated=1 so they appear in All Agents but not in Newcomers."""
     if not session.get("logged_in"):
         return jsonify({"error": "Not authenticated"}), 401
     conn = _get_db()
-    conn.execute("UPDATE results SET team = '\u2014' WHERE agent_name = ?", (agent_name,))
+    conn.execute("UPDATE results SET team = '\u2014', graduated = 1 WHERE agent_name = ?", (agent_name,))
     conn.commit()
     conn.close()
     return jsonify({"status": "graduated", "agent": agent_name}), 200
