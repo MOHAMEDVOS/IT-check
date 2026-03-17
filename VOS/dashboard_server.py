@@ -365,6 +365,19 @@ def delete_agent(agent_name):
     return jsonify({"status": "deleted", "agent": agent_name}), 200
 
 
+@app.route("/api/results/<agent_name>/graduate", methods=["PATCH"])
+def graduate_agent(agent_name):
+    """Remove an agent from the NEW team without deleting their data.
+    Sets team to '—' so they appear in All Agents but not in Newcomers."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Not authenticated"}), 401
+    conn = _get_db()
+    conn.execute("UPDATE results SET team = '\u2014' WHERE agent_name = ?", (agent_name,))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "graduated", "agent": agent_name}), 200
+
+
 @app.route("/api/history/<agent_name>", methods=["GET"])
 @require_login
 def get_history(agent_name):

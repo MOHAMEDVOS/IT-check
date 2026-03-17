@@ -90,6 +90,11 @@
         .btn-delete { background:transparent; border:1px solid #1e293b; color:#64748b; padding:4px 10px;
                       border-radius:6px; cursor:pointer; font-size:12px; transition:.2s; }
         .btn-delete:hover { border-color:#dc2626; color:#f87171; background:#450a0a; }
+        /* Graduate button — moves agent out of Newcomers without deleting */
+        .btn-graduate { background:transparent; border:1px solid #4c1d95; color:#a78bfa; padding:4px 10px;
+                        border-radius:6px; cursor:pointer; font-size:12px; transition:.2s; }
+        .btn-graduate:hover { border-color:#818cf8; color:#c4b5fd; background:#2e1065; }
+
         
         /* PDF / Copy buttons */
         .btn-pdf { background:transparent; border:1px solid #1e293b; color:#94a3b8; padding:4px 10px;
@@ -136,8 +141,8 @@
     <div class="header-right">
         <div class="badge agents">AGENTS <span class="num" id="agent-count">0</span></div>
         <div class="badge issues">ISSUES <span class="num" id="issue-count">0</span></div>
-        <div class="badge" style="border-color:#064e3b">APPROVED <span class="num" style="color:#22c55e" id="approved-count">0</span></div>
-        <div class="badge" style="border-color:#450a0a">REJECTED <span class="num" style="color:#ef4444" id="rejected-count">0</span></div>
+        <div id="badge-approved" class="badge" style="border-color:#064e3b; display:none">APPROVED <span class="num" style="color:#22c55e" id="approved-count">0</span></div>
+        <div id="badge-rejected" class="badge" style="border-color:#450a0a; display:none">REJECTED <span class="num" style="color:#ef4444" id="rejected-count">0</span></div>
         <span style="color:#94a3b8;font-size:12px"><span class="live-dot"></span> LIVE</span>
         <a href="/logout" class="btn btn-red">Logout</a>
     </div>
@@ -151,12 +156,12 @@
         </select>
         <div class="view-tabs">
             <button class="view-tab active" id="tabAll" onclick="switchView('all')">All Agents</button>
-            <button class="view-tab new-tab" id="tabNew" onclick="switchView('new')">🆕 Newcomers</button>
+            <button class="view-tab new-tab" id="tabNew" onclick="switchView('new')">Newcomers</button>
         </div>
         <select id="approvalFilter" class="search-box" style="width:160px;cursor:pointer;display:none" onchange="applyFilters()">
             <option value="">All Status</option>
-            <option value="approved">✅ Approved</option>
-            <option value="not_approved">❌ Not Approved</option>
+            <option value="approved">Approved</option>
+            <option value="not_approved">Not Approved</option>
         </select>
     </div>
     <span class="last-updated" id="lastUpdated">Loading...</span>
@@ -441,7 +446,7 @@ async function copySummary(index, evt) {
 }
 
 function deleteAgent(name) {
-    if (!confirm('Are you sure you want to delete data for ' + name + '?')) return false;
+    if (!confirm('Are you sure you want to PERMANENTLY DELETE data for ' + name + '?')) return false;
     fetch('/api/results/' + encodeURIComponent(name), {
         method: 'DELETE',
         credentials: 'same-origin'
@@ -452,6 +457,21 @@ function deleteAgent(name) {
     })
     .then(() => fetchResults())
     .catch(e => alert('Delete failed: ' + e.message));
+    return false;
+}
+
+function graduateAgent(name) {
+    if (!confirm('Move "' + name + '" out of Newcomers?\nThey will still appear in All Agents with their data intact.')) return false;
+    fetch('/api/results/' + encodeURIComponent(name) + '/graduate', {
+        method: 'PATCH',
+        credentials: 'same-origin'
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('Server returned ' + r.status);
+        return r.json();
+    })
+    .then(() => fetchResults())
+    .catch(e => alert('Graduate failed: ' + e.message));
     return false;
 }
 
@@ -546,7 +566,10 @@ function renderTable(data) {
                 <div style="display:flex;align-items:center">
                     <button class="btn-copy" onclick="copySummary(${i}, event); return false;" title="Copy summary to clipboard">Copy</button>
                     <button class="btn-pdf" onclick="downloadPDF('${(r.agent_name||'').replace(/'/g, "\\'")}'); return false;" title="Download PDF Report">PDF</button>
-                    <button class="btn-delete" onclick="deleteAgent('${(r.agent_name||'').replace(/'/g, "\\'")}'); return false;" title="Delete this agent">x</button>
+                    ${ currentView === 'new'
+                        ? `<button class="btn-graduate" onclick="graduateAgent('${(r.agent_name||'').replace(/'/g, "\\'")}'); return false;" title="Remove from Newcomers (keep in All Agents)">✓ Done</button>`
+                        : `<button class="btn-delete" onclick="deleteAgent('${(r.agent_name||'').replace(/'/g, "\\'")}'); return false;" title="Delete this agent">x</button>`
+                    }
                 </div>
             </td>
         </tr>`;
@@ -615,11 +638,18 @@ function switchView(view) {
     currentView = view;
     document.getElementById('tabAll').classList.toggle('active', view === 'all');
     document.getElementById('tabNew').classList.toggle('active', view === 'new');
-    // Show/hide team filter vs approval filter depending on view
+    
+    // Show/hide UI elements depending on view
     document.getElementById('teamFilter').style.display = (view === 'new') ? 'none' : '';
+    
     const approvalEl = document.getElementById('approvalFilter');
     approvalEl.style.display = (view === 'new') ? '' : 'none';
     approvalEl.value = ''; // reset on switch
+
+    // Show APPROVED/REJECTED badges only in Newcomers view
+    document.getElementById('badge-approved').style.display = (view === 'new') ? '' : 'none';
+    document.getElementById('badge-rejected').style.display = (view === 'new') ? '' : 'none';
+    
     applyFilters();
 }
 
