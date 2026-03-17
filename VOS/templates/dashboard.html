@@ -153,6 +153,11 @@
             <button class="view-tab active" id="tabAll" onclick="switchView('all')">All Agents</button>
             <button class="view-tab new-tab" id="tabNew" onclick="switchView('new')">🆕 Newcomers</button>
         </div>
+        <select id="approvalFilter" class="search-box" style="width:160px;cursor:pointer;display:none" onchange="applyFilters()">
+            <option value="">All Status</option>
+            <option value="approved">✅ Approved</option>
+            <option value="not_approved">❌ Not Approved</option>
+        </select>
     </div>
     <span class="last-updated" id="lastUpdated">Loading...</span>
 </div>
@@ -466,6 +471,20 @@ function downloadPDF(name) {
     window.open(url, '_blank');
 }
 
+function isAgentApproved(r) {
+    const specsOk = (r.cpu_label && r.cpu_label.toLowerCase() === 'approved');
+    const connType = (r.connection_type || '').toLowerCase();
+    const isEth = connType.includes('ethernet') || connType.includes('eth');
+    const dlVal = parseFloat(r.download_mbps || 0);
+    const ulVal = parseFloat(r.upload_mbps || 0);
+    const speedOk = (dlVal >= 10.0 && ulVal >= 2.0);
+    const micStr = (r.mic_device || '').toLowerCase();
+    const micParts = r.mic_device ? r.mic_device.split('\u2014') : [];
+    const micType = micParts.length > 1 ? micParts[micParts.length - 1].trim().toLowerCase() : '';
+    const micOk = micType === 'usb' || micStr.includes('usb');
+    return specsOk && isEth && speedOk && micOk;
+}
+
 function renderTable(data) {
     const tbody = document.getElementById('resultsBody');
     if (!data.length) {
@@ -596,8 +615,11 @@ function switchView(view) {
     currentView = view;
     document.getElementById('tabAll').classList.toggle('active', view === 'all');
     document.getElementById('tabNew').classList.toggle('active', view === 'new');
-    // Hide team filter when in newcomer view
+    // Show/hide team filter vs approval filter depending on view
     document.getElementById('teamFilter').style.display = (view === 'new') ? 'none' : '';
+    const approvalEl = document.getElementById('approvalFilter');
+    approvalEl.style.display = (view === 'new') ? '' : 'none';
+    approvalEl.value = ''; // reset on switch
     applyFilters();
 }
 
@@ -612,6 +634,13 @@ function applyFilters() {
     if (currentView === 'new') {
         // Show only newcomers (team === 'NEW')
         filtered = filtered.filter(r => (r.team || '').toUpperCase() === 'NEW');
+        // Apply approval filter if set
+        const approvalSel = document.getElementById('approvalFilter').value;
+        if (approvalSel === 'approved') {
+            filtered = filtered.filter(r => isAgentApproved(r));
+        } else if (approvalSel === 'not_approved') {
+            filtered = filtered.filter(r => !isAgentApproved(r));
+        }
     } else {
         if (team) {
             // If 'NEW' is selected in dropdown, match all normalized-NEW agents
