@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>An enterprise-grade Python desktop application for call center IT diagnostics and health monitoring</strong>
+  <strong>A Python desktop app that checks if call center PCs are ready for VoIP calls</strong>
 </p>
 
 <p align="center">
@@ -17,17 +17,15 @@
 
 ## 📋 What is this project?
 
-The `IT-check` repository actually contains **two complete systems**:
-1. **The VOS Desktop Application** (`/VOS` directory) — A Python-based Windows desktop tool that runs deep health diagnostics on call center agents' PCs to ensure they meet the rigorous requirements for VoIP calls (specifically tuned for ReadyMode).
-2. **The VOS Landing Page** (root directory) — A modern React/Vite web application that serves as the download portal and marketing page for the desktop tool.
+The `IT-check` repo holds **two separate parts**:
+1. **The VOS Desktop App** (`/VOS`) — A Python/Windows app that tests agents' PCs (hardware, mic, ping) to make sure their connection is good enough for ReadyMode calls.
+2. **The VOS Landing Page** (root) — A React/Vite site built so users can download the tool.
 
-> **Note**: Both systems are currently deployed and **in active production use by RES-VA**.
+> **Note**: Both are actively used by **RES-VA**.
 
 ---
 
-## 🛠️ 1. The VOS Desktop App (Python)
-
-Located in the `VOS/` directory, this robust desktop application is built with Python and CustomTkinter. It performs automated system checks and silently reports results to a centralized Flask dashboard.
+Inside the `VOS/` directory, this app runs background checks using Python and CustomTkinter, then posts the results to a Flask web dashboard.
 
 ### ✨ Key Features
 | Diagnostic | What It Measures |
@@ -39,11 +37,11 @@ Located in the `VOS/` directory, this robust desktop application is built with P
 | 🎙 **Audio Hardware** | Scans Windows Core Audio for microphone presence and volume level |
 | 💾 **Storage** | Monitors free space on the system drive |
 
-### 🚀 Capabilities
-- **Silent Dashboard Sync:** Results are silently POSTed to a centralized Flask web dashboard for IT administrators.
-- **Automated Hourly Checks:** Runs diagnostics in the background while sitting quietly in the Windows system tray.
-- **Auto-Updater:** Built-in mechanism to check for and apply new software updates.
-- **"Quick Drill" Feature:** One-click automated fix for common issues (clears Chrome data and flushes DNS).
+### 🚀 Features
+- **Dashboard Sync:** Posts test results quietly to the Flask admin dashboard.
+- **Background Checks:** Runs tests every hour from the system tray.
+- **Auto-Updater:** Downloads and applies new versions automatically.
+- **Quick Drill:** A one-click button that clears Chrome data and flushes DNS to fix common agent issues.
 
 ### ⚙️ Desktop App Setup
 ```bash
@@ -63,7 +61,7 @@ python dashboard_server.py
 
 ## 🌐 2. The VOS Landing Page (React)
 
-Located in the root of this repository, the landing page is a fast, responsive React application built to showcase the tool and provide a direct download link.
+This is the code in the root directory. It's just a fast React page to show off the app and provide the `.exe` download.
 
 - **Live Demo:** [https://vos-landing.vercel.app](https://vos-landing.vercel.app)
 - **Stack:** React 18, TypeScript, Vite, TailwindCSS
