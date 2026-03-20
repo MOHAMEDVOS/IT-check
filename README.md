@@ -1,61 +1,88 @@
-## VOS – Landing Page
+<h1 align="center">
+  🌐 VOS Landing Page
+</h1>
 
-This is a small React + Vite landing page for the **VOS** Windows tool.
+<p align="center">
+  <strong>A modern, responsive landing page for the VOS desktop application</strong>
+</p>
 
-### Run the project
+<p align="center">
+  <a href="https://vos-landing.vercel.app">
+    <img src="https://img.shields.io/badge/🔗_Live_Demo-vos--landing.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo">
+  </a>
+</p>
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-2. Start the dev server:
-   ```bash
-   npm run dev
-   ```
-3. Open the URL shown in the terminal (by default `http://localhost:5173`).
+<p align="center">
+  <img src="https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React">
+  <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Vite-6.0-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite">
+  <img src="https://img.shields.io/badge/TailwindCSS-3.4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="TailwindCSS">
+</p>
 
-### Configure the download button
+---
 
-Copy your installer to `public/downloads/vos.exe`.
+## ✨ Features
 
-The page will download it from `/downloads/vos.exe`.
+- **Responsive Design** — Looks great on desktop, tablet, and mobile
+- **Smooth Animations** — Polished transitions and micro-interactions
+- **Feature Showcase** — Highlights the key capabilities of the VOS tool
+- **One-Click Download** — Direct download button for the VOS installer
+- **Fast Performance** — Built with Vite for blazing-fast load times
 
-### Reducing "virus", "protection", and "unknown publisher" warnings
+## 🛠️ Tech Stack
 
-When users download `vos.exe`, Windows (and some antivirus tools) may show warnings because the file is **unsigned** and from an **unknown publisher**. To reduce or remove these:
+| Technology | Purpose |
+|-----------|---------|
+| **React 18** | UI components and rendering |
+| **TypeScript** | Type-safe development |
+| **Vite 6** | Build tool and dev server |
+| **TailwindCSS 3** | Utility-first styling |
+| **Lucide React** | Icon library |
 
-1. **Code-sign the .exe (recommended)**  
-   Sign `vos.exe` with a **code signing certificate** from a trusted CA (e.g. DigiCert, Sectigo, SSL.com).  
-   - **Standard certificate**: Removes "unknown publisher" and often reduces SmartScreen prompts after some reputation builds.  
-   - **EV (Extended Validation) certificate**: Usually gets SmartScreen trust quickly and is best for downloadable apps.  
-   You sign with tools like **SignTool** (Windows SDK) or **signtool.exe**; your certificate provider will give exact steps.
+## 🚀 Quick Start
 
-2. **Build reputation over time**  
-   Even with a standard cert, SmartScreen may show "Windows protected your PC" for new files. As more users download and run it without issues, the warning often goes away. EV certs tend to get trusted faster.
+```bash
+# Clone the repository
+git clone https://github.com/MOHAMEDVOS/IT-check.git
+cd IT-check
 
-3. **If antivirus flags the file**  
-   - Ensure the .exe is signed.  
-   - Submit the signed build to your antivirus vendor’s false-positive form (e.g. Microsoft Security Intelligence, VirusTotal).  
-   - Avoid packing or obfuscating the exe in ways that trigger heuristic detection.
+# Install dependencies
+npm install
 
-**Summary:** Signing `vos.exe` with a proper code signing certificate is the main way to address "unknown publisher" and reduce virus/protection warnings. EV certificates give the fastest SmartScreen trust for new downloads.
+# Start the development server
+npm run dev
+```
 
-#### Free options
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-There is **no free code signing certificate** that Windows and SmartScreen trust (CAs charge for code signing). You can still do the following at no cost:
+## 📦 Build for Production
 
-1. **Tell users how to run it**  
-   On your download page, add a short note, e.g.:  
-   *"If Windows SmartScreen appears: click **More info**, then **Run anyway**. The app is unsigned; this warning is normal."*  
-   That doesn’t remove the warning but reduces confusion and support questions.
+```bash
+npm run build
+npm run preview
+```
 
-2. **Submit the file so AVs can whitelist it**  
-   - **[VirusTotal](https://www.virustotal.com)** – Upload `vos.exe`. Many AV vendors use this to improve detection; it can help reduce false positives over time.  
-   - **Microsoft** – [Submit a file](https://www.microsoft.com/en-us/wdsi/filesubmission) for analysis. If they confirm it’s clean, Defender may stop flagging it.
+The production build will be output to the `dist/` directory.
 
-3. **Let reputation build**  
-   Keep the same `vos.exe` (same build) when possible. As more people download and run it, SmartScreen may show the warning less often (Microsoft uses download/run telemetry). This is slow and not guaranteed.
+## 📁 Project Structure
 
-4. **Publish in the Microsoft Store (if it fits)**  
-   Store apps are signed by Microsoft, so users don’t see "unknown publisher". [Developer registration](https://developer.microsoft.com/en-us/microsoft-store/register) is free; you’d ship your app through the Store instead of (or in addition to) the direct .exe download.
+```
+IT-check/
+├── public/             # Static assets & downloads
+├── src/                # Source code
+│   ├── components/     # React components
+│   └── ...
+├── index.html          # Entry HTML
+├── vite.config.ts      # Vite configuration
+├── tailwind.config.js  # TailwindCSS configuration
+├── tsconfig.json       # TypeScript configuration
+└── package.json        # Dependencies & scripts
+```
 
+## 🔗 Related Projects
+
+- **[VOS Tool](https://github.com/MOHAMEDVOS/vos-tool)** — The full Voice Observation System platform
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
