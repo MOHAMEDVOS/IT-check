@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>A Python desktop app that checks if call center PCs are ready for VoIP calls</strong>
+  <strong>A Python app that audits agent connection stability to prevent call delays, replacing manual AnyDesk checks.</strong>
 </p>
 
 <p align="center">
