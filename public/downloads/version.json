@@ -1,6 +1,6 @@
 {
-  "latest_version": "2.8.2",
+  "latest_version": "2.8.3",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "STABLE UPDATE: Fixed the 'Failed to load Python DLL' error by switching to a more stable build engine. Includes the new Ookla speedtest and Jitter measurement.",
-  "_timestamp": "2026-03-21T04:46:00"
+  "release_notes": "Chrome Fix: Resolved the bug where users were getting stuck with 'Chrome Update Detected' messages due to staged rollouts. App now correctly recognizes the latest version by milestone.",
+  "_timestamp": "2026-03-21T05:16:30"
 }
