@@ -31,7 +31,6 @@ python -m PyInstaller ^
   --hidden-import=gui.cards ^
   --hidden-import=gui.dialogs ^
   --hidden-import=gui.theme ^
-  --hidden-import=speedtest ^
   --collect-all pycaw ^
   --collect-all comtypes ^
   main.py
