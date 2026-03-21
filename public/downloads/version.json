@@ -1,6 +1,6 @@
 {
-  "latest_version": "2.8.3",
+  "latest_version": "2.9.0",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Chrome Fix: Resolved the bug where users were getting stuck with 'Chrome Update Detected' messages due to staged rollouts. App now correctly recognizes the latest version by milestone.",
-  "_timestamp": "2026-03-21T05:16:30"
+  "release_notes": "New: Cloudflare-powered speed test engine (multi-stream) for faster and more accurate results. Removed Ookla CLI dependency. Overall stability improvements.",
+  "_timestamp": "2026-03-21T05:32:00"
 }
