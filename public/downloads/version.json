@@ -1,6 +1,6 @@
 {
-  "latest_version": "2.9.0",
+  "latest_version": "2.8.0",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Complete UI/UX Pro Max Redesign with Deep Space Theme: New typography scale, 8px grid alignments, glowing card borders, and neon status indicators.",
-  "_timestamp": "2026-03-21T03:33:18"
+  "ملاحظات الإصدار": "لوحة التحكم: خلايا مرمزة بالألوان، تمييز الصفوف، عدادات الموافقة، فلتر الفريق. ملف PDF: التقييم العام مع أسباب الموافقة.",
+  "_timestamp": "2026-03-15T07:27:00"
 }
