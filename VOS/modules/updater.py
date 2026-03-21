@@ -124,12 +124,12 @@ set "EXE_PATH={current_exe}"
 set "NEW_EXE={new_exe_path}"
 set "EXE_NAME={os.path.basename(current_exe)}"
 
-:: Wait for app to close
-timeout /t 2 /nobreak > NUL
+:: Wait for app to close (ping is safer than timeout for hidden consoles)
+ping 127.0.0.1 -n 3 > nul
 
 :: Hard kill just in case
 taskkill /f /im "%EXE_NAME%" > NUL 2>&1
-timeout /t 1 /nobreak > NUL
+ping 127.0.0.1 -n 2 > nul
 
 :: Swap
 if exist "%EXE_PATH%" del /f /q "%EXE_PATH%"
@@ -155,7 +155,7 @@ del "%~f0"
             )
         
         # 4. Terminate immediately so the batch script can delete this file
-        sys.exit(0)
+        os._exit(0)
 
     except Exception as e:
         log.error(f"Failed to apply update: {e}", exc_info=True)

@@ -3,6 +3,9 @@ echo ============================================
 echo  VOS Build Script
 echo ============================================
 
+:: Delete previous build to prevent silent reuse if PyInstaller fails
+if exist Release\VOS.exe del /f /q Release\VOS.exe
+
 python -m PyInstaller ^
   --noconsole ^
   --onefile ^
@@ -28,18 +31,22 @@ python -m PyInstaller ^
   --hidden-import=gui.cards ^
   --hidden-import=gui.dialogs ^
   --hidden-import=gui.theme ^
+  --hidden-import=speedtest ^
   --collect-all pycaw ^
   --collect-all comtypes ^
   main.py
 
 echo.
 echo ============================================
-if exist Release\VOS.exe (
+if %ERRORLEVEL% NEQ 0 (
+  echo  BUILD FAILED — PyInstaller encountered an error.
+  echo  Make sure VOS.exe is NOT currently running in the background!
+) else if exist Release\VOS.exe (
   echo  BUILD SUCCESSFUL — Release\VOS.exe ready
   echo  Copying to public downloads...
   copy /y Release\VOS.exe ..\public\downloads\vos.exe
 ) else (
-  echo  BUILD FAILED — check output above
+  echo  BUILD FAILED — Release\VOS.exe not found!
 )
 echo ============================================
 pause

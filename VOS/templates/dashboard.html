@@ -2,872 +2,1457 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>IT Dashboard</title>
+    <title>VOS — Vital Operations Scanner</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="/favicon.ico?v=1.3">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* Base */
+            --bg:          #070810;
+            --bg2:         #0c0d1a;
+            --glass:       rgba(14,15,28,0.85);
+            --glass2:      rgba(20,22,42,0.7);
+            --glass3:      rgba(28,30,55,0.5);
+
+            /* Borders */
+            --b1:          rgba(255,255,255,0.06);
+            --b2:          rgba(255,255,255,0.1);
+            --b3:          rgba(255,255,255,0.14);
+
+            /* Accent — electric indigo */
+            --accent:      #6366f1;
+            --accent2:     #818cf8;
+            --accent-glow: rgba(99,102,241,0.25);
+            --accent-bg:   rgba(99,102,241,0.1);
+
+            /* Text */
+            --t1:  #f0f1ff;
+            --t2:  #9295b8;
+            --t3:  #555878;
+
+            /* Status */
+            --green:      #10b981;
+            --green-glow: rgba(16,185,129,0.2);
+            --green-bg:   rgba(16,185,129,0.1);
+            --green-b:    rgba(16,185,129,0.25);
+
+            --red:        #f43f5e;
+            --red-glow:   rgba(244,63,94,0.3);
+            --red-bg:     rgba(244,63,94,0.08);
+            --red-deep:   rgba(244,63,94,0.15);
+            --red-b:      rgba(244,63,94,0.3);
+
+            --yellow:     #f59e0b;
+            --yellow-bg:  rgba(245,158,11,0.1);
+            --yellow-b:   rgba(245,158,11,0.25);
+
+            --blue:       #3b82f6;
+            --blue-bg:    rgba(59,130,246,0.1);
+
+            --purple:     #a855f7;
+            --purple-bg:  rgba(168,85,247,0.1);
+            --purple-b:   rgba(168,85,247,0.25);
+
+            --cyan:       #06b6d4;
+            --cyan-bg:    rgba(6,182,212,0.1);
+
+            /* Sidebar */
+            --sb-w: 228px;
+        }
+
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Inter',sans-serif; background:#0a0e17; color:#e0e4ec; min-height:100vh; }
 
-        /* Header */
-        .header { display:flex; align-items:center; justify-content:space-between; padding:18px 32px;
-                   background:linear-gradient(135deg,#0d1220,#141c2e); border-bottom:1px solid #1e293b; }
-        .header .logo { display:flex; align-items:center; gap:14px; }
-        .header .logo-icon { width:38px; height:38px;
-                             border-radius:10px; display:flex; align-items:center; justify-content:center;
-                             object-fit: contain; }
-        .header h1 { font-size:20px; font-weight:700; }
-        .header h1 span { color:#00d4aa; }
-        .header-right { display:flex; gap:12px; align-items:center; }
-        .badge { padding:6px 16px; border-radius:8px; font-size:12px; font-weight:600;
-                 background:#141c2e; border:1px solid #1e293b; }
-        .badge .num { font-size:16px; font-weight:700; margin-left:6px; }
-        .badge.agents .num { color:#00d4aa; }
-        .badge.issues .num { color:#f59e0b; }
-        .live-dot { width:8px; height:8px; border-radius:50%; background:#00d4aa; display:inline-block;
-                    animation:pulse 2s infinite; margin-right:6px; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
-        .btn { padding:8px 18px; border-radius:8px; border:none; cursor:pointer; font-size:12px;
-               font-weight:600; transition:.2s; }
-        .btn-outline { background:transparent; border:1px solid #1e293b; color:#94a3b8; }
-        .btn-outline:hover { border-color:#00d4aa; color:#00d4aa; }
-        .btn-red { background:#dc2626; color:#fff; }
-        .btn-red:hover { background:#ef4444; }
+        html, body { height:100%; overflow:hidden; }
 
-        /* Toolbar */
-        .toolbar { display:flex; justify-content:space-between; align-items:center; padding:16px 32px; }
-        .search-box { background:#141c2e; border:1px solid #1e293b; border-radius:10px; padding:10px 16px;
-                      color:#e0e4ec; font-size:13px; width:260px; outline:none; font-family:inherit; }
-        .search-box:focus { border-color:#00d4aa; }
-        .last-updated { font-size:11px; color:#64748b; }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: var(--bg);
+            color: var(--t1);
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+        }
 
-        /* Table */
-        .table-wrap { padding:0 32px 32px; overflow-x:auto; max-height:calc(100vh - 180px); }
-        table { width:100%; border-collapse:collapse; }
-        thead th { background:#0d1220; color:#64748b; font-size:11px; font-weight:600;
-                   text-transform:uppercase; letter-spacing:.5px; padding:12px 14px; text-align:left;
-                   border-bottom:1px solid #1e293b; white-space:nowrap; cursor:pointer; user-select:none;
-                   position:sticky; top:0; z-index:10; }
-        thead th:hover { color:#00d4aa; }
-        tbody tr { border-bottom:1px solid #111827; transition:.15s; cursor:pointer; }
-        tbody tr:hover { background:#111827; }
-        tbody tr.row-approved { background:rgba(5,46,22,0.25); border-left:3px solid #22c55e; }
-        tbody tr.row-approved:hover { background:rgba(5,46,22,0.4); }
-        tbody tr.row-rejected { background:rgba(69,10,10,0.25); border-left:3px solid #ef4444; }
-        tbody tr.row-rejected:hover { background:rgba(69,10,10,0.4); }
-        tbody td { padding:12px 14px; font-size:13px; vertical-align:top; }
+        /* ── AMBIENT BACKGROUND ────────────────────────────── */
+        /* Boosted ambient glow — glass needs rich colour behind it */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 55% 60% at 0% 30%,  rgba(99,102,241,0.22) 0%, transparent 65%),
+                radial-gradient(ellipse 40% 50% at 15% 80%, rgba(168,85,247,0.16) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 50% at 80% 10%, rgba(99,102,241,0.08) 0%, transparent 55%),
+                radial-gradient(ellipse 40% 60% at 90% 90%, rgba(168,85,247,0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        /* Animated starfield canvas */
+        #starfield {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
 
-        /* Detail row */
+        /* ── LAYOUT ────────────────────────────────────────── */
+        .layout {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── SIDEBAR — True Glass ──────────────────────────── */
+        .sidebar {
+            width: var(--sb-w);
+            min-width: var(--sb-w);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+
+            /* Almost nothing — stars pour through */
+            background: rgba(6, 7, 18, 0.18);
+
+            border-right: 1px solid rgba(255, 255, 255, 0.07);
+
+            /* The blur IS the glass */
+            backdrop-filter: blur(96px) brightness(1.08);
+            -webkit-backdrop-filter: blur(96px) brightness(1.08);
+
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Thin shimmer across the top edge */
+        .sidebar::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255,255,255,0.22) 25%,
+                rgba(255,255,255,0.22) 75%,
+                transparent 100%
+            );
+            pointer-events: none;
+        }
+
+        /* Right edge inner glow */
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            width: 1px;
+            background: linear-gradient(
+                180deg,
+                transparent 0%,
+                rgba(255,255,255,0.06) 20%,
+                rgba(255,255,255,0.06) 80%,
+                transparent 100%
+            );
+            pointer-events: none;
+        }
+
+        .sb-logo {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 24px 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .sb-logo-mark {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .sb-logo-mark img { width:100%; height:100%; object-fit:contain; border-radius:10px; }
+        .sb-logo-text { display:flex; flex-direction:column; line-height:1.2; }
+        .sb-logo-text .name {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-size: 14px; font-weight: 600;
+            color: rgba(255, 255, 255, 0.88);
+            letter-spacing: -0.4px;
+        }
+        .sb-logo-text .sub {
+            font-size: 10px; font-weight: 500;
+            color: rgba(255, 255, 255, 0.2);
+            letter-spacing: 0.4px;
+        }
+
+        /* stat rows */
+        .sb-stats {
+            display: flex;
+            flex-direction: column;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .sb-stat {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 20px;
+            cursor: default;
+            transition: background .15s;
+            border-radius: 0;
+        }
+        .sb-stat:hover { background: rgba(255, 255, 255, 0.025); }
+        .sb-stat .s-lbl {
+            font-size: 11px; font-weight: 500;
+            color: rgba(255, 255, 255, 0.25);
+        }
+        .sb-stat .s-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px; font-weight: 600;
+            color: rgba(255, 255, 255, 0.65);
+        }
+        .sb-stat.s-issues .s-val { color: rgba(244, 63, 94, 0.9); }
+        .sb-stat.s-ok .s-val     { color: rgba(16, 185, 129, 0.9); }
+        .sb-stat.s-rej .s-val    { color: rgba(244, 63, 94, 0.9); }
+
+        /* nav */
+        .sb-nav { padding: 10px 10px; flex: 1; overflow-y: auto; }
+        .sb-nav-label {
+            font-size: 9px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1.2px;
+            color: rgba(255, 255, 255, 0.15);
+            padding: 10px 10px 5px;
+        }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.32);
+            font-size: 12.5px; font-weight: 500;
+            transition: color .15s, background .15s;
+            border: 1px solid transparent;
+            margin-bottom: 1px;
+            user-select: none;
+        }
+        .nav-item:hover {
+            color: rgba(255, 255, 255, 0.72);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+        .nav-item.active {
+            color: rgba(165, 180, 252, 0.95);
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.18);
+        }
+        .nav-icon {
+            width: 16px; height: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; flex-shrink: 0; opacity: .55;
+        }
+        .nav-item.active .nav-icon { opacity: 1; }
+        .nav-badge {
+            margin-left: auto;
+            padding: 1px 7px;
+            border-radius: 20px;
+            font-size: 10px; font-weight: 600;
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .nav-badge.red   { background: rgba(244,63,94,0.08);  color: rgba(244,63,94,0.7); }
+        .nav-badge.green { background: rgba(16,185,129,0.08); color: rgba(16,185,129,0.7); }
+
+        /* bottom live strip */
+        .sb-bottom {
+            padding: 12px 14px 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .live-widget {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.12);
+        }
+        .live-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 8px rgba(16,185,129,0.8);
+            animation: livepulse 2.5s infinite;
+            flex-shrink: 0;
+        }
+        @keyframes livepulse {
+            0%,100% { opacity:1; box-shadow: 0 0 8px rgba(16,185,129,0.8); }
+            50%      { opacity:.25; box-shadow: none; }
+        }
+        .live-text { font-size: 12px; font-weight: 600; color: rgba(16,185,129,0.75); }
+        .live-sub  { font-size: 10px; color: rgba(16,185,129,0.35); margin-top: 1px; font-family: 'JetBrains Mono', monospace; }
+
+        /* ── MAIN AREA ─────────────────────────────────────── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        /* ── TOPBAR ────────────────────────────────────────── */
+        .topbar {
+            height: 54px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px;
+            background: var(--glass);
+            border-bottom: 1px solid var(--b1);
+            backdrop-filter: blur(20px);
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        .page-title {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-size: 19px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.92);
+            letter-spacing: -0.6px;
+            margin-right: 6px;
+        }
+
+        .search-wrap {
+            position: relative;
+        }
+        .search-icon {
+            position: absolute; left: 11px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--t3); font-size: 13px; pointer-events: none;
+        }
+        .field {
+            background: var(--glass2);
+            border: 1px solid var(--b1);
+            border-radius: 9px;
+            padding: 8px 12px;
+            color: var(--t1);
+            font-family: 'Manrope', sans-serif;
+            font-size: 12px; font-weight: 500;
+            outline: none;
+            transition: .2s;
+        }
+        .field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+        .field::placeholder { color: var(--t3); }
+        #searchBox { width: 200px; padding-left: 32px; }
+        #teamFilter, #approvalFilter { width: 140px; cursor: pointer; }
+
+        /* segmented control */
+        .vtabs {
+            display: flex;
+            background: var(--glass2);
+            border: 1px solid var(--b1);
+            border-radius: 9px; padding: 3px; gap: 2px;
+        }
+        .vtab {
+            padding: 5px 14px; border-radius: 7px; border: none;
+            cursor: pointer; font-family: 'Manrope', sans-serif;
+            font-size: 11px; font-weight: 700;
+            color: var(--t3); background: transparent; transition: .18s;
+            white-space: nowrap;
+        }
+        .vtab:hover { color: var(--t1); }
+        .vtab.active {
+            background: var(--glass3);
+            color: var(--t1);
+            box-shadow: 0 2px 8px rgba(0,0,0,.4);
+            border: 1px solid var(--b2);
+        }
+        .vtab.new-tab.active { color: var(--purple); border-color: var(--purple-b); }
+        .tab-count {
+            display:inline-block; background: var(--b1);
+            color: var(--t3); font-size: 9px; font-weight: 700;
+            padding: 1px 6px; border-radius: 10px; margin-left: 4px;
+        }
+
+        .btn-filter {
+            padding: 7px 14px; border-radius: 9px;
+            border: 1px solid var(--b1);
+            background: var(--glass2); color: var(--t3);
+            font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 700;
+            cursor: pointer; transition: .18s;
+        }
+        .btn-filter:hover { border-color: var(--red-b); color: var(--red); }
+        .btn-filter.active { background: var(--red-bg); border-color: var(--red-b); color: var(--red); }
+
+        .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+        .timestamp { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--t3); }
+
+        .btn-logout {
+            padding: 7px 16px; border-radius: 9px;
+            border: 1px solid var(--b2); background: transparent;
+            color: var(--t2); font-family: 'Manrope', sans-serif;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            text-decoration: none; transition: .18s;
+        }
+        .btn-logout:hover { border-color: var(--red-b); color: var(--red); background: var(--red-bg); }
+
+        /* ── ISSUE BANNER — refined, calm ─────────────────── */
+        .issue-banner {
+            display: none;
+            align-items: center; gap: 10px;
+            padding: 9px 28px;
+            background: rgba(244,63,94,0.05);
+            border-bottom: 1px solid rgba(244,63,94,0.12);
+            flex-shrink: 0;
+        }
+        .issue-banner.show { display: flex; }
+        .issue-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--red); flex-shrink: 0;
+            animation: livepulse 2s infinite;
+        }
+        .issue-msg {
+            font-size: 12px; font-weight: 600;
+            color: rgba(244,63,94,0.85);
+        }
+        .issue-msg span { color: var(--t3); font-weight: 400; margin-left: 6px; }
+        .btn-jump {
+            margin-left: auto; padding: 5px 14px; border-radius: 7px;
+            background: transparent;
+            border: 1px solid rgba(244,63,94,0.3);
+            color: var(--red);
+            font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 600;
+            cursor: pointer; transition: .15s; letter-spacing: 0.2px;
+        }
+        .btn-jump:hover { background: var(--red-bg); }
+
+        /* ── BULK BAR ──────────────────────────────────────── */
+        .bulk-bar {
+            display:none; align-items:center; gap:10px;
+            padding:9px 28px;
+            background: rgba(99,102,241,0.07);
+            border-bottom: 1px solid rgba(99,102,241,0.15);
+            flex-shrink: 0;
+        }
+        .bulk-bar.visible { display:flex; }
+        .bulk-count { font-size:12px; font-weight:800; color:var(--accent2); }
+        .btn-bulk {
+            padding:5px 14px; border-radius:8px; border:1px solid var(--b2);
+            background:transparent; font-family:'Manrope',sans-serif;
+            font-size:11px; font-weight:700; cursor:pointer; transition:.18s;
+        }
+        .btn-bulk.grad { color:var(--purple); border-color:var(--purple-b); }
+        .btn-bulk.grad:hover { background:var(--purple-bg); }
+        .btn-bulk.del { color:var(--red); border-color:var(--red-b); }
+        .btn-bulk.del:hover { background:var(--red-bg); }
+        .btn-bulk.clear { color:var(--t2); }
+        .btn-bulk.clear:hover { color:var(--t1); }
+
+        /* ── TABLE AREA ────────────────────────────────────── */
+        .table-wrap {
+            flex: 1; overflow-y: auto; overflow-x: hidden; padding: 14px 16px 40px;
+            min-height: 0; /* critical — lets flex child shrink and scroll */
+        }
+
+        table { width:100%; border-collapse:separate; border-spacing:0 3px; table-layout:fixed; }
+
+        thead th {
+            font-family: 'Manrope', sans-serif;
+            font-size: 8.5px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: .8px;
+            color: var(--t3); padding: 5px 8px;
+            text-align: left; white-space: nowrap; overflow: hidden;
+            cursor: pointer; user-select: none;
+            position: sticky; top: 0; z-index: 10;
+            background: var(--bg);
+            border-bottom: 1px solid var(--b1);
+            transition: color .15s;
+        }
+        thead th:hover { color: var(--accent2); }
+
+        /* Column widths — every pixel counts */
+        thead th:nth-child(1)  { width: 34px; }   /* checkbox */
+        thead th:nth-child(2)  { width: 130px; }  /* agent */
+        thead th:nth-child(3)  { width: 60px; }   /* res-id */
+        thead th:nth-child(4)  { width: 70px; }   /* team */
+        thead th:nth-child(5)  { width: 80px; }   /* anydesk */
+        thead th:nth-child(6)  { width: 75px; }   /* pc specs */
+        thead th:nth-child(7)  { width: 72px; }   /* chrome */
+        thead th:nth-child(8)  { width: 72px; }   /* network */
+        thead th:nth-child(9)  { width: 68px; }   /* connection */
+        thead th:nth-child(10) { width: 90px; }   /* speed */
+        thead th:nth-child(11) { width: 44px; }   /* vpn */
+        thead th:nth-child(12) { width: 55px; }   /* mic */
+        thead th:nth-child(13) { width: 60px; }   /* notes */
+        thead th:nth-child(14) { width: 55px; }   /* disk */
+        thead th:nth-child(15) { width: 72px; }   /* checked */
+        thead th:nth-child(16) { width: 80px; }   /* actions */
+
+        /* ── ROWS ─────────────────────────────────────────── */
+        tbody tr.data-row {
+            cursor: pointer;
+            transition: transform .12s, box-shadow .12s;
+        }
+        tbody tr.data-row:hover { transform: translateY(-1px); }
+
+        tbody td {
+            padding: 8px 8px;
+            vertical-align: middle;
+            background: var(--glass2);
+            border-top: 1px solid var(--b1);
+            border-bottom: 1px solid var(--b1);
+            transition: background .15s;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        tbody td:first-child {
+            border-left: 1px solid var(--b1);
+            border-radius: 8px 0 0 8px;
+        }
+        tbody td:last-child {
+            border-right: 1px solid var(--b1);
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* ISSUE ROWS — red aura, impossible to miss */
+        tbody tr.row-rejected td {
+            background: var(--red-deep);
+            border-top-color: var(--red-b);
+            border-bottom-color: var(--red-b);
+        }
+        tbody tr.row-rejected td:first-child {
+            border-left: 2px solid var(--red);
+            border-radius: 10px 0 0 10px;
+        }
+        tbody tr.row-rejected td:last-child {
+            border-right: 1px solid var(--red-b);
+        }
+        tbody tr.row-rejected {
+            filter: drop-shadow(0 0 12px rgba(244,63,94,0.18));
+        }
+        tbody tr.row-rejected:hover td { background: rgba(244,63,94,0.2); }
+        tbody tr.row-rejected:hover { filter: drop-shadow(0 0 20px rgba(244,63,94,0.28)); }
+
+        /* OK rows */
+        tbody tr.row-approved td:first-child {
+            border-left: 2px solid var(--green);
+        }
+        tbody tr.row-approved:hover td { background: rgba(14,15,28,0.95); }
+
+        /* agent cell */
+        .agent-cell { display:flex; flex-direction:column; gap:2px; }
+        .agent-name { font-size:11.5px; font-weight:600; color:var(--t1); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .agent-badge {
+            display:inline-flex; align-items:center; gap:3px;
+            font-size:8.5px; font-weight:700; letter-spacing:.2px;
+            text-transform:uppercase; white-space:nowrap; flex-shrink:0;
+        }
+        .agent-badge.bad  { color:rgba(244,63,94,0.75); }
+        .agent-badge.good { display:none; }
+        .agent-badge.bad::before  { content:'●'; animation:redblink 1.5s infinite; margin-right:2px; }
+        @keyframes redblink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        /* ── PILLS ────────────────────────────────────────── */
+        .pill {
+            display:inline-flex; align-items:center;
+            padding: 2px 7px; border-radius: 5px;
+            font-size: 9.5px; font-weight: 700; letter-spacing:.1px;
+            white-space: nowrap; border: 1px solid transparent;
+            max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+        }
+        .pill-good    { background:var(--green-bg); color:#34d399; border-color:var(--green-b); }
+        .pill-warn    { background:var(--yellow-bg); color:#fbbf24; border-color:var(--yellow-b); }
+        .pill-bad     { background:var(--red-bg); color:#fb7185; border-color:var(--red-b); font-weight:800; }
+        .pill-neutral { background:var(--glass3); color:var(--t3); border-color:var(--b1); }
+        .pill-eth     { background:var(--cyan-bg); color:#22d3ee; border-color:rgba(6,182,212,.25); }
+        .pill-wifi    { background:var(--yellow-bg); color:#fbbf24; border-color:var(--yellow-b); }
+        .pill-speed-good { background:var(--green-bg); color:#34d399; border-color:var(--green-b); }
+        .pill-speed-bad  { background:var(--red-bg); color:#fb7185; border-color:var(--red-b); font-weight:800; }
+        .speed-wrap { display:flex; flex-direction:column; gap:2px; }
+
+        /* mono data */
+        .mono { font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:500; }
+
+        /* ── DETAIL ROW ────────────────────────────────────── */
         .detail-row { display:none; }
         .detail-row.open { display:table-row; }
-        .detail-row td { padding:0; background:#0d1220; }
-        .detail-panel { padding:20px 28px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
-        .detail-section { background:#111827; border-radius:10px; padding:16px; border:1px solid #1e293b; }
-        .detail-section h4 { color:#00d4aa; font-size:11px; font-weight:700; text-transform:uppercase;
-                             letter-spacing:.5px; margin-bottom:10px; }
-        .detail-row-item { display:flex; justify-content:space-between; padding:5px 0;
-                          font-size:12px; border-bottom:1px solid #1a2332; }
-        .detail-row-item:last-child { border-bottom:none; }
-        .detail-row-item .label { color:#64748b; }
-        .detail-row-item .value { color:#e0e4ec; font-weight:500; }
+        .detail-row td {
+            padding: 0 !important;
+            background: transparent !important;
+            border: none !important;
+        }
+        .detail-panel {
+            margin-bottom: 5px;
+            padding: 1px 20px 16px;
+            background: rgba(10,11,22,0.9);
+            border: 1px solid var(--b1);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+        }
+        .row-rejected + .detail-row .detail-panel {
+            border-color: var(--red-b);
+            background: rgba(20,6,8,0.95);
+        }
+        @media(max-width:1300px){ .detail-panel { grid-template-columns:1fr 1fr; } }
 
-        /* Status pills */
-        .pill { padding:3px 10px; border-radius:6px; font-size:11px; font-weight:600; display:inline-block; }
-        .pill-good { background:#064e3b; color:#34d399; }
-        .pill-warn { background:#451a03; color:#fbbf24; }
-        .pill-bad { background:#450a0a; color:#f87171; }
-        .pill-neutral { background:#1e293b; color:#94a3b8; }
-        .pill-wifi { background:#1e1b4b; color:#818cf8; }
-        .pill-eth { background:#022c22; color:#6ee7b7; }
+        .dsec {
+            background: var(--glass2);
+            border-radius: 10px; padding: 14px;
+            border: 1px solid var(--b1); margin-top: 12px;
+        }
+        .dsec h4 {
+            font-size: 9px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 1px;
+            color: var(--accent2); margin-bottom: 10px;
+            padding-bottom: 7px; border-bottom: 1px solid var(--b1);
+        }
+        .drow {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:5px 0; font-size:11px; gap:8px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .drow:last-child { border-bottom:none; }
+        .drow .lbl { color:var(--t3); white-space:nowrap; }
+        .drow .val { font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500; color:var(--t1); text-align:right; }
 
-        /* Empty state */
-        .empty { text-align:center; padding:80px 20px; }
-        .empty-icon { font-size:48px; margin-bottom:16px; opacity:.3; }
-        .empty h3 { color:#64748b; font-weight:600; margin-bottom:6px; }
-        .empty p { color:#475569; font-size:13px; }
- 
-        /* Delete button */
-        .btn-delete { background:transparent; border:1px solid #1e293b; color:#64748b; padding:4px 10px;
-                      border-radius:6px; cursor:pointer; font-size:12px; transition:.2s; }
-        .btn-delete:hover { border-color:#dc2626; color:#f87171; background:#450a0a; }
-        /* Graduate button — moves agent out of Newcomers without deleting */
-        .btn-graduate { background:transparent; border:1px solid #4c1d95; color:#a78bfa; padding:4px 10px;
-                        border-radius:6px; cursor:pointer; font-size:12px; transition:.2s; }
-        .btn-graduate:hover { border-color:#818cf8; color:#c4b5fd; background:#2e1065; }
+        /* ── DATE ─────────────────────────────────────────── */
+        .date-cell { font-family:'JetBrains Mono',monospace; font-size:10px; }
+        .date-stale { color:var(--red) !important; font-weight:600; }
+        .date-warn  { color:var(--yellow) !important; }
+        .date-fresh { color:var(--green) !important; }
+        .date-stacked > div:last-child { opacity:.5; font-size:.88em; margin-top:1px; }
 
-        
-        /* PDF / Copy buttons */
-        .btn-pdf { background:transparent; border:1px solid #1e293b; color:#94a3b8; padding:4px 10px;
-                   border-radius:6px; cursor:pointer; font-size:11px; transition:.2s; margin-right:4px; }
-        .btn-pdf:hover { border-color:#00d4aa; color:#00d4aa; background:#064e3b; }
-        .btn-copy { background:transparent; border:1px solid #1e293b; color:#94a3b8; padding:4px 10px;
-                    border-radius:6px; cursor:pointer; font-size:11px; transition:.2s; margin-right:4px; }
-        .btn-copy:hover { border-color:#22c55e; color:#bbf7d0; background:#022c22; }
+        /* ── CHECKBOXES ───────────────────────────────────── */
+        .chk-col { width:40px; text-align:center; cursor:default; }
+        .chk-col input[type="checkbox"] { width:14px; height:14px; accent-color:var(--accent); cursor:pointer; }
 
-        /* Freshness Highlights */
-        .date-cell { font-family: monospace; white-space: nowrap; }
-        .date-stale { color: #f87171 !important; font-weight: 600; /* Red for old data */ }
-        .date-warn { color: #fbbf24 !important; font-weight: 600; /* Yellow for yesterday */ }
-        .date-fresh { color: #34d399 !important; /* Green for today */ }
+        /* ── ACTION BUTTONS ───────────────────────────────── */
+        .act-wrap { display:flex; gap:3px; }
+        .btn-act {
+            padding: 4px 8px; border-radius:6px;
+            border: 1px solid var(--b2); background:transparent;
+            color: var(--t3); font-family:'Manrope',sans-serif;
+            font-size:9px; font-weight:700; cursor:pointer; transition:.15s;
+            white-space:nowrap;
+        }
+        .btn-act:hover { border-color:var(--accent); color:var(--accent2); background:var(--accent-bg); }
+        .btn-act.del:hover { border-color:var(--red-b); color:var(--red); background:var(--red-bg); }
+        .btn-act.grad { border-color:var(--purple-b); color:var(--purple); }
+        .btn-act.grad:hover { background:var(--purple-bg); }
 
-        /* Responsive */
-        @media(max-width:1200px) { .detail-panel { grid-template-columns:1fr 1fr; } }
-        @media(max-width:768px) { .detail-panel { grid-template-columns:1fr; } }
+        /* ── EMPTY ────────────────────────────────────────── */
+        .empty { text-align:center; padding:100px 20px; }
+        .empty-icon { font-size:32px; opacity:.1; margin-bottom:16px; }
+        .empty h3 { color:var(--t2); font-weight:700; margin-bottom:6px; font-size:15px; }
+        .empty p  { color:var(--t3); font-size:12px; }
 
-        /* Newcomer view tabs */
-        .view-tabs { display:flex; gap:8px; align-items:center; }
-        .view-tab { padding:7px 18px; border-radius:8px; border:1px solid #1e293b; cursor:pointer;
-                    font-size:12px; font-weight:600; background:#141c2e; color:#94a3b8; transition:.2s; }
-        .view-tab:hover { border-color:#00d4aa; color:#00d4aa; }
-        .view-tab.active { background:#064e3b; border-color:#22c55e; color:#34d399; }
-        .view-tab.new-tab.active { background:#1e1b4b; border-color:#818cf8; color:#a78bfa; }
-        /* Newcomer separator banner */
-        .newcomer-banner { background:linear-gradient(90deg,#1e1b4b,#0d1220); border-left:3px solid #818cf8;
-                           padding:10px 32px; font-size:12px; color:#a78bfa; font-weight:600;
-                           letter-spacing:.5px; text-transform:uppercase; }
-        /* Speed pill */
-        .pill-speed-good { background:#064e3b; color:#34d399; }
-        .pill-speed-bad  { background:#450a0a; color:#f87171; }
-        .speed-pill-wrap { display:flex; flex-direction:column; gap:3px; }
+        /* ── SCROLLBARS ───────────────────────────────────── */
+        ::-webkit-scrollbar { width:5px; height:5px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:var(--b2); border-radius:3px; }
+        ::-webkit-scrollbar-thumb:hover { background:var(--b3); }
 
-        /* Has Issues toggle */
-        .btn-issues { padding:7px 14px; border-radius:8px; border:1px solid #1e293b; cursor:pointer;
-                      font-size:12px; font-weight:600; background:#141c2e; color:#94a3b8; transition:.2s; }
-        .btn-issues:hover { border-color:#f59e0b; color:#fbbf24; }
-        .btn-issues.active { background:#451a03; border-color:#f59e0b; color:#fbbf24; }
-
-        /* Bulk action bar */
-        .bulk-bar { display:none; align-items:center; gap:12px; padding:10px 32px;
-                    background:linear-gradient(90deg,#141c2e,#0d1220); border-bottom:1px solid #1e293b; }
-        .bulk-bar.visible { display:flex; }
-        .bulk-bar .bulk-count { color:#00d4aa; font-weight:600; font-size:13px; }
-        .bulk-bar .btn-bulk { padding:6px 14px; border-radius:6px; border:1px solid #1e293b;
-                              cursor:pointer; font-size:12px; font-weight:600; transition:.2s; background:transparent; }
-        .bulk-bar .btn-bulk.grad { color:#a78bfa; border-color:#4c1d95; }
-        .bulk-bar .btn-bulk.grad:hover { background:#2e1065; color:#c4b5fd; }
-        .bulk-bar .btn-bulk.del { color:#f87171; border-color:#450a0a; }
-        .bulk-bar .btn-bulk.del:hover { background:#450a0a; color:#fca5a5; }
-        .bulk-bar .btn-bulk.clear { color:#94a3b8; }
-        .bulk-bar .btn-bulk.clear:hover { color:#e0e4ec; border-color:#64748b; }
-
-        /* Checkbox column */
-        .chk-col { width:36px; text-align:center; cursor:default; }
-        .chk-col input[type="checkbox"] { width:15px; height:15px; accent-color:#00d4aa; cursor:pointer; }
-        /* Tab count badge */
-        .tab-count { background:#1e293b; color:#94a3b8; font-size:10px; padding:1px 7px; border-radius:10px;
-                     margin-left:6px; font-weight:700; }
+        /* ── PAGE LOAD ANIMATION ──────────────────────────── */
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(12px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .sidebar   { animation: fadeUp .4s ease both; }
+        .topbar    { animation: fadeUp .4s .08s ease both; }
+        .issue-banner { animation: fadeUp .3s .12s ease both; }
+        .table-wrap { animation: fadeUp .4s .15s ease both; }
     </style>
 </head>
 <body>
+<canvas id="starfield"></canvas>
+<div class="layout">
 
-<div class="header">
-    <div class="logo">
-        <img src="/favicon.ico" class="logo-icon" alt="V">
-        <h1>IT Dashboard</h1>
-    </div>
-    <div class="header-right">
-        <div class="badge agents">AGENTS <span class="num" id="agent-count">0</span></div>
-        <div class="badge issues">ISSUES <span class="num" id="issue-count">0</span></div>
-        <div id="badge-approved" class="badge" style="border-color:#064e3b; display:none">APPROVED <span class="num" style="color:#22c55e" id="approved-count">0</span></div>
-        <div id="badge-rejected" class="badge" style="border-color:#450a0a; display:none">REJECTED <span class="num" style="color:#ef4444" id="rejected-count">0</span></div>
-        <span style="color:#94a3b8;font-size:12px"><span class="live-dot"></span> LIVE</span>
-        <a href="/logout" class="btn btn-red">Logout</a>
-    </div>
-</div>
-
-<div class="toolbar">
-    <div style="display:flex;gap:10px;align-items:center">
-        <input class="search-box" type="text" id="searchBox" placeholder="Search agents...">
-        <select id="teamFilter" class="search-box" style="width:160px;cursor:pointer">
-            <option value="">All Teams</option>
-        </select>
-        <div class="view-tabs">
-            <button class="view-tab active" id="tabAll" onclick="switchView('all')">All Agents <span class="tab-count" id="countAll">0</span></button>
-            <button class="view-tab new-tab" id="tabNew" onclick="switchView('new')">Newcomers <span class="tab-count" id="countNew">0</span></button>
-        </div>
-        <select id="approvalFilter" class="search-box" style="width:160px;cursor:pointer;display:none" onchange="applyFilters()">
-            <option value="">All Status</option>
-            <option value="approved">Approved</option>
-            <option value="not_approved">Not Approved</option>
-        </select>
-        <button class="btn-issues" id="btnIssues" onclick="toggleIssuesFilter()">Has Issues</button>
-    </div>
-    <span class="last-updated" id="lastUpdated">Loading...</span>
-</div>
-
-<!-- Bulk action bar -->
-<div class="bulk-bar" id="bulkBar">
-    <span class="bulk-count"><span id="bulkCount">0</span> selected</span>
-    <button class="btn-bulk grad" id="bulkGrad" onclick="bulkGraduate()" style="display:none">Done (graduate)</button>
-    <button class="btn-bulk del" id="bulkDel" onclick="bulkDelete()">Delete selected</button>
-    <button class="btn-bulk clear" onclick="clearSelection()">Clear</button>
-</div>
-
-<div class="table-wrap">
-<table id="resultsTable">
-    <thead>
-        <tr>
-            <th class="chk-col" onclick="event.stopPropagation()"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
-            <th onclick="sortTable(0)">RES-ID ▵</th>
-            <th onclick="sortTable(1)">Agent ▵</th>
-            <th onclick="sortTable(2)">Team ▵</th>
-            <th onclick="sortTable(3)">AnyDesk ▵</th>
-            <th onclick="sortTable(4)">PC Specs ▵</th>
-            <th onclick="sortTable(5)">Chrome ▵</th>
-            <th onclick="sortTable(6)">Network ▵</th>
-            <th onclick="sortTable(7)">Connection ▵</th>
-            <th onclick="sortTable(8)">Speed ▵</th>
-            <th onclick="sortTable(9)">VPN ▵</th>
-            <th onclick="sortTable(10)">Mic ▵</th>
-            <th onclick="sortTable(11)">Notes ▵</th>
-            <th onclick="sortTable(12)">Disk ▵</th>
-            <th onclick="sortTable(13)">Checked ▵</th>
-            <th style="width:50px"></th>
-        </tr>
-    </thead>
-    <tbody id="resultsBody">
-        <tr><td colspan="16">
-            <div class="empty">
-                <div class="empty-icon">—</div>
-                <h3>No agents yet</h3>
-                <p>Run VOS on any machine and the results will appear here automatically.</p>
+    <!-- ── SIDEBAR ────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sb-logo">
+            <div class="sb-logo-mark">
+                <img src="/favicon.ico" alt="IT" onerror="this.style.display='none';this.parentNode.textContent='IT'">
             </div>
-        </td></tr>
-    </tbody>
-</table>
-</div>
+            <div class="sb-logo-text">
+                <span class="name">VOS</span>
+                <span class="sub">Vital Operations Scanner</span>
+            </div>
+        </div>
+
+        <!-- Quick stats -->
+        <div class="sb-stats">
+            <div class="sb-stat">
+                <span class="s-lbl">Agents</span>
+                <span class="s-val" id="sb-agents">0</span>
+            </div>
+            <div class="sb-stat s-issues">
+                <span class="s-lbl">Issues</span>
+                <span class="s-val" id="sb-issues">0</span>
+            </div>
+            <div class="sb-stat s-ok" id="sb-approved-wrap" style="display:none">
+                <span class="s-lbl">Approved</span>
+                <span class="s-val" id="sb-approved">0</span>
+            </div>
+            <div class="sb-stat s-rej" id="sb-rejected-wrap" style="display:none">
+                <span class="s-lbl">Rejected</span>
+                <span class="s-val" id="sb-rejected">0</span>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <nav class="sb-nav">
+            <div class="sb-nav-label">Views</div>
+            <div class="nav-item active" id="nav-all" onclick="switchView('all')">
+                <span class="nav-icon">⬡</span>
+                All Agents
+                <span class="nav-badge" id="nav-count-all">0</span>
+            </div>
+            <div class="nav-item new-nav" id="nav-new" onclick="switchView('new')">
+                <span class="nav-icon">✦</span>
+                Newcomers
+                <span class="nav-badge" id="nav-count-new">0</span>
+            </div>
+            <div class="nav-item" id="nav-issues" onclick="setIssuesFilter(true)">
+                <span class="nav-icon">⚠</span>
+                Has Issues
+                <span class="nav-badge red" id="nav-count-issues">0</span>
+            </div>
+
+            <div class="sb-nav-label" style="margin-top:12px">Filters</div>
+            <div style="padding:4px 4px 0">
+                <select id="teamFilterSb" class="field" style="width:100%;cursor:pointer;font-size:11px" onchange="syncTeamFilter()">
+                    <option value="">All Teams</option>
+                </select>
+            </div>
+        </nav>
+
+        <div class="sb-bottom">
+            <div class="live-widget">
+                <span class="live-dot"></span>
+                <div>
+                    <div class="live-text">Live</div>
+                    <div class="live-sub" id="sb-updated">Syncing…</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── MAIN ───────────────────────────────────────────────── -->
+    <div class="main">
+
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <span class="page-title" id="pageTitle">All Agents</span>
+
+                <div class="search-wrap">
+                    <span class="search-icon">⌕</span>
+                    <input class="field" id="searchBox" type="text" placeholder="Search…" style="padding-left:30px">
+                </div>
+
+                <div class="vtabs">
+                    <button class="vtab active" id="tabAll" onclick="switchView('all')">All <span class="tab-count" id="countAll">0</span></button>
+                    <button class="vtab new-tab" id="tabNew" onclick="switchView('new')">New <span class="tab-count" id="countNew">0</span></button>
+                </div>
+
+                <select id="approvalFilter" class="field" style="display:none;cursor:pointer" onchange="applyFilters()">
+                    <option value="">All Status</option>
+                    <option value="approved">Approved</option>
+                    <option value="not_approved">Not Approved</option>
+                </select>
+
+                <select id="teamFilter" class="field" style="cursor:pointer;display:none">
+                    <option value="">All Teams</option>
+                </select>
+
+                <button class="btn-filter" id="btnIssues" onclick="toggleIssuesFilter()">⚠ Issues Only</button>
+            </div>
+            <div class="topbar-right">
+                <span class="timestamp" id="lastUpdated">Loading…</span>
+                <a href="/logout" class="btn-logout">Log out</a>
+            </div>
+        </div>
+
+        <!-- ISSUE BANNER -->
+        <div class="issue-banner" id="issueBanner">
+            <div class="issue-dot"></div>
+            <div class="issue-msg">
+                <span id="bannerTitle">Agents need attention</span>
+                <span id="bannerSub"></span>
+            </div>
+            <button class="btn-jump" onclick="document.querySelector('tr.row-rejected')?.scrollIntoView({behavior:'smooth',block:'center'})">
+                Jump to first ↓
+            </button>
+        </div>
+
+        <!-- BULK BAR -->
+        <div class="bulk-bar" id="bulkBar">
+            <span class="bulk-count"><span id="bulkCount">0</span> selected</span>
+            <button class="btn-bulk grad" id="bulkGrad" onclick="bulkGraduate()" style="display:none">✓ Graduate</button>
+            <button class="btn-bulk del"  id="bulkDel"  onclick="bulkDelete()">Delete selected</button>
+            <button class="btn-bulk clear" onclick="clearSelection()">Clear</button>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-wrap">
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th class="chk-col" onclick="event.stopPropagation()">
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+                        </th>
+                        <th onclick="sortTable(1)">Agent ▵</th>
+                        <th onclick="sortTable(0)">RES-ID ▵</th>
+                        <th onclick="sortTable(2)">Team ▵</th>
+                        <th onclick="sortTable(3)">AnyDesk ▵</th>
+                        <th onclick="sortTable(4)">PC Specs ▵</th>
+                        <th onclick="sortTable(5)">Chrome ▵</th>
+                        <th onclick="sortTable(6)">Network ▵</th>
+                        <th onclick="sortTable(7)">Connection ▵</th>
+                        <th onclick="sortTable(8)">Speed ▵</th>
+                        <th onclick="sortTable(9)">VPN ▵</th>
+                        <th onclick="sortTable(10)">Mic ▵</th>
+                        <th onclick="sortTable(11)">Notes ▵</th>
+                        <th onclick="sortTable(12)">Disk ▵</th>
+                        <th onclick="sortTable(13)">Checked ▵</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody">
+                    <tr><td colspan="16">
+                        <div class="empty">
+                            <div class="empty-icon">◌</div>
+                            <h3>No agents yet</h3>
+                            <p>Run VOS on any machine and results appear here.</p>
+                        </div>
+                    </td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div><!-- /main -->
+</div><!-- /layout -->
 
 <script>
 let allData = [];
 let sortCol = -1, sortAsc = true;
-const expandedAgents = new Set(); // Track expanded agent names
+const expandedAgents = new Set();
 
-// Helper: Format date string to stacked 12h format
+/* ── Helpers ─────────────────────────────────────────────────── */
 function formatDateTime12h(dateStr) {
     if (!dateStr || dateStr === '—') return '—';
     try {
-        const d = new Date(dateStr.replace(' ', 'T')); // Handle SQL format
+        const d = new Date(dateStr.replace(' ', 'T'));
         if (isNaN(d.getTime())) return dateStr;
-        
-        const datePart = d.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'numeric',
-            day: 'numeric'
-        });
-        
-        const timePart = d.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: true
-        });
-
-        return `<div class="date-stacked">
-                    <div>${datePart}</div>
-                    <div style="opacity:0.6; font-size:0.85em; margin-top:2px;">${timePart}</div>
-                </div>`;
-    } catch (e) {
-        return dateStr;
-    }
+        const dp = d.toLocaleDateString('en-US', { year:'numeric', month:'numeric', day:'numeric' });
+        const tp = d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+        return `<div class="date-stacked"><div>${dp}</div><div>${tp}</div></div>`;
+    } catch(e){ return dateStr; }
 }
-
-// Helper: Check freshness
 function getDateFreshnessClass(dateStr) {
     if (!dateStr || dateStr === '—') return '';
     try {
         const d = new Date(dateStr.replace(' ', 'T'));
         if (isNaN(d.getTime())) return '';
-        
         const now = new Date();
-        const diffDays = Math.floor((now - d) / (1000 * 60 * 60 * 24));
-        
-        const isToday = d.toDateString() === now.toDateString();
-        if (isToday) return 'date-fresh';
-        if (diffDays < 1) return 'date-warn'; // Yesterday
-        return 'date-stale'; // Older
-    } catch (e) {
-        return '';
-    }
+        if (d.toDateString() === now.toDateString()) return 'date-fresh';
+        if (Math.floor((now-d)/(864e5)) < 1) return 'date-warn';
+        return 'date-stale';
+    } catch(e){ return ''; }
 }
 
-// Team color palette — each team gets a unique, consistent color
 const TEAM_COLORS = [
-    { bg:'#422006', fg:'#fbbf24' },  // amber/yellow
-    { bg:'#0c4a6e', fg:'#38bdf8' },  // sky blue
-    { bg:'#064e3b', fg:'#34d399' },  // emerald
-    { bg:'#4c1d95', fg:'#a78bfa' },  // purple
-    { bg:'#831843', fg:'#f472b6' },  // pink
-    { bg:'#1e3a5f', fg:'#60a5fa' },  // blue
-    { bg:'#713f12', fg:'#facc15' },  // gold
-    { bg:'#134e4a', fg:'#2dd4bf' },  // teal
-    { bg:'#7c2d12', fg:'#fb923c' },  // orange
-    { bg:'#1e1b4b', fg:'#818cf8' },  // indigo
-    { bg:'#3b0764', fg:'#c084fc' },  // violet
-    { bg:'#052e16', fg:'#4ade80' },  // green
+    {bg:'rgba(239,68,68,0.15)',   fg:'#fc8181', bd:'rgba(239,68,68,0.35)'},    // red
+    {bg:'rgba(249,115,22,0.15)',  fg:'#fb923c', bd:'rgba(249,115,22,0.35)'},   // orange
+    {bg:'rgba(234,179,8,0.15)',   fg:'#facc15', bd:'rgba(234,179,8,0.35)'},    // yellow
+    {bg:'rgba(16,185,129,0.15)',  fg:'#34d399', bd:'rgba(16,185,129,0.35)'},   // emerald
+    {bg:'rgba(6,182,212,0.15)',   fg:'#22d3ee', bd:'rgba(6,182,212,0.35)'},    // cyan
+    {bg:'rgba(59,130,246,0.15)',  fg:'#60a5fa', bd:'rgba(59,130,246,0.35)'},   // blue
+    {bg:'rgba(99,102,241,0.15)',  fg:'#818cf8', bd:'rgba(99,102,241,0.35)'},   // indigo
+    {bg:'rgba(168,85,247,0.15)',  fg:'#c084fc', bd:'rgba(168,85,247,0.35)'},   // purple
+    {bg:'rgba(236,72,153,0.15)',  fg:'#f472b6', bd:'rgba(236,72,153,0.35)'},   // pink
+    {bg:'rgba(20,184,166,0.15)',  fg:'#2dd4bf', bd:'rgba(20,184,166,0.35)'},   // teal
+    {bg:'rgba(132,204,22,0.15)',  fg:'#a3e635', bd:'rgba(132,204,22,0.35)'},   // lime
+    {bg:'rgba(244,63,94,0.15)',   fg:'#fb7185', bd:'rgba(244,63,94,0.35)'},    // rose
+    {bg:'rgba(245,158,11,0.15)',  fg:'#fbbf24', bd:'rgba(245,158,11,0.35)'},   // amber
+    {bg:'rgba(14,165,233,0.15)',  fg:'#38bdf8', bd:'rgba(14,165,233,0.35)'},   // sky
+    {bg:'rgba(192,132,252,0.15)', fg:'#e879f9', bd:'rgba(192,132,252,0.35)'},  // fuchsia
+    {bg:'rgba(52,211,153,0.15)',  fg:'#6ee7b7', bd:'rgba(52,211,153,0.35)'},   // green
 ];
-
-// Normalize team name so NEW / new / New are all treated as one team
-function normalizeTeam(name) {
-    if (!name) return name;
-    if (name.trim().toLowerCase() === 'new') return 'NEW';
-    return name.trim();
+function normalizeTeam(n){
+    if(!n) return n;
+    const t = n.trim();
+    if(t.toLowerCase()==='new') return 'NEW';
+    // Canonical key: lowercase, no trailing 's' — so "Avatar" and "Avatars" share one slot
+    return t;
 }
 
-function teamHash(name) {
-    let h = 0;
-    const s = normalizeTeam(name || '').toLowerCase();
-    for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
-    return Math.abs(h);
+// Canonical key for grouping — case-insensitive + strips trailing 's' for plural matching
+function teamKey(n){
+    if(!n) return '';
+    const t = normalizeTeam(n).toLowerCase();
+    // Strip trailing 's' so "avatar" and "avatars" share the same bucket
+    return t.endsWith('s') ? t.slice(0,-1) : t;
 }
 
-function teamPill(name) {
+// Map from canonical key → display name (shortest seen wins)
+const teamDisplayMap = {};
+
+// Team color assignment — first-seen order, guaranteed unique per team
+const teamColorMap = {};
+let teamColorIdx = 0;
+
+function getTeamColor(name) {
     const n = normalizeTeam(name);
-    if (!n || n === '—') return '<span class="pill pill-neutral">—</span>';
-    if (n === 'NEW') return '<span class="pill" style="background:#2e1065;color:#c084fc">NEW</span>';
-    const c = TEAM_COLORS[teamHash(n) % TEAM_COLORS.length];
-    return `<span class="pill" style="background:${c.bg};color:${c.fg}">${n}</span>`;
+    if (!n || n === '—') return null;
+    const key = teamKey(n);
+    if (!teamColorMap[key]) {
+        teamColorMap[key] = TEAM_COLORS[teamColorIdx % TEAM_COLORS.length];
+        teamColorIdx++;
+    }
+    // Track shortest display name as canonical
+    if (!teamDisplayMap[key] || n.length < teamDisplayMap[key].length) {
+        teamDisplayMap[key] = n;
+    }
+    return teamColorMap[key];
 }
 
-function speedPill(dlMbps, ulMbps) {
-    const dl = parseFloat(dlMbps || 0);
-    const ul = parseFloat(ulMbps || 0);
-    if (dl <= 0 && ul <= 0) return '<span class="pill pill-neutral">—</span>';
-    const dlOk = dl >= 10.0;
-    const ulOk = ul >= 2.0;
-    const dlClass = dlOk ? 'pill pill-speed-good' : 'pill pill-speed-bad';
-    const ulClass = ulOk ? 'pill pill-speed-good' : 'pill pill-speed-bad';
-    return `<div class="speed-pill-wrap">
-        <span class="${dlClass}">↓ ${dl} Mbps</span>
-        <span class="${ulClass}">↑ ${ul} Mbps</span>
+function teamPill(name){
+    const n = normalizeTeam(name);
+    if(!n||n==='—') return '<span class="pill pill-neutral">—</span>';
+    if(n==='NEW') return '<span class="pill" style="background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.25)">NEW</span>';
+    const c = getTeamColor(n);
+    const display = teamDisplayMap[teamKey(n)] || n;
+    return `<span class="pill" style="background:${c.bg};color:${c.fg};border:1px solid ${c.bd}">${display}</span>`;
+}
+function speedPill(dl,ul){
+    const d=parseFloat(dl||0),u=parseFloat(ul||0);
+    if(d<=0&&u<=0) return '<span class="pill pill-neutral">—</span>';
+    return `<div class="speed-wrap">
+        <span class="pill ${d>=10?'pill-speed-good':'pill-speed-bad'}">↓ ${d} Mbps</span>
+        <span class="pill ${u>=2?'pill-speed-good':'pill-speed-bad'}">↑ ${u} Mbps</span>
     </div>`;
 }
-
-function connTypePill(type) {
-    if (!type || type === '—') return '<span class="pill pill-neutral">—</span>';
-    const t = type.toLowerCase();
-    if (t.includes('wi-fi') || t.includes('wifi')) return '<span class="pill pill-bad">' + type + '</span>';
-    if (t.includes('ethernet') || t.includes('eth')) return '<span class="pill pill-good">' + type + '</span>';
-    return '<span class="pill pill-neutral">' + type + '</span>';
+function connTypePill(t){
+    if(!t||t==='—') return '<span class="pill pill-neutral">—</span>';
+    const l=t.toLowerCase();
+    if(l.includes('wi-fi')||l.includes('wifi')) return `<span class="pill pill-wifi">${t}</span>`;
+    if(l.includes('ethernet')||l.includes('eth')) return `<span class="pill pill-eth">${t}</span>`;
+    return `<span class="pill pill-neutral">${t}</span>`;
 }
-
-function statusPill(text) {
-    if (!text || text === '—') return '<span class="pill pill-neutral">—</span>';
-    const t = text.toLowerCase();
-    if (t === 'not approved') return '<span class="pill pill-bad">' + text + '</span>';
-    if (t === 'approved') return '<span class="pill pill-good">' + text + '</span>';
-    if (t.includes('good') || t.includes('up_to_date') || t.includes('up to date')) return '<span class="pill pill-good">' + text + '</span>';
-    if (t.includes('fair') || t.includes('warn')) return '<span class="pill pill-warn">' + text + '</span>';
-    if (t.includes('poor') || t.includes('bad') || t.includes('outdated') || t.includes('needs update')) return '<span class="pill pill-bad">' + text + '</span>';
-    return '<span class="pill pill-neutral">' + text + '</span>';
+function statusPill(text){
+    if(!text||text==='—') return '<span class="pill pill-neutral">—</span>';
+    const t=text.toLowerCase();
+    if(t==='not approved') return `<span class="pill pill-bad">${text}</span>`;
+    if(t==='approved') return `<span class="pill pill-good">${text}</span>`;
+    if(t.includes('good')||t.includes('up_to_date')||t.includes('up to date')) return `<span class="pill pill-good">${text}</span>`;
+    if(t.includes('fair')||t.includes('warn')) return `<span class="pill pill-warn">${text}</span>`;
+    if(t.includes('poor')||t.includes('bad')||t.includes('outdated')||t.includes('needs update')) return `<span class="pill pill-bad">${text}</span>`;
+    return `<span class="pill pill-neutral">${text}</span>`;
 }
-
-function specsPill(label) {
-    if (!label || label === '—') return '<span class="pill pill-neutral">—</span>';
-    const l = label.toLowerCase();
-    if (l === 'approved') return '<span class="pill pill-good">Approved</span>';
-    if (l === 'not approved') return '<span class="pill pill-bad">Not Approved</span>';
-    return '<span class="pill pill-neutral">' + label + '</span>';
+function specsPill(l){
+    if(!l||l==='—') return '<span class="pill pill-neutral">—</span>';
+    const t=l.toLowerCase();
+    if(t==='approved') return '<span class="pill pill-good">Approved</span>';
+    if(t==='not approved') return '<span class="pill pill-bad">Not Approved</span>';
+    return `<span class="pill pill-neutral">${l}</span>`;
 }
-
-function pingStatusPill(verdict) {
-    if (!verdict || verdict === '—') return '<span class="pill pill-neutral">—</span>';
-    const v = verdict.toUpperCase();
-    if (v === 'GOOD') return '<span class="pill pill-good">GOOD</span>';
-    if (v === 'MARGINAL') return '<span class="pill pill-warn">MARGINAL</span>';
-    if (v === 'POOR') return '<span class="pill pill-bad">POOR</span>';
+function pingPill(v){
+    if(!v||v==='—') return '<span class="pill pill-neutral">—</span>';
+    const u=v.toUpperCase();
+    if(u==='GOOD') return '<span class="pill pill-good">Good</span>';
+    if(u==='MARGINAL') return '<span class="pill pill-warn">Marginal</span>';
+    if(u==='POOR') return '<span class="pill pill-bad">Poor</span>';
     return `<span class="pill pill-neutral">${v}</span>`;
 }
+function micPill(s){
+    if(!s||s==='—') return '<span class="pill pill-neutral">—</span>';
+    const d=s.toLowerCase(), parts=s.split('—');
+    const tp=parts.length>1?parts[parts.length-1].trim().toLowerCase():'';
+    if(tp==='usb'||d.includes('usb')) return '<span class="pill pill-good">USB</span>';
+    if(tp==='aux'||d.includes('aux')||d.includes('jack')) return '<span class="pill pill-warn">AUX</span>';
+    if(tp==='built-in'||d.includes('built-in')||d.includes('array')||d.includes('internal')) return '<span class="pill pill-bad">Built-in</span>';
+    if(tp) return `<span class="pill pill-warn">${parts[parts.length-1].trim()}</span>`;
+    return `<span class="pill pill-warn">${s.split('—')[0].trim()}</span>`;
+}
+function vpnPill(a){ return a?'<span class="pill pill-bad">Active</span>':'<span class="pill pill-good">Off</span>'; }
 
-function micDevicePill(deviceStr) {
-    if (!deviceStr || deviceStr === '—') return '<span class="pill pill-neutral">—</span>';
-    const d = deviceStr.toLowerCase();
-    // Check the type suffix first (after the — separator)
-    const parts = deviceStr.split('—');
-    const typePart = parts.length > 1 ? parts[parts.length - 1].trim().toLowerCase() : '';
-    // 1. USB — always good
-    if (typePart === 'usb' || d.includes('usb')) return '<span class="pill pill-good">USB</span>';
-    // 2. AUX / 3.5mm jack — warning
-    if (typePart === 'aux' || d.includes('aux') || d.includes('jack')) return '<span class="pill pill-warn">AUX</span>';
-    // 3. Built-in / internal / array — bad
-    if (typePart === 'built-in' || d.includes('built-in') || d.includes('array') || d.includes('internal')) return '<span class="pill pill-bad">Built-in</span>';
-    // Fallback — show the type if available
-    if (typePart) return '<span class="pill pill-warn">' + parts[parts.length - 1].trim() + '</span>';
-    return '<span class="pill pill-warn">' + deviceStr.split('—')[0].trim() + '</span>';
+/* ── Agent approval ──────────────────────────────────────────── */
+function isAgentApproved(r){
+    const specsOk=r.cpu_label&&r.cpu_label.toLowerCase()==='approved';
+    const ct=(r.connection_type||'').toLowerCase();
+    const isEth=ct.includes('ethernet')||ct.includes('eth');
+    const dl=parseFloat(r.download_mbps||0), ul=parseFloat(r.upload_mbps||0);
+    const speedOk=dl>=10&&ul>=2;
+    const ms=(r.mic_device||'').toLowerCase();
+    const mp=r.mic_device?r.mic_device.split('\u2014'):[];
+    const mt=mp.length>1?mp[mp.length-1].trim().toLowerCase():'';
+    return specsOk&&isEth&&speedOk&&(mt==='usb'||ms.includes('usb'));
 }
 
-function vpnPill(active, name) {
-    if (active) return '<span class="pill pill-bad">Yes</span>';
-    return '<span class="pill pill-good">No</span>';
-}
-
-async function copySummary(index, evt) {
-    if (evt) {
-        evt.stopPropagation();
-    }
-    const r = allData[index];
-    if (!r) return;
-
-    let ping = {};
-    try { ping = JSON.parse(r.ping_details || '{}'); } catch (e) {}
-
-    // Headset type: plain text, no emojis/symbols
-    const headsetType = r.mic_device && r.mic_device !== '—' ? r.mic_device : '—';
-
-    // Connection type: strip any leading icons/bullets (e.g. "⦿ Ethernet" -> "Ethernet")
-    let connType = r.connection_type && r.connection_type !== '—' ? r.connection_type : '—';
-    if (connType !== '—') {
-        connType = connType.replace(/^[^A-Za-z0-9]+/, '').trim();
-    }
-    const up = (r.upload_mbps || r.upload_mbps === 0) ? r.upload_mbps : '—';
-    const down = (r.download_mbps || r.download_mbps === 0) ? r.download_mbps : '—';
-
-    let stability = '—';
-    if (ping && (ping.verdict || ping.avg_ms || ping.loss_pct !== undefined)) {
-        const avg = ping.avg_ms !== undefined ? ping.avg_ms : '—';
-        const loss = ping.loss_pct !== undefined ? ping.loss_pct : 0;
-        stability = `${ping.verdict || '—'} (avg ${avg} ms, ${loss}% loss)`;
-    } else if (r.connection_stability && r.connection_stability !== '—') {
-        stability = r.connection_stability;
-    }
-
-    // Try to split "CPU / XXGB RAM" into separate fields so RAM isn't duplicated
-    const specs = (r.pc_specs || '').split('/');
-    const processor = (specs[0] || r.pc_specs || '—').trim() || '—';
-    let ram = '—';
-    if (specs.length > 1) {
-        const ramMatch = specs[1].match(/(\d+)\s*GB/i);
-        if (ramMatch) ram = ramMatch[1] + ' GB';
-    } else {
-        const ramMatch = (r.pc_specs || '').match(/(\d+)\s*GB/i);
-        if (ramMatch) ram = ramMatch[1] + ' GB';
-    }
-    const storage = r.disk_space || '—';
-
-    const summary = [
-        '1. Headset Type',
-        '   Type: ' + headsetType,
-        '',
-        '',
+/* ── Copy summary ────────────────────────────────────────────── */
+async function copySummary(idx,evt){
+    if(evt) evt.stopPropagation();
+    const r=allData[idx]; if(!r) return;
+    let ping={}; try{ping=JSON.parse(r.ping_details||'{}');}catch(e){}
+    let ct=r.connection_type&&r.connection_type!=='—'?r.connection_type:'—';
+    if(ct!=='—') ct=ct.replace(/^[^A-Za-z0-9]+/,'').trim();
+    let stab='—';
+    if(ping&&(ping.verdict||ping.avg_ms||ping.loss_pct!==undefined))
+        stab=`${ping.verdict||'—'} (avg ${ping.avg_ms!==undefined?ping.avg_ms:'—'} ms, ${ping.loss_pct!==undefined?ping.loss_pct:0}% loss)`;
+    else if(r.connection_stability&&r.connection_stability!=='—') stab=r.connection_stability;
+    const specs=(r.pc_specs||'').split('/');
+    const proc=(specs[0]||r.pc_specs||'—').trim()||'—';
+    let ram='—';
+    const rm=(specs.length>1?specs[1]:r.pc_specs||'').match(/(\d+)\s*GB/i); if(rm) ram=rm[1]+' GB';
+    const txt=['1. Headset Type','   Type: '+(r.mic_device||'—'),'','',
         '2. Internet Connection',
-        '   Speed:      Upload ' + up + ' Mbps / Download ' + down + ' Mbps',
-        '   Type:      ' + connType,
-        '   Stability: ' + stability,
-        '',
-        '',
-        '3. Device Information',
-        '   Processor: ' + processor,
-        '   RAM:       ' + ram,
-        '   Storage:   ' + storage,
-    ].join('\n');
-
-    try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(summary);
-        } else {
-            const ta = document.createElement('textarea');
-            ta.value = summary;
-            ta.style.position = 'fixed';
-            ta.style.opacity = '0';
-            document.body.appendChild(ta);
-            ta.focus();
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
-        }
-        const el = document.getElementById('lastUpdated');
-        if (el) {
-            el.textContent = 'Summary copied for ' + (r.agent_name || 'agent');
-        }
-    } catch (e) {
-        alert('Could not copy summary: ' + e.message);
-    }
+        '   Speed:      Upload '+(r.upload_mbps||'—')+' Mbps / Download '+(r.download_mbps||'—')+' Mbps',
+        '   Type:      '+ct,'   Stability: '+stab,'','',
+        '3. Device Information','   Processor: '+proc,'   RAM:       '+ram,'   Storage:   '+(r.disk_space||'—')].join('\n');
+    try{
+        if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(txt);
+        else{ const ta=document.createElement('textarea'); ta.value=txt; ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+        document.getElementById('lastUpdated').textContent='✓ Copied for '+(r.agent_name||'agent');
+    }catch(e){alert('Copy failed: '+e.message);}
 }
 
-function deleteAgent(name) {
-    if (!confirm('Are you sure you want to PERMANENTLY DELETE data for ' + name + '?')) return false;
-    fetch('/api/results/' + encodeURIComponent(name), {
-        method: 'DELETE',
-        credentials: 'same-origin'
-    })
-    .then(r => {
-        if (!r.ok) throw new Error('Server returned ' + r.status);
-        return r.json();
-    })
-    .then(() => fetchResults())
-    .catch(e => alert('Delete failed: ' + e.message));
+function deleteAgent(name){
+    if(!confirm('Permanently delete '+name+'?')) return false;
+    fetch('/api/results/'+encodeURIComponent(name),{method:'DELETE',credentials:'same-origin'})
+        .then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
+        .then(()=>fetchResults()).catch(e=>alert('Delete failed: '+e.message));
     return false;
 }
-
-function graduateAgent(name) {
-    if (!confirm('Move "' + name + '" out of Newcomers?\nThey will still appear in All Agents with their data intact.')) return false;
-    fetch('/api/results/' + encodeURIComponent(name) + '/graduate', {
-        method: 'PATCH',
-        credentials: 'same-origin'
-    })
-    .then(r => {
-        if (!r.ok) throw new Error('Server returned ' + r.status);
-        return r.json();
-    })
-    .then(() => fetchResults())
-    .catch(e => alert('Graduate failed: ' + e.message));
+function graduateAgent(name){
+    if(!confirm('Move "'+name+'" out of Newcomers?')) return false;
+    fetch('/api/results/'+encodeURIComponent(name)+'/graduate',{method:'PATCH',credentials:'same-origin'})
+        .then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
+        .then(()=>fetchResults()).catch(e=>alert('Graduate failed: '+e.message));
     return false;
 }
+function toggleDetail(name,i,evt){
+    if(evt?.target?.closest('.btn-act')) return;
+    const row=document.getElementById('detail-'+i);
+    if(row){ const open=row.classList.toggle('open'); if(open)expandedAgents.add(name); else expandedAgents.delete(name); }
+}
+function downloadPDF(name){ window.open('/api/pdf/'+encodeURIComponent(name),'_blank'); }
 
-function toggleDetail(name, i, evt) {
-    // Don't toggle if clicking the delete or pdf button
-    if (evt && evt.target && (evt.target.classList.contains('btn-delete') || evt.target.closest('.btn-delete') || evt.target.classList.contains('btn-pdf') || evt.target.closest('.btn-pdf'))) return;
-    const row = document.getElementById('detail-' + i);
-    if (row) {
-        const isOpen = row.classList.toggle('open');
-        if (isOpen) expandedAgents.add(name);
-        else expandedAgents.delete(name);
+/* ── Render ──────────────────────────────────────────────────── */
+function renderTable(data){
+    const tbody=document.getElementById('resultsBody');
+    if(!data.length){
+        tbody.innerHTML='<tr><td colspan="16"><div class="empty"><div class="empty-icon">◌</div><h3>No agents</h3><p>Run VOS on any machine and results appear here.</p></div></td></tr>';
+        updateCounts(0,0,0,0); updateBanner(0,0); return;
     }
-}
+    let html='', issues=0, approved=0, rejected=0;
+    data.forEach((r,i)=>{
+        let ping={}; try{ping=JSON.parse(r.ping_details||'{}');}catch(e){}
+        const ok=isAgentApproved(r);
+        const isPoorConn=(ping.verdict||'').toUpperCase()==='POOR';
+        const isRed=!ok||isPoorConn;
+        if(ok&&!isPoorConn) approved++; else{ rejected++; issues++; }
+        const rowCls=isRed?'row-rejected':'row-approved';
+        const badge=isRed
+            ?'<span class="agent-badge bad">Needs attention</span>'
+            :'<span class="agent-badge good">All clear</span>';
+        const fc=getDateFreshnessClass(r.last_checked);
+        const fd=formatDateTime12h(r.last_checked);
+        const exp=expandedAgents.has(r.agent_name)?'open':'';
+        const safe=n=>(n||'').replace(/'/g,"\\'");
+        const safeQ=n=>(n||'').replace(/"/g,'&quot;');
 
-function downloadPDF(name) {
-    const url = '/api/pdf/' + encodeURIComponent(name);
-    window.open(url, '_blank');
-}
-
-function isAgentApproved(r) {
-    const specsOk = (r.cpu_label && r.cpu_label.toLowerCase() === 'approved');
-    const connType = (r.connection_type || '').toLowerCase();
-    const isEth = connType.includes('ethernet') || connType.includes('eth');
-    const dlVal = parseFloat(r.download_mbps || 0);
-    const ulVal = parseFloat(r.upload_mbps || 0);
-    const speedOk = (dlVal >= 10.0 && ulVal >= 2.0);
-    const micStr = (r.mic_device || '').toLowerCase();
-    const micParts = r.mic_device ? r.mic_device.split('\u2014') : [];
-    const micType = micParts.length > 1 ? micParts[micParts.length - 1].trim().toLowerCase() : '';
-    const micOk = micType === 'usb' || micStr.includes('usb');
-    return specsOk && isEth && speedOk && micOk;
-}
-
-function renderTable(data) {
-    const tbody = document.getElementById('resultsBody');
-    if (!data.length) {
-        tbody.innerHTML = '<tr><td colspan="16"><div class="empty"><div class="empty-icon">--</div><h3>No agents yet</h3><p>Run VOS on any machine and results appear here.</p></div></td></tr>';
-        return;
-    }
-
-    let html = '';
-    let issues = 0;
-    let approvedCount = 0;
-    let rejectedCount = 0;
-    data.forEach((r, i) => {
-        // Parse ping details
-        let ping = {};
-        try { ping = JSON.parse(r.ping_details || '{}'); } catch(e) {}
-
-        // Count issues
-        const connScore = ping.score || 0;
-        if (connScore > 0 && connScore < 60) issues++;
-        const dl = r.download_mbps || 0;
-        if (dl > 0 && dl < 10) issues++;
-
-        // Overall approval check
-        const specsOk = (r.cpu_label && r.cpu_label.toLowerCase() === 'approved');
-        const connType = (r.connection_type || '').toLowerCase();
-        const isEth = connType.includes('ethernet') || connType.includes('eth');
-        const dlVal = parseFloat(r.download_mbps || 0);
-        const ulVal = parseFloat(r.upload_mbps || 0);
-        const speedOk = (dlVal >= 10.0 && ulVal >= 2.0);
-        const micStr = (r.mic_device || '').toLowerCase();
-        const micParts = r.mic_device ? r.mic_device.split('\u2014') : [];
-        const micType = micParts.length > 1 ? micParts[micParts.length - 1].trim().toLowerCase() : '';
-        const micOk = micType === 'usb' || micStr.includes('usb');
-        const isApproved = specsOk && isEth && speedOk && micOk;
-        if (isApproved) approvedCount++; else rejectedCount++;
-        const rowClass = isApproved ? 'row-approved' : 'row-rejected';
-
-        const freshnessClass = getDateFreshnessClass(r.last_checked);
-        const formattedDate = formatDateTime12h(r.last_checked);
-        const isRowExpanded = expandedAgents.has(r.agent_name) ? 'open' : '';
-
-        // Main row
-        html += `<tr class="${rowClass}" onclick="toggleDetail('${(r.agent_name||'').replace(/'/g, "\\'")}', ${i}, event)">
-            <td class="chk-col" onclick="event.stopPropagation()"><input type="checkbox" class="row-chk" data-agent="${(r.agent_name||'').replace(/"/g, '&quot;')}" onchange="updateBulkBar()"></td>
-            <td style="color:#f472b6;font-weight:bold">${r.res_id || '—'}</td>
-            <td><strong>${r.agent_name || '—'}</strong></td>
+        html+=`<tr class="data-row ${rowCls}" onclick="toggleDetail('${safe(r.agent_name)}',${i},event)">
+            <td class="chk-col" onclick="event.stopPropagation()">
+                <input type="checkbox" class="row-chk" data-agent="${safeQ(r.agent_name)}" onchange="updateBulkBar()">
+            </td>
+            <td>
+                <div class="agent-cell">
+                    <div class="agent-name">${r.agent_name||'—'}</div>
+                    ${badge}
+                </div>
+            </td>
+            <td class="mono" style="color:#f472b6;font-weight:600">${r.res_id||'—'}</td>
             <td>${teamPill(r.team)}</td>
-            <td style="color:#00d4aa;font-family:monospace">${r.anydesk_id || '—'}</td>
+            <td class="mono" style="color:#60a5fa">${r.anydesk_id||'—'}</td>
             <td>${specsPill(r.cpu_label)}</td>
             <td>${statusPill(r.chrome_version)}</td>
             <td>${connTypePill(r.connection_type)}</td>
-            <td>${pingStatusPill(ping.verdict)}</td>
-            <td>${speedPill(r.download_mbps, r.upload_mbps)}</td>
-            <td>${vpnPill(r.vpn_active, r.vpn_name)}</td>
-            <td>${micDevicePill(r.mic_device)}</td>
-            <td><small style="color:#fbbf24">${r.notes || ''}</small></td>
-            <td>${r.disk_space || '—'}</td>
-            <td class="date-cell ${freshnessClass}">${formattedDate}</td>
+            <td>${pingPill(ping.verdict)}</td>
+            <td>${speedPill(r.download_mbps,r.upload_mbps)}</td>
+            <td>${vpnPill(r.vpn_active)}</td>
+            <td>${micPill(r.mic_device)}</td>
+            <td><span class="mono" style="color:#fbbf24;font-size:10px">${r.notes||''}</span></td>
+            <td class="mono" style="color:var(--t2)">${r.disk_space||'—'}</td>
+            <td class="date-cell ${fc}">${fd}</td>
             <td>
-                <div style="display:flex;align-items:center">
-                    <button class="btn-copy" onclick="copySummary(${i}, event); return false;" title="Copy summary to clipboard">Copy</button>
-                    <button class="btn-pdf" onclick="downloadPDF('${(r.agent_name||'').replace(/'/g, "\\'")}'); return false;" title="Download PDF Report">PDF</button>
-                    ${ currentView === 'new'
-                        ? `<button class="btn-graduate" onclick="graduateAgent('${(r.agent_name||'').replace(/'/g, "\\'")}'); return false;" title="Remove from Newcomers (keep in All Agents)">✓ Done</button>`
-                        : `<button class="btn-delete" onclick="deleteAgent('${(r.agent_name||'').replace(/'/g, "\\'")}'); return false;" title="Delete this agent">x</button>`
+                <div class="act-wrap">
+                    <button class="btn-act" onclick="copySummary(${i},event);return false;">Copy</button>
+                    <button class="btn-act" onclick="downloadPDF('${safe(r.agent_name)}');return false;">PDF</button>
+                    ${currentView==='new'
+                        ?`<button class="btn-act grad" onclick="graduateAgent('${safe(r.agent_name)}');return false;">✓ Done</button>`
+                        :`<button class="btn-act del" onclick="deleteAgent('${safe(r.agent_name)}');return false;">✕</button>`
                     }
                 </div>
             </td>
+        </tr>
+        <tr class="detail-row ${exp}" id="detail-${i}">
+            <td colspan="16">
+                <div class="detail-panel">
+                    <div class="dsec">
+                        <h4>System</h4>
+                        <div class="drow"><span class="lbl">RES-ID</span><span class="val" style="color:#f472b6">${r.res_id||'—'}</span></div>
+                        <div class="drow"><span class="lbl">CPU</span><span class="val">${r.pc_specs||'—'}</span></div>
+                        <div class="drow"><span class="lbl">GPU</span><span class="val">${r.gpu||'—'}</span></div>
+                        <div class="drow"><span class="lbl">Performance</span><span class="val">${statusPill(r.cpu_label)}</span></div>
+                        <div class="drow"><span class="lbl">Chrome</span><span class="val">${r.chrome_version||'—'}</span></div>
+                    </div>
+                    <div class="dsec">
+                        <h4>Network</h4>
+                        <div class="drow"><span class="lbl">Type</span><span class="val">${r.connection_type||'—'}</span></div>
+                        <div class="drow"><span class="lbl">Ping Score</span><span class="val">${ping.score?ping.score+'/100 ('+ping.verdict+')':'—'}</span></div>
+                        <div class="drow"><span class="lbl">Avg Latency</span><span class="val">${ping.avg_ms?ping.avg_ms+' ms':'—'}</span></div>
+                        <div class="drow"><span class="lbl">Jitter</span><span class="val">${ping.jitter_ms?ping.jitter_ms+' ms':'—'}</span></div>
+                        <div class="drow"><span class="lbl">Packet Loss</span><span class="val">${ping.loss_pct!==undefined?ping.loss_pct+'%':'0%'}</span></div>
+                        <div class="drow"><span class="lbl">Spikes</span><span class="val">${ping.spikes!==undefined?ping.spikes:'—'}</span></div>
+                        <div class="drow"><span class="lbl">Distribution</span><span class="val" style="color:#fbbf24">${ping.distribution||'—'}</span></div>
+                        <div class="drow"><span class="lbl">Download</span><span class="val" style="color:#34d399">${r.download_mbps?r.download_mbps+' Mbps':'—'}</span></div>
+                        <div class="drow"><span class="lbl">Upload</span><span class="val" style="color:#60a5fa">${r.upload_mbps?r.upload_mbps+' Mbps':'—'}</span></div>
+                    </div>
+                    <div class="dsec">
+                        <h4>Mic &amp; Disk</h4>
+                        <div class="drow"><span class="lbl">Mic Device</span><span class="val">${r.mic_device||'—'}</span></div>
+                        <div class="drow"><span class="lbl">Mic Level</span><span class="val">${r.mic_level||'—'}</span></div>
+                        <div class="drow"><span class="lbl">Notes</span><span class="val" style="color:#fbbf24">${r.notes||'—'}</span></div>
+                        <div class="drow"><span class="lbl">Disk Free</span><span class="val">${r.disk_space||'—'}</span></div>
+                        <div class="drow"><span class="lbl">Disk Used</span><span class="val">${r.disk_used_pct?r.disk_used_pct+'%':'—'}</span></div>
+                        <div class="drow"><span class="lbl">AnyDesk ID</span><span class="val" style="color:#60a5fa">${r.anydesk_id||'—'}</span></div>
+                        <div class="drow"><span class="lbl">Last Check</span><span class="val">${r.last_checked||'—'}</span></div>
+                    </div>
+                </div>
+            </td>
         </tr>`;
-
-        // Detail row
-        html += `<tr class="detail-row ${isRowExpanded}" id="detail-${i}"><td colspan="13"><div class="detail-panel">
-            <div class="detail-section">
-                <h4>SYSTEM</h4>
-                <div class="detail-row-item"><span class="label">RES-ID</span><span class="value" style="color:#f472b6;font-weight:bold">${r.res_id || '—'}</span></div>
-                <div class="detail-row-item"><span class="label">CPU</span><span class="value">${r.pc_specs || '—'}</span></div>
-                <div class="detail-row-item"><span class="label">GPU</span><span class="value">${r.gpu || '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Performance</span><span class="value">${statusPill(r.cpu_label || '—')}</span></div>
-                <div class="detail-row-item"><span class="label">Chrome</span><span class="value">${r.chrome_version || '—'}</span></div>
-            </div>
-            <div class="detail-section">
-                <h4>NETWORK</h4>
-                <div class="detail-row-item"><span class="label">Type</span><span class="value">${r.connection_type || '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Ping Score</span><span class="value">${ping.score ? ping.score + '/100 (' + ping.verdict + ')' : '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Avg Latency</span><span class="value">${ping.avg_ms ? ping.avg_ms + ' ms' : '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Jitter</span><span class="value">${ping.jitter_ms ? ping.jitter_ms + ' ms' : '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Packet Loss</span><span class="value">${ping.loss_pct ? ping.loss_pct + '%' : '0%'}</span></div>
-                <div class="detail-row-item"><span class="label">Spikes</span><span class="value">${ping.spikes !== undefined ? ping.spikes : '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Distribution</span><span class="value" style="color:#fbbf24">${ping.distribution || '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Target</span><span class="value">${ping.target || '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Download</span><span class="value" style="color:#34d399">${r.download_mbps ? r.download_mbps + ' Mbps' : '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Upload</span><span class="value" style="color:#60a5fa">${r.upload_mbps ? r.upload_mbps + ' Mbps' : '—'}</span></div>
-            </div>
-            <div class="detail-section">
-                <h4>MIC & DISK</h4>
-                <div class="detail-row-item"><span class="label">Mic Device</span><span class="value">${r.mic_device || '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Mic Level</span><span class="value">${r.mic_level || '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Notes</span><span class="value" style="color:#fbbf24">${r.notes || '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Disk Free</span><span class="value">${r.disk_space || '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Disk Used</span><span class="value">${r.disk_used_pct ? r.disk_used_pct + '%' : '—'}</span></div>
-                <div class="detail-row-item"><span class="label">AnyDesk ID</span><span class="value" style="color:#00d4aa">${r.anydesk_id || '—'}</span></div>
-                <div class="detail-row-item"><span class="label">Last Check</span><span class="value">${formatDateTime12h(r.last_checked) || '—'}</span></div>
-            </div>
-        </div></td></tr>`;  // detail-row colspan updated for VPN & notes columns
     });
 
-    tbody.innerHTML = html;
-    document.getElementById('agent-count').textContent = data.length;
-    document.getElementById('issue-count').textContent = issues;
-    document.getElementById('approved-count').textContent = approvedCount;
-    document.getElementById('rejected-count').textContent = rejectedCount;
-
-    // Update tab counts
+    tbody.innerHTML=html;
+    updateCounts(data.length, issues, approved, rejected);
+    updateBanner(rejected, data.length);
     updateTabCounts();
-    // Restore checkbox state from selectedAgents set (survives re-renders)
     restoreCheckboxes();
     updateBulkBar();
 }
 
-function sortTable(col) {
-    if (sortCol === col) sortAsc = !sortAsc;
-    else { sortCol = col; sortAsc = true; }
+function updateCounts(agents, issues, approved, rejected){
+    // header chips
+    document.getElementById('sb-agents').textContent=agents;
+    document.getElementById('sb-issues').textContent=issues;
+    document.getElementById('sb-approved').textContent=approved;
+    document.getElementById('sb-rejected').textContent=rejected;
+    // issue nav badge
+    document.getElementById('nav-count-issues').textContent=issues;
+}
 
-    const keys = ['res_id','agent_name','team','anydesk_id','pc_specs','chrome_version','connection_type',
-                  'connection_stability','internet_speed','vpn_active','mic_level','notes','disk_space','last_checked'];
-    const key = keys[col];
-    allData.sort((a,b) => {
-        const va = (a[key]||'').toString().toLowerCase();
-        const vb = (b[key]||'').toString().toLowerCase();
-        return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+function updateBanner(issueCount, total){
+    const bar=document.getElementById('issueBanner');
+    if(issueCount>0){
+        bar.classList.add('show');
+        document.getElementById('bannerTitle').textContent=
+            issueCount===1?'1 agent needs attention':`${issueCount} agents need attention`;
+        document.getElementById('bannerSub').textContent=`— out of ${total} agents`;
+    } else { bar.classList.remove('show'); }
+}
+
+/* ── Sorting ─────────────────────────────────────────────────── */
+function sortTable(col){
+    if(sortCol===col) sortAsc=!sortAsc; else{sortCol=col;sortAsc=true;}
+    const keys=['res_id','agent_name','team','anydesk_id','pc_specs','chrome_version','connection_type',
+        'connection_stability','internet_speed','vpn_active','mic_level','notes','disk_space','last_checked'];
+    const key=keys[col];
+    allData.sort((a,b)=>{
+        const va=(a[key]||'').toString().toLowerCase();
+        const vb=(b[key]||'').toString().toLowerCase();
+        return sortAsc?va.localeCompare(vb):vb.localeCompare(va);
     });
     renderTable(allData);
 }
 
-let currentView = 'all'; // 'all' or 'new'
-let issuesFilterOn = false;
-const selectedAgents = new Set();
+/* ── View switching ──────────────────────────────────────────── */
+let currentView='all', issuesFilterOn=false;
+const selectedAgents=new Set();
 
-function switchView(view) {
-    currentView = view;
-    document.getElementById('tabAll').classList.toggle('active', view === 'all');
-    document.getElementById('tabNew').classList.toggle('active', view === 'new');
-    
-    // Show/hide UI elements depending on view
-    document.getElementById('teamFilter').style.display = (view === 'new') ? 'none' : '';
-    
-    const approvalEl = document.getElementById('approvalFilter');
-    approvalEl.style.display = (view === 'new') ? '' : 'none';
-    approvalEl.value = ''; // reset on switch
+function switchView(view){
+    currentView=view;
+    // topbar tabs
+    document.getElementById('tabAll').classList.toggle('active',view==='all');
+    document.getElementById('tabNew').classList.toggle('active',view==='new');
+    // sidebar nav
+    document.getElementById('nav-all').classList.toggle('active',view==='all');
+    document.getElementById('nav-new').classList.toggle('active',view==='new');
+    // page title
+    document.getElementById('pageTitle').textContent=view==='new'?'Newcomers':'All Agents';
+    // approval filter
+    const ap=document.getElementById('approvalFilter');
+    ap.style.display=view==='new'?'':'none'; ap.value='';
+    // approved/rejected sidebar chips
+    const showAR=view==='new';
+    document.getElementById('sb-approved-wrap').style.display=showAR?'':'none';
+    document.getElementById('sb-rejected-wrap').style.display=showAR?'':'none';
+    // bulk button visibility
+    document.getElementById('bulkGrad').style.display=view==='new'?'':'none';
+    document.getElementById('bulkDel').style.display=view==='new'?'none':'';
+    // issues filter — clear if switching away
+    if(issuesFilterOn){ issuesFilterOn=false; document.getElementById('btnIssues').classList.remove('active'); }
+    clearSelection(); applyFilters();
+}
 
-    // Show APPROVED/REJECTED badges only in Newcomers view
-    document.getElementById('badge-approved').style.display = (view === 'new') ? '' : 'none';
-    document.getElementById('badge-rejected').style.display = (view === 'new') ? '' : 'none';
-    
-    // Show/hide bulk graduate button
-    document.getElementById('bulkGrad').style.display = (view === 'new') ? '' : 'none';
-    document.getElementById('bulkDel').style.display = (view === 'new') ? 'none' : '';
-    
-    clearSelection();
+function setIssuesFilter(on){
+    issuesFilterOn=on;
+    document.getElementById('btnIssues').classList.toggle('active',on);
+    // highlight nav item
+    document.getElementById('nav-issues').classList.toggle('active',on);
+    document.getElementById('nav-all').classList.toggle('active',!on&&currentView==='all');
+    document.getElementById('nav-new').classList.toggle('active',!on&&currentView==='new');
     applyFilters();
 }
 
-// Has Issues toggle
-function toggleIssuesFilter() {
-    issuesFilterOn = !issuesFilterOn;
-    document.getElementById('btnIssues').classList.toggle('active', issuesFilterOn);
+function toggleIssuesFilter(){
+    setIssuesFilter(!issuesFilterOn);
+}
+
+function applyFilters(){
+    const q=document.getElementById('searchBox').value.toLowerCase();
+    const team=document.getElementById('teamFilter').value||document.getElementById('teamFilterSb').value;
+    let f=allData.map(r=>({...r,team:normalizeTeam(r.team)}));
+
+    if(currentView==='new'){
+        f=f.filter(r=>(r.team||'').toUpperCase()==='NEW');
+        const ap=document.getElementById('approvalFilter').value;
+        if(ap==='approved') f=f.filter(r=>isAgentApproved(r));
+        else if(ap==='not_approved') f=f.filter(r=>!isAgentApproved(r));
+    } else {
+        if(team){
+            if(team.toUpperCase()==='NEW') f=f.filter(r=>(r.team||'').toUpperCase()==='NEW');
+            else f=f.filter(r=>teamKey(r.team||'')===team);
+        }
+    }
+    if(issuesFilterOn) f=f.filter(r=>!isAgentApproved(r));
+    if(q) f=f.filter(r=>
+        (r.agent_name||'').toLowerCase().includes(q)||
+        (r.anydesk_id||'').toLowerCase().includes(q)||
+        (r.res_id||'').toLowerCase().includes(q));
+    // Agents with no team always sink to the bottom
+    f.sort((a,b)=>{
+        const aEmpty=!a.team||a.team==='—'||a.team.trim()==='';
+        const bEmpty=!b.team||b.team==='—'||b.team.trim()==='';
+        if(aEmpty&&!bEmpty) return 1;
+        if(!aEmpty&&bEmpty) return -1;
+        return 0;
+    });
+    renderTable(f);
+}
+
+function syncTeamFilter(){
+    const val=document.getElementById('teamFilterSb').value;
+    document.getElementById('teamFilter').value=val;
     applyFilters();
 }
 
-function hasIssues(r) {
-    // Not approved = has issues
-    return !isAgentApproved(r);
+function updateTeamDropdown(){
+    // Deduplicate by teamKey so "Avatar"/"Avatars" show as one entry
+    const seen = {};
+    allData.forEach(r => {
+        const n = normalizeTeam(r.team);
+        if(!n || n==='—' || n==='NEW') return;
+        const k = teamKey(n);
+        if(!seen[k] || n.length < seen[k].length) seen[k] = n;
+    });
+    const teams = Object.values(seen).sort();
+    const opt='<option value="">All Teams</option>'+teams.map(t=>`<option value="${teamKey(t)}">${t}</option>`).join('');
+    ['teamFilter','teamFilterSb'].forEach(id=>{
+        const sel=document.getElementById(id);
+        const cur=sel.value||'';
+        sel.innerHTML=opt;
+        if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
+    });
 }
 
-function applyFilters() {
-    const q = document.getElementById('searchBox').value.toLowerCase();
-    const team = document.getElementById('teamFilter').value;
-    let filtered = allData;
-
-    // Normalize teams before filtering
-    filtered = filtered.map(r => ({ ...r, team: normalizeTeam(r.team) }));
-
-    if (currentView === 'new') {
-        // Show only newcomers (team === 'NEW')
-        filtered = filtered.filter(r => (r.team || '').toUpperCase() === 'NEW');
-        // Apply approval filter if set
-        const approvalSel = document.getElementById('approvalFilter').value;
-        if (approvalSel === 'approved') {
-            filtered = filtered.filter(r => isAgentApproved(r));
-        } else if (approvalSel === 'not_approved') {
-            filtered = filtered.filter(r => !isAgentApproved(r));
-        }
-    } else {
-        if (team) {
-            // If 'NEW' is selected in dropdown, match all normalized-NEW agents
-            if (team.toUpperCase() === 'NEW') {
-                filtered = filtered.filter(r => (r.team || '').toUpperCase() === 'NEW');
-            } else {
-                filtered = filtered.filter(r => (r.team || '') === team);
-            }
-        }
-    }
-
-    // Has Issues filter
-    if (issuesFilterOn) {
-        filtered = filtered.filter(r => hasIssues(r));
-    }
-
-    if (q) {
-        filtered = filtered.filter(r =>
-            (r.agent_name||'').toLowerCase().includes(q) ||
-            (r.anydesk_id||'').toLowerCase().includes(q) ||
-            (r.res_id||'').toLowerCase().includes(q)
-        );
-    }
-    renderTable(filtered);
+function updateTabCounts(){
+    const n=allData.map(r=>({...r,team:normalizeTeam(r.team)}));
+    const allC=n.length, newC=n.filter(r=>(r.team||'').toUpperCase()==='NEW').length;
+    document.getElementById('countAll').textContent=allC;
+    document.getElementById('countNew').textContent=newC;
+    document.getElementById('nav-count-all').textContent=allC;
+    document.getElementById('nav-count-new').textContent=newC;
 }
 
-function updateTeamDropdown() {
-    // Normalize team names before building dropdown — deduplicate NEW/new/New into 'NEW'
-    const teams = [...new Set(allData.map(r => normalizeTeam(r.team)).filter(Boolean))].sort();
-    const sel = document.getElementById('teamFilter');
-    const current = normalizeTeam(sel.value) || '';
-    sel.innerHTML = '<option value="">All Teams</option>' + teams.map(t => `<option value="${t}">${t}</option>`).join('');
-    // Restore selection if it still exists
-    if ([...sel.options].some(o => o.value === current)) sel.value = current;
-}
-
-// Tab counts
-function updateTabCounts() {
-    const normalized = allData.map(r => ({ ...r, team: normalizeTeam(r.team) }));
-    const allCount = normalized.length;
-    const newCount = normalized.filter(r => (r.team || '').toUpperCase() === 'NEW').length;
-    document.getElementById('countAll').textContent = allCount;
-    document.getElementById('countNew').textContent = newCount;
-}
-
-// Checkbox / bulk actions
-function toggleSelectAll(masterCb) {
-    const cbs = document.querySelectorAll('.row-chk');
-    if (masterCb.checked) {
-        cbs.forEach(cb => { cb.checked = true; selectedAgents.add(cb.dataset.agent); });
-    } else {
-        cbs.forEach(cb => { cb.checked = false; selectedAgents.delete(cb.dataset.agent); });
-    }
+/* ── Bulk selection ──────────────────────────────────────────── */
+function toggleSelectAll(masterCb){
+    const cbs=document.querySelectorAll('.row-chk');
+    if(masterCb.checked) cbs.forEach(cb=>{cb.checked=true;selectedAgents.add(cb.dataset.agent);});
+    else cbs.forEach(cb=>{cb.checked=false;selectedAgents.delete(cb.dataset.agent);});
     updateBulkBar();
 }
-
-function restoreCheckboxes() {
-    // After a re-render, re-check boxes that were previously selected
-    document.querySelectorAll('.row-chk').forEach(cb => {
-        cb.checked = selectedAgents.has(cb.dataset.agent);
-    });
+function restoreCheckboxes(){
+    document.querySelectorAll('.row-chk').forEach(cb=>{cb.checked=selectedAgents.has(cb.dataset.agent);});
 }
-
-function updateBulkBar() {
-    // Sync from DOM checkboxes (for manual clicks) — merge into selectedAgents
-    document.querySelectorAll('.row-chk').forEach(cb => {
-        if (cb.checked) selectedAgents.add(cb.dataset.agent);
-    });
-    const bar = document.getElementById('bulkBar');
-    const count = selectedAgents.size;
-    document.getElementById('bulkCount').textContent = count;
-    bar.classList.toggle('visible', count > 0);
-    // Update master checkbox state
-    const master = document.getElementById('selectAll');
-    const allCbs = document.querySelectorAll('.row-chk');
-    if (master && allCbs.length > 0) {
-        const checkedCount = document.querySelectorAll('.row-chk:checked').length;
-        master.checked = checkedCount === allCbs.length;
-        master.indeterminate = checkedCount > 0 && checkedCount < allCbs.length;
+function updateBulkBar(){
+    document.querySelectorAll('.row-chk').forEach(cb=>{if(cb.checked)selectedAgents.add(cb.dataset.agent);});
+    const n=selectedAgents.size;
+    document.getElementById('bulkCount').textContent=n;
+    document.getElementById('bulkBar').classList.toggle('visible',n>0);
+    const master=document.getElementById('selectAll');
+    const all=document.querySelectorAll('.row-chk');
+    if(master&&all.length>0){
+        const ch=document.querySelectorAll('.row-chk:checked').length;
+        master.checked=ch===all.length; master.indeterminate=ch>0&&ch<all.length;
     }
 }
-
-function clearSelection() {
+function clearSelection(){
     selectedAgents.clear();
-    document.querySelectorAll('.row-chk').forEach(cb => cb.checked = false);
-    const master = document.getElementById('selectAll');
-    if (master) { master.checked = false; master.indeterminate = false; }
+    document.querySelectorAll('.row-chk').forEach(cb=>cb.checked=false);
+    const m=document.getElementById('selectAll');
+    if(m){m.checked=false;m.indeterminate=false;}
     updateBulkBar();
 }
-
-function bulkGraduate() {
-    const names = [...selectedAgents];
-    if (!names.length) return;
-    if (!confirm('Graduate ' + names.length + ' agent(s) out of Newcomers?\nTheir data will be kept in All Agents.')) return;
-    Promise.all(names.map(name =>
-        fetch('/api/results/' + encodeURIComponent(name) + '/graduate', {
-            method: 'PATCH', credentials: 'same-origin'
-        })
-    )).then(() => { clearSelection(); fetchResults(); })
-      .catch(e => alert('Bulk graduate failed: ' + e.message));
+function bulkGraduate(){
+    const names=[...selectedAgents]; if(!names.length) return;
+    if(!confirm('Graduate '+names.length+' agent(s) out of Newcomers?')) return;
+    Promise.all(names.map(n=>fetch('/api/results/'+encodeURIComponent(n)+'/graduate',{method:'PATCH',credentials:'same-origin'})))
+        .then(()=>{clearSelection();fetchResults();}).catch(e=>alert('Failed: '+e.message));
+}
+function bulkDelete(){
+    const names=[...selectedAgents]; if(!names.length) return;
+    if(!confirm('PERMANENTLY DELETE '+names.length+' agent(s)?')) return;
+    Promise.all(names.map(n=>fetch('/api/results/'+encodeURIComponent(n),{method:'DELETE',credentials:'same-origin'})))
+        .then(()=>{clearSelection();fetchResults();}).catch(e=>alert('Failed: '+e.message));
 }
 
-function bulkDelete() {
-    const names = [...selectedAgents];
-    if (!names.length) return;
-    if (!confirm('PERMANENTLY DELETE ' + names.length + ' agent(s)?\nThis cannot be undone.')) return;
-    Promise.all(names.map(name =>
-        fetch('/api/results/' + encodeURIComponent(name), {
-            method: 'DELETE', credentials: 'same-origin'
-        })
-    )).then(() => { clearSelection(); fetchResults(); })
-      .catch(e => alert('Bulk delete failed: ' + e.message));
+/* ── Fetch ───────────────────────────────────────────────────── */
+function fetchResults(){
+    fetch('/api/results').then(r=>r.json()).then(data=>{
+        // Reset team color assignments so they're stable each refresh
+        Object.keys(teamColorMap).forEach(k=>delete teamColorMap[k]);
+        Object.keys(teamDisplayMap).forEach(k=>delete teamDisplayMap[k]);
+        teamColorIdx=0;
+        // Pre-assign colors in sorted team order for consistency
+        const sortedTeams=[...new Set(data.map(r=>normalizeTeam(r.team)).filter(t=>t&&t!=='—'&&t!=='NEW'))].sort();
+        sortedTeams.forEach(t=>getTeamColor(t));
+        allData=data;
+        updateTeamDropdown();
+        applyFilters();
+        const t=new Date().toLocaleTimeString();
+        document.getElementById('lastUpdated').textContent='Updated '+t+' · 5s refresh';
+        document.getElementById('sb-updated').textContent=t;
+    }).catch(()=>{});
 }
 
-function fetchResults() {
-    fetch('/api/results')
-        .then(r => r.json())
-        .then(data => {
-            allData = data;
-            updateTeamDropdown();
-            applyFilters();
-            document.getElementById('lastUpdated').textContent =
-                'Last updated: ' + new Date().toLocaleTimeString() + ' \u00b7 Auto-refreshes every 5s';
-        })
-        .catch(() => {});
-}
+/* ── Starfield ───────────────────────────────────────────────── */
+(function(){
+    const canvas = document.getElementById('starfield');
+    const ctx = canvas.getContext('2d');
 
-document.getElementById('searchBox').addEventListener('input', applyFilters);
-document.getElementById('teamFilter').addEventListener('change', applyFilters);
+    let W, H, stars, shooters;
+
+    const STAR_COUNT   = 260;
+    const TWINKLE_SPD  = 0.004;
+    const DRIFT_SPD    = 0.012;          // slow upward drift
+
+    function resize(){
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+        initStars();
+    }
+
+    function rand(a, b){ return a + Math.random() * (b - a); }
+
+    function initStars(){
+        stars = Array.from({length: STAR_COUNT}, () => ({
+            x:    rand(0, W),
+            y:    rand(0, H),
+            r:    rand(0.3, 1.6),
+            base: rand(0.1, 0.75),     // base opacity
+            phase:rand(0, Math.PI * 2),// twinkle phase offset
+            speed:rand(0.5, 2),        // twinkle speed multiplier
+            drift: rand(0.02, DRIFT_SPD), // upward drift speed
+            // subtle blue/white tint
+            hue:  Math.random() < 0.3 ? `rgba(160,180,255,` : `rgba(255,255,255,`
+        }));
+        shooters = [];
+    }
+
+    /* Shooting stars */
+    function spawnShooter(){
+        shooters.push({
+            x:    rand(W * 0.1, W * 0.9),
+            y:    rand(0, H * 0.4),
+            len:  rand(80, 180),
+            spd:  rand(8, 16),
+            angle:rand(0.3, 0.55),     // radians, mostly diagonal
+            life: 1,                   // 0–1 fade
+            decay:rand(0.018, 0.032)
+        });
+    }
+
+    let t = 0;
+    let lastShooter = 0;
+
+    function draw(ts){
+        ctx.clearRect(0, 0, W, H);
+        t += 1;
+
+        /* ── Regular stars ── */
+        stars.forEach(s => {
+            // twinkle
+            const alpha = s.base + Math.sin(s.phase + t * TWINKLE_SPD * s.speed) * 0.25;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fillStyle = s.hue + Math.max(0, Math.min(1, alpha)) + ')';
+            ctx.fill();
+
+            // slow upward drift — wrap at top
+            s.y -= s.drift;
+            if (s.y < -2) { s.y = H + 2; s.x = rand(0, W); }
+        });
+
+        /* ── Shooting stars ── */
+        if (ts - lastShooter > rand(2800, 6000)) {
+            spawnShooter();
+            lastShooter = ts;
+        }
+        shooters = shooters.filter(s => s.life > 0);
+        shooters.forEach(s => {
+            const dx = Math.cos(s.angle) * s.len * s.life;
+            const dy = Math.sin(s.angle) * s.len * s.life;
+            const grad = ctx.createLinearGradient(s.x, s.y, s.x - dx, s.y - dy);
+            grad.addColorStop(0,   `rgba(255,255,255,${s.life * 0.9})`);
+            grad.addColorStop(0.4, `rgba(180,200,255,${s.life * 0.4})`);
+            grad.addColorStop(1,   'rgba(255,255,255,0)');
+            ctx.beginPath();
+            ctx.moveTo(s.x, s.y);
+            ctx.lineTo(s.x - dx, s.y - dy);
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = 1.5 * s.life;
+            ctx.stroke();
+
+            s.x += Math.cos(s.angle) * s.spd;
+            s.y += Math.sin(s.angle) * s.spd;
+            s.life -= s.decay;
+        });
+
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    requestAnimationFrame(draw);
+})();
+
 
 fetchResults();
-setInterval(fetchResults, 5000);
+setInterval(fetchResults,5000);
 </script>
 </body>
 </html>

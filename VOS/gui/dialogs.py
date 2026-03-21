@@ -6,7 +6,7 @@ Contains:
 """
 
 import customtkinter as ctk
-from gui.theme import colors, get_font
+from gui.theme import colors, get_font, RADIUS, SPACE
 
 
 def _load_config():
@@ -81,84 +81,87 @@ class NameDialog(ctk.CTkToplevel):
         ctk.CTkLabel(
             main_fr,
             text="👋  Just a quick setup",
-            font=get_font("Outfit", 18, "bold"),
+            font=get_font("Outfit", 20, "bold"),
             text_color=colors["TEXT"],
-        ).pack(anchor="w", pady=(0, 4))
+        ).pack(anchor="w", pady=(0, SPACE["sm"]))
         ctk.CTkLabel(
             main_fr,
             text="Please enter your details to continue.",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 14),
             text_color=colors["DIM_TEXT"],
-        ).pack(anchor="w", pady=(0, 20))
+        ).pack(anchor="w", pady=(0, SPACE["xl"]))
 
         # Name field
         ctk.CTkLabel(
             main_fr,
             text="Your Full Name (first · middle · last)",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 14),
             text_color=colors["DIM_TEXT"],
         ).pack(anchor="w")
         self.name_entry = ctk.CTkEntry(
             main_fr,
             placeholder_text="e.g. Mohamed Ibrahim Abdo",
             width=400,
-            height=40,
+            height=44,
             fg_color=colors["CARD_BG"],
             border_color=colors["BORDER"],
+            corner_radius=RADIUS["sm"],
             border_width=1,
             text_color=colors["TEXT"],
-            font=get_font("Outfit", 13),
+            font=get_font("Outfit", 14),
         )
-        self.name_entry.pack(pady=(4, 12))
+        self.name_entry.pack(pady=(SPACE["xs"], SPACE["md"]))
         self.name_entry.insert(0, current_name)
 
         # AnyDesk field
         ctk.CTkLabel(
             main_fr,
             text="Your AnyDesk ID",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 14),
             text_color=colors["DIM_TEXT"],
         ).pack(anchor="w")
         self.anydesk_entry = ctk.CTkEntry(
             main_fr,
             placeholder_text="e.g. 1 585 322 949",
             width=400,
-            height=40,
+            height=44,
             fg_color=colors["CARD_BG"],
             border_color=colors["BORDER"],
+            corner_radius=RADIUS["sm"],
             border_width=1,
             text_color=colors["TEXT"],
-            font=get_font("Outfit", 13),
+            font=get_font("Outfit", 14),
         )
-        self.anydesk_entry.pack(pady=(4, 12))
+        self.anydesk_entry.pack(pady=(SPACE["xs"], SPACE["md"]))
         self.anydesk_entry.insert(0, current_anydesk)
 
         # Team field
         ctk.CTkLabel(
             main_fr,
             text="Team Name",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 14),
             text_color=colors["DIM_TEXT"],
         ).pack(anchor="w")
         self.team_entry = ctk.CTkEntry(
             main_fr,
             placeholder_text="e.g. Sales Team A",
             width=400,
-            height=40,
+            height=44,
             fg_color=colors["CARD_BG"],
             border_color=colors["BORDER"],
+            corner_radius=RADIUS["sm"],
             border_width=1,
             text_color=colors["TEXT"],
-            font=get_font("Outfit", 13),
+            font=get_font("Outfit", 14),
         )
-        self.team_entry.pack(pady=(4, 12))
+        self.team_entry.pack(pady=(SPACE["xs"], SPACE["md"]))
         self.team_entry.insert(0, current_team)
 
         # RES-ID field (fixed "RES-" prefix)
         ctk.CTkLabel(
             main_fr,
             text="RES-ID",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 14),
             text_color=colors["DIM_TEXT"],
         ).pack(anchor="w")
         
@@ -166,28 +169,29 @@ class NameDialog(ctk.CTkToplevel):
             main_fr,
             fg_color=colors["CARD_BG"],
             border_color=colors["BORDER"],
+            corner_radius=RADIUS["sm"],
             border_width=1,
-            height=40
+            height=44
         )
-        res_fr.pack(fill="x", pady=(4, 12))
+        res_fr.pack(fill="x", pady=(SPACE["xs"], SPACE["md"]))
         
         ctk.CTkLabel(
             res_fr,
             text="RES-",
-            font=get_font("Outfit", 13, "bold"),
+            font=get_font("Outfit", 14, "bold"),
             text_color=colors["TEXT"],
-        ).pack(side="left", padx=(12, 0))
+        ).pack(side="left", padx=(SPACE["md"], 0))
         
         self.res_id_entry = ctk.CTkEntry(
             res_fr,
             placeholder_text="1304",
-            height=38,
+            height=40,
             fg_color="transparent",
             border_width=0,
             text_color=colors["TEXT"],
-            font=get_font("Outfit", 13),
+            font=get_font("Outfit", 14),
         )
-        self.res_id_entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        self.res_id_entry.pack(side="left", fill="x", expand=True, padx=(0, SPACE["sm"]))
         
         # Strip "RES-" if it already exists in the config so we don't double it
         display_res = current_res_id
@@ -206,15 +210,15 @@ class NameDialog(ctk.CTkToplevel):
         self.save_btn = ctk.CTkButton(
             main_fr,
             text="Let's Go  →",
-            font=get_font("Outfit", 13, "bold"),
+            font=get_font("Outfit", 14, "bold"),
             fg_color=colors["BORDER"],
             hover_color=colors["ACCENT_HOVER"],
             text_color=colors["TEXT"],
             command=self._save,
-            height=44,
-            corner_radius=12,
+            height=48,
+            corner_radius=RADIUS["md"],
         )
-        self.save_btn.pack(fill="x", pady=(4, 0))
+        self.save_btn.pack(fill="x", pady=(SPACE["sm"], 0))
 
         self.name_entry.bind("<KeyRelease>", self._validate)
         self.anydesk_entry.bind("<KeyRelease>", self._validate)
