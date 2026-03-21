@@ -8,7 +8,7 @@ Each card is a BaseCard subclass that displays one diagnostic result.
 import customtkinter as ctk
 import tkinter as tk
 from PIL import Image, ImageDraw, ImageFilter, ImageTk
-from gui.theme import colors, get_font, RADIUS, SPACE
+from gui.theme import colors, get_font
 from thresholds import MIC_LEVEL_MIN, MIC_LEVEL_WARN, PING_DEFAULT_TARGET
 
 
@@ -19,7 +19,7 @@ class BaseCard(ctk.CTkFrame):
         # "Glow" card:
         # - outer frame is transparent and holds the glow bitmap
         # - inner frame is the actual glass surface
-        super().__init__(master, fg_color="transparent", corner_radius=RADIUS["md"], **kwargs)
+        super().__init__(master, fg_color="transparent", corner_radius=12, **kwargs)
         self._wrap_labels = []  # labels that need dynamic wraplength
         self._pulse_job = None
         self._is_checking = False
@@ -32,16 +32,16 @@ class BaseCard(ctk.CTkFrame):
         self.inner = ctk.CTkFrame(
             self,
             fg_color=colors["CARD_BG"],
-            corner_radius=RADIUS["md"],
-            border_width=2,  # Deep Space Pro Max: Thicker glowing borders
+            corner_radius=10,
+            border_width=2,
             border_color=colors["BORDER"],
         )
         self.inner.pack(fill="both", expand=True, padx=0, pady=0)
 
         # Hover: subtle border glow (bound after children exist)
-        # Header (strict 16px horizontal, 12px vertical padding)
+        # Header
         self.header_frame = ctk.CTkFrame(self.inner, fg_color="transparent")
-        self.header_frame.pack(fill="x", padx=SPACE["lg"], pady=(SPACE["md"], SPACE["sm"]))
+        self.header_frame.pack(fill="x", padx=10, pady=(6, 2))
 
         title_fr = ctk.CTkFrame(self.header_frame, fg_color="transparent")
         title_fr.pack(side="left")
@@ -49,41 +49,41 @@ class BaseCard(ctk.CTkFrame):
         icon_lbl = ctk.CTkLabel(
             title_fr,
             text=icon,
-            font=get_font("Outfit", 14),  # Scaled up for visual weight
+            font=get_font("Outfit", 13),
             text_color=colors["ACCENT"],
         )
-        icon_lbl.pack(side="left", padx=(0, SPACE["sm"]))
+        icon_lbl.pack(side="left", padx=(0, 6))
 
         self.title_label = ctk.CTkLabel(
             title_fr,
             text=title,
-            font=get_font("Outfit", 14, "bold"), # Base text scale
+            font=get_font("Outfit", 12, "bold"),
             text_color=colors["TEXT"],
         )
         self.title_label.pack(side="left")
 
-        # Status Badge (Pill pattern from Pro Max skill)
+        # Status badge (compact)
         self.status_badge = ctk.CTkFrame(
-            self.header_frame, fg_color=colors["BORDER"], corner_radius=RADIUS["full"]
+            self.header_frame, fg_color=colors["BORDER"], corner_radius=3
         )
         self.status_badge.pack(side="right")
         self.status_label = ctk.CTkLabel(
             self.status_badge,
-            text="● NOT CHECKED",
-            font=get_font("Outfit", 11, "bold"), # Micro-text scale
+            text="NOT CHECKED",
+            font=get_font("Outfit", 9, "bold"),
             text_color=colors["DIM_TEXT"],
-            padx=SPACE["sm"],
-            pady=2,
+            padx=5,
+            pady=1,
         )
         self.status_label.pack()
 
-        # Separator (subtle)
+        # Separator
         sep = ctk.CTkFrame(self.inner, fg_color=colors["BORDER"], height=1)
-        sep.pack(fill="x", padx=SPACE["lg"])
+        sep.pack(fill="x", padx=10)
 
         # Horizontal container for content + feedback
         self.main_container = ctk.CTkFrame(self.inner, fg_color="transparent")
-        self.main_container.pack(fill="both", expand=True, padx=SPACE["lg"], pady=SPACE["md"])
+        self.main_container.pack(fill="both", expand=True, padx=10, pady=4)
 
         # Left side: Actual Card Content
         self.content = ctk.CTkFrame(self.main_container, fg_color="transparent")
@@ -201,11 +201,6 @@ class BaseCard(ctk.CTkFrame):
     def update_status(self, text, color=None):
         if color is None:
             color = colors["DIM_TEXT"]
-            self.status_badge.configure(fg_color=colors["BORDER"])
-        else:
-            # Neon style: Keep dark background but intense text
-            self.status_badge.configure(fg_color=colors["BORDER"])
-            
         self.status_label.configure(text=text.upper(), text_color=color)
         # Shimmer/pulse on border while checking
         if "checking" in text.lower() or "..." in text:
@@ -245,14 +240,14 @@ class BaseCard(ctk.CTkFrame):
             ctk.CTkLabel(
                 header,
                 text="⚠",
-                font=get_font("Outfit", 14),
+                font=get_font("Outfit", 12),
                 text_color=colors["WARNING"],
-            ).pack(side="left", padx=(0, SPACE["sm"]))
+            ).pack(side="left", padx=(0, 4))
 
             ctk.CTkLabel(
                 header,
                 text=w["title"],
-                font=get_font("Outfit", 12, "bold"),
+                font=get_font("Outfit", 11, "bold"),
                 text_color=colors["TEXT"],
                 wraplength=160,
                 justify="left"
@@ -261,11 +256,11 @@ class BaseCard(ctk.CTkFrame):
             ctk.CTkLabel(
                 scroll,
                 text=w["desc"],
-                font=get_font("Outfit", 12),
+                font=get_font("Outfit", 10),
                 text_color=colors["DIM_TEXT"],
                 wraplength=180,
                 justify="left",
-            ).pack(fill="x", padx=SPACE["sm"], pady=(0, SPACE["xs"]))
+            ).pack(fill="x", padx=8, pady=(0, 4))
 
             if w.get("steps"):
                 steps_fr = ctk.CTkFrame(scroll, fg_color="transparent")
@@ -308,22 +303,22 @@ class SpecsCard(BaseCard):
         self.cpu_val = ctk.CTkLabel(
             self.content,
             text="Processor : —",
-            font=get_font("Outfit", 12, "bold"),
+            font=get_font("Outfit", 11, "bold"),
             text_color=colors["ACCENT"],
             wraplength=220,
             justify="left",
             anchor="w",
         )
-        self.cpu_val.grid(row=0, column=0, sticky="w", pady=(SPACE["xs"], SPACE["xs"]))
+        self.cpu_val.grid(row=0, column=0, sticky="w", pady=(4, 2))
         self._register_wrap_label(self.cpu_val, 0.55)
 
         self.mem_val = ctk.CTkLabel(
             self.content,
             text="RAM : —",
-            font=get_font("Outfit", 12, "bold"),
+            font=get_font("Outfit", 11, "bold"),
             text_color=colors["ACCENT"],
         )
-        self.mem_val.grid(row=0, column=1, sticky="w", pady=(SPACE["xs"], SPACE["xs"]))
+        self.mem_val.grid(row=0, column=1, sticky="w", pady=(4, 2))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -337,18 +332,18 @@ class ChromeCard(BaseCard):
         self.status_val = ctk.CTkLabel(
             self.content,
             text="Waiting to check Chrome status…",
-            font=get_font("Outfit", 12, "bold"),
+            font=get_font("Outfit", 11, "bold"),
             text_color=colors["DIM_TEXT"],
         )
-        self.status_val.grid(row=0, column=0, sticky="w", pady=(SPACE["xs"], SPACE["xs"]))
+        self.status_val.grid(row=0, column=0, sticky="w", pady=(2, 2))
 
         self.note_lbl = ctk.CTkLabel(
             self.content,
             text="",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 10),
             text_color=colors["DIM_TEXT"],
         )
-        self.note_lbl.grid(row=1, column=0, sticky="w", pady=(SPACE["xs"], 0))
+        self.note_lbl.grid(row=1, column=0, sticky="w", pady=(2, 0))
         self.note_lbl.configure(wraplength=260, justify="left")
         self._register_wrap_label(self.note_lbl, 0.9)
 
@@ -360,23 +355,22 @@ class PingCard(BaseCard):
 
         # Target input next to header
         target_fr = ctk.CTkFrame(self.header_frame, fg_color="transparent")
-        target_fr.pack(side="left", padx=(SPACE["lg"], 0))
+        target_fr.pack(side="left", padx=(14, 0))
         ctk.CTkLabel(
             target_fr,
             text="Target:",
-            font=get_font("JetBrainsMono NFP", 12),
+            font=get_font("JetBrainsMono NFP", 10),
             text_color=colors["DIM_TEXT"],
-        ).pack(side="left", padx=(0, SPACE["xs"]))
+        ).pack(side="left", padx=(0, 4))
         self.target = ctk.CTkEntry(
             target_fr,
             placeholder_text="e.g. google.com",
-            width=120,
-            height=26,
+            width=100,
+            height=24,
             fg_color=colors["BORDER"],
             border_width=0,
-            corner_radius=RADIUS["sm"],
             text_color=colors["TEXT"],
-            font=get_font("JetBrainsMono NFP", 12),
+            font=get_font("JetBrainsMono NFP", 10),
         )
         self.target.pack(side="left")
         self.target.insert(0, PING_DEFAULT_TARGET)
@@ -384,10 +378,10 @@ class PingCard(BaseCard):
         self.verdict = ctk.CTkLabel(
             self.content,
             text="",
-            font=get_font("Outfit", 16, "bold"),
+            font=get_font("Outfit", 14, "bold"),
             text_color=colors.get("GOOD", colors["SUCCESS"]),
         )
-        self.verdict.pack(anchor="w", padx=SPACE["sm"], pady=(SPACE["sm"], 0))
+        self.verdict.pack(anchor="w", padx=10, pady=(4, 0))
 
         # Results textbox
         self.content_text = ctk.CTkTextbox(
@@ -395,7 +389,7 @@ class PingCard(BaseCard):
             fg_color="transparent",
             text_color=colors["TEXT"],
             activate_scrollbars=True,
-            font=get_font("JetBrainsMono NFP", 12),
+            font=get_font("JetBrainsMono NFP", 10),
             height=48,
         )
         self.content_text.pack(fill="both", expand=True)
@@ -422,14 +416,14 @@ class SpeedCard(BaseCard):
         self._type_lbl = ctk.CTkLabel(
             self.content,
             text="Type",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 11),
             text_color=colors["DIM_TEXT"],
         )
         # Not placed on grid — hidden from users
         self.type_val = ctk.CTkLabel(
             self.content,
             text="—",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 11),
             text_color=colors["TEXT"],
         )
         # Not placed on grid — hidden from users
@@ -438,37 +432,37 @@ class SpeedCard(BaseCard):
         ctk.CTkLabel(
             self.content,
             text="Download",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 11),
             text_color=colors["DIM_TEXT"],
         ).grid(row=0, column=0, sticky="w", pady=0)
         self.down_num = ctk.CTkLabel(
             self.content,
             text="—",
-            font=get_font("Outfit", 14, "bold"),
+            font=get_font("Outfit", 12, "bold"),
             text_color=colors["TEXT"],
         )
-        self.down_num.grid(row=0, column=1, sticky="e", padx=(SPACE["sm"], 0), pady=0)
+        self.down_num.grid(row=0, column=1, sticky="e", padx=(8, 0), pady=0)
 
         # Upload
         ctk.CTkLabel(
             self.content,
             text="Upload",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 11),
             text_color=colors["DIM_TEXT"],
         ).grid(row=1, column=0, sticky="w", pady=0)
         self.up_num = ctk.CTkLabel(
             self.content,
             text="—",
-            font=get_font("Outfit", 14, "bold"),
+            font=get_font("Outfit", 12, "bold"),
             text_color=colors["TEXT"],
         )
-        self.up_num.grid(row=1, column=1, sticky="e", padx=(SPACE["sm"], 0), pady=0)
+        self.up_num.grid(row=1, column=1, sticky="e", padx=(8, 0), pady=0)
 
         # Error label (hidden)
         self._err_lbl = ctk.CTkLabel(
             self.content,
             text="",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 10),
             text_color=colors["ERROR"],
         )
         self._err_lbl.grid(row=2, column=0, columnspan=2, sticky="w", pady=0)
@@ -476,30 +470,30 @@ class SpeedCard(BaseCard):
 
         # ── VPN Status Section ──
         self._vpn_sep = ctk.CTkFrame(self.content, fg_color=colors["BORDER"], height=1)
-        self._vpn_sep.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(SPACE["xs"], SPACE["xs"]))
+        self._vpn_sep.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(2, 2))
 
         ctk.CTkLabel(
             self.content,
             text="VPN Status",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 11),
             text_color=colors["DIM_TEXT"],
         ).grid(row=5, column=0, sticky="w", pady=0)
         self.vpn_status_val = ctk.CTkLabel(
             self.content,
             text="—",
-            font=get_font("Outfit", 12, "bold"),
+            font=get_font("Outfit", 11, "bold"),
             text_color=colors["DIM_TEXT"],
         )
-        self.vpn_status_val.grid(row=5, column=1, sticky="e", padx=(SPACE["sm"], 0), pady=0)
+        self.vpn_status_val.grid(row=5, column=1, sticky="e", padx=(8, 0), pady=0)
 
         # VPN name (shown only when active)
         self.vpn_name_val = ctk.CTkLabel(
             self.content,
             text="",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 10),
             text_color=colors["WARNING"],
         )
-        self.vpn_name_val.grid(row=6, column=0, columnspan=2, sticky="w", pady=(0, SPACE["xs"]))
+        self.vpn_name_val.grid(row=6, column=0, columnspan=2, sticky="w", pady=(0, 2))
         self.vpn_name_val.grid_remove()
 
     def update_vpn_status(self, active, vpn_name=""):
@@ -557,73 +551,73 @@ class MicCard(BaseCard):
         ctk.CTkLabel(
             self.content,
             text="Device",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 11),
             text_color=colors["DIM_TEXT"],
-        ).grid(row=0, column=0, sticky="nw", pady=(0, SPACE["xs"]))
+        ).grid(row=0, column=0, sticky="nw", pady=(0, 2))
         self.dev_val = ctk.CTkLabel(
             self.content,
             text="—",
-            font=get_font("JetBrainsMono NFP", 12),
+            font=get_font("JetBrainsMono NFP", 11),
             text_color=colors["TEXT"],
             wraplength=240,
             justify="left",
             anchor="w",
         )
-        self.dev_val.grid(row=0, column=1, sticky="nw", padx=(SPACE["md"], 0), pady=(0, SPACE["xs"]))
+        self.dev_val.grid(row=0, column=1, sticky="nw", padx=(10, 0), pady=(0, 2))
         self._register_wrap_label(self.dev_val, 0.65)
 
         ctk.CTkLabel(
             self.content,
             text="Type",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 11),
             text_color=colors["DIM_TEXT"],
-        ).grid(row=1, column=0, sticky="nw", pady=(0, SPACE["xs"]))
+        ).grid(row=1, column=0, sticky="nw", pady=(0, 2))
         self.type_val = ctk.CTkLabel(
             self.content,
             text="—",
-            font=get_font("JetBrainsMono NFP", 12),
+            font=get_font("JetBrainsMono NFP", 11),
             text_color=colors["TEXT"],
             wraplength=240,
             justify="left",
             anchor="w",
         )
-        self.type_val.grid(row=1, column=1, sticky="nw", padx=(SPACE["md"], 0), pady=(0, SPACE["xs"]))
+        self.type_val.grid(row=1, column=1, sticky="nw", padx=(10, 0), pady=(0, 2))
         self._register_wrap_label(self.type_val, 0.65)
 
         ctk.CTkLabel(
             self.content,
             text="Mic Levels",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 11),
             text_color=colors["DIM_TEXT"],
-        ).grid(row=2, column=0, sticky="nw", pady=(0, SPACE["xs"]))
+        ).grid(row=2, column=0, sticky="nw", pady=(0, 2))
         self.lvl_val = ctk.CTkLabel(
             self.content,
             text="—/100",
-            font=get_font("JetBrainsMono NFP", 14, "bold"),
+            font=get_font("JetBrainsMono NFP", 12, "bold"),
             text_color=colors["ACCENT"],
         )
-        self.lvl_val.grid(row=2, column=1, sticky="nw", padx=(SPACE["md"], 0), pady=(0, SPACE["xs"]))
+        self.lvl_val.grid(row=2, column=1, sticky="nw", padx=(10, 0), pady=(0, 2))
 
         self.prog = ctk.CTkProgressBar(
             self.content,
             height=6,
             fg_color=colors["BORDER"],
             progress_color=colors["SUCCESS"],
-            corner_radius=RADIUS["full"],
+            corner_radius=8,
         )
-        self.prog.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(0, SPACE["xs"]))
+        self.prog.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(0, 2))
         self.prog.set(0)
 
         # Standalone auto-fix button (Hidden by default)
         self.fix_btn = ctk.CTkButton(
             self.content,
             text="Fix Volume",
-            font=get_font("Outfit", 12, "bold"),
+            font=get_font("Outfit", 11, "bold"),
             fg_color=colors["ACCENT"],
             text_color="#FFFFFF",
             hover_color=colors["ACCENT_HOVER"],
-            corner_radius=RADIUS["sm"],
-            height=28,
+            corner_radius=5,
+            height=26,
             width=100,
         )
         self.fix_btn.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(4, 0))
@@ -650,39 +644,39 @@ class DiskCard(BaseCard):
         ctk.CTkLabel(
             self.content,
             text="System Drive",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 11),
             text_color=colors["DIM_TEXT"],
-        ).grid(row=0, column=0, sticky="w", pady=(0, SPACE["xs"]))
+        ).grid(row=0, column=0, sticky="w", pady=(0, 1))
         self.drive_val = ctk.CTkLabel(
             self.content,
             text="—",
-            font=get_font("JetBrainsMono NFP", 14, "bold"),
+            font=get_font("JetBrainsMono NFP", 12, "bold"),
             text_color=colors["ACCENT"],
         )
-        self.drive_val.grid(row=0, column=1, sticky="e", padx=(SPACE["sm"], 0), pady=(0, SPACE["xs"]))
+        self.drive_val.grid(row=0, column=1, sticky="e", padx=(8, 0), pady=(0, 1))
 
         ctk.CTkLabel(
             self.content,
             text="Free Space",
-            font=get_font("Outfit", 12),
+            font=get_font("Outfit", 11),
             text_color=colors["DIM_TEXT"],
-        ).grid(row=1, column=0, sticky="w", pady=(0, SPACE["xs"]))
+        ).grid(row=1, column=0, sticky="w", pady=(0, 1))
         self.free_val = ctk.CTkLabel(
             self.content,
             text="—",
-            font=get_font("JetBrainsMono NFP", 14, "bold"),
+            font=get_font("JetBrainsMono NFP", 12, "bold"),
             text_color=colors["ACCENT"],
         )
-        self.free_val.grid(row=1, column=1, sticky="e", padx=(SPACE["sm"], 0), pady=(0, SPACE["xs"]))
+        self.free_val.grid(row=1, column=1, sticky="e", padx=(8, 0), pady=(0, 1))
 
         self.prog = ctk.CTkProgressBar(
             self.content,
             height=6,
             fg_color=colors["BORDER"],
             progress_color=colors["SUCCESS"],
-            corner_radius=RADIUS["full"],
+            corner_radius=8,
         )
-        self.prog.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(SPACE["xs"], 0))
+        self.prog.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(2, 0))
         self.prog.set(0)
 
 

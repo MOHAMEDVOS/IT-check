@@ -50,7 +50,7 @@ from thresholds import (
     DISK_FREE_MIN_GB, DISK_FREE_WARN_GB,
     DASHBOARD_URL, API_KEY, PING_DEFAULT_TARGET
 )
-from gui.theme import colors, get_font, toggle_theme, get_theme, set_theme, RADIUS, SPACE
+from gui.theme import colors, get_font, toggle_theme, get_theme, set_theme
 from gui.cards import (
     SpecsCard, ChromeCard, PingCard, SpeedCard,
     MicCard, DiskCard
@@ -458,7 +458,7 @@ class VOSApp(ctk.CTk):
     # ─────────────────────── UI Build ───────────────────────
     def _build_header(self):
         self.header = ctk.CTkFrame(self, fg_color="transparent")
-        self.header.pack(fill="x", padx=SPACE["xl"], pady=(SPACE["lg"], SPACE["xl"]))
+        self.header.pack(fill="x", padx=20, pady=(8, 10))
 
         self.header.columnconfigure(0, weight=0)
         self.header.columnconfigure(1, weight=1)
@@ -467,70 +467,70 @@ class VOSApp(ctk.CTk):
         # Employee info badge
         self.emp_card = ctk.CTkFrame(
             self.header, fg_color=colors["CARD_BG"],
-            corner_radius=RADIUS["md"], border_width=1, border_color=colors["BORDER"],
+            corner_radius=8, border_width=1, border_color=colors["BORDER"],
         )
         inner = ctk.CTkFrame(self.emp_card, fg_color="transparent")
-        inner.pack(padx=SPACE["lg"], pady=SPACE["md"])
+        inner.pack(padx=12, pady=6)
 
         name_row = ctk.CTkFrame(inner, fg_color="transparent")
         name_row.pack(fill="x", anchor="w")
         ctk.CTkLabel(
             name_row, text="Name :",
-            font=get_font("Outfit", 12, "bold"), text_color=colors["DIM_TEXT"],
-        ).pack(side="left", padx=(0, SPACE["sm"]))
+            font=get_font("Outfit", 10, "bold"), text_color=colors["DIM_TEXT"],
+        ).pack(side="left", padx=(0, 4))
         self.emp_name_lbl = ctk.CTkLabel(
             name_row, text=self.emp_name or "—",
-            font=get_font("Outfit", 14, "bold"), text_color=colors["TEXT"],
+            font=get_font("Outfit", 11, "bold"), text_color=colors["TEXT"],
             wraplength=250, justify="left"
         )
         self.emp_name_lbl.pack(side="left")
 
         id_row = ctk.CTkFrame(inner, fg_color="transparent")
-        id_row.pack(fill="x", anchor="w", pady=(SPACE["xs"], 0))
+        id_row.pack(fill="x", anchor="w", pady=(2, 0))
         ctk.CTkLabel(
             id_row, text="Anydesk ID :",
-            font=get_font("Outfit", 12, "bold"), text_color=colors["DIM_TEXT"],
-        ).pack(side="left", padx=(0, SPACE["sm"]))
+            font=get_font("Outfit", 10, "bold"), text_color=colors["DIM_TEXT"],
+        ).pack(side="left", padx=(0, 4))
         self.emp_id_lbl = ctk.CTkLabel(
             id_row, text=self.anydesk_id or "—",
-            font=get_font("Outfit", 14, "bold"), text_color=colors["ACCENT"],
+            font=get_font("Outfit", 11, "bold"), text_color=colors["ACCENT"],
         )
         self.emp_id_lbl.pack(side="left")
 
         team_row = ctk.CTkFrame(inner, fg_color="transparent")
-        team_row.pack(fill="x", anchor="w", pady=(SPACE["xs"], 0))
+        team_row.pack(fill="x", anchor="w", pady=(2, 0))
         ctk.CTkLabel(
             team_row, text="Team :",
-            font=get_font("Outfit", 12, "bold"), text_color=colors["DIM_TEXT"],
-        ).pack(side="left", padx=(0, SPACE["sm"]))
+            font=get_font("Outfit", 10, "bold"), text_color=colors["DIM_TEXT"],
+        ).pack(side="left", padx=(0, 4))
         self.emp_team_lbl = ctk.CTkLabel(
             team_row, text=self.team or "—",
-            font=get_font("Outfit", 14, "bold"), text_color=colors["TEXT"],
+            font=get_font("Outfit", 11, "bold"), text_color=colors["TEXT"],
         )
         self.emp_team_lbl.pack(side="left")
 
         res_id_row = ctk.CTkFrame(inner, fg_color="transparent")
-        res_id_row.pack(fill="x", anchor="w", pady=(SPACE["xs"], 0))
+        res_id_row.pack(fill="x", anchor="w", pady=(2, 0))
         ctk.CTkLabel(
             res_id_row, text="RES-ID :",
-            font=get_font("Outfit", 12, "bold"), text_color=colors["DIM_TEXT"],
-        ).pack(side="left", padx=(0, SPACE["sm"]))
+            font=get_font("Outfit", 10, "bold"), text_color=colors["DIM_TEXT"],
+        ).pack(side="left", padx=(0, 4))
         self.emp_res_id_lbl = ctk.CTkLabel(
             res_id_row, text=self.res_id or "—",
-            font=get_font("Outfit", 14, "bold"), text_color="#f472b6",
+            font=get_font("Outfit", 11, "bold"), text_color="#f472b6",
         )
         self.emp_res_id_lbl.pack(side="left")
 
         # Edit Button
         self.edit_profile_btn = ctk.CTkButton(
             inner, text="✎ Edit Profile",
-            font=get_font("Outfit", 12, "bold"),
+            font=get_font("Outfit", 10, "bold"),
             fg_color="transparent", text_color=colors["ACCENT"],
             hover_color=colors["BORDER"],
-            height=24, width=80,
+            height=20, width=80,
             command=self._open_profile_editor
         )
-        self.edit_profile_btn.pack(pady=(SPACE["md"], 0))
+        self.edit_profile_btn.pack(pady=(6, 0))
 
         if self.emp_name and self.anydesk_id:
             self.emp_card.grid(row=0, column=0, sticky="w", padx=(0, 20))
@@ -586,35 +586,35 @@ class VOSApp(ctk.CTk):
         self.btn_frame.grid(row=0, column=2, sticky="ne")
         self.run_btn = ctk.CTkButton(
             self.btn_frame, text="Check My System",
-            font=get_font("Outfit", 16, "bold"),
+            font=get_font("Outfit", 14, "bold"),
             fg_color=colors["ACCENT"], text_color="#FFFFFF",
             text_color_disabled="#FFFFFF",
             hover_color=colors["ACCENT_HOVER"],
-            corner_radius=RADIUS["md"], height=48, command=self.start_diagnostics,
+            corner_radius=8, height=45, command=self.start_diagnostics,
         )
-        self.run_btn.pack(side="top", fill="x", pady=(0, SPACE["sm"]))
+        self.run_btn.pack(side="top", fill="x", pady=(0, 4))
 
         # FIX 2: Create button but do NOT pack it here.
         # _apply_auth_ui is the only place that shows/hides it.
         self.quick_drill_btn = ctk.CTkButton(
             self.btn_frame, text="Quick Drill",
-            font=get_font("Outfit", 14, "bold"),
+            font=get_font("Outfit", 12, "bold"),
             fg_color="#D97706", text_color="#FFFFFF",
             text_color_disabled="#FFFFFF",
             hover_color="#B45309",
             border_width=1, border_color="#F59E0B",
-            corner_radius=RADIUS["sm"], height=40, command=self._clear_chrome_data,
+            corner_radius=8, height=36, command=self._clear_chrome_data,
             state="disabled",
         )
         # intentionally NOT calling .pack() here
 
     def _build_footer(self):
         self.footer_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.footer_frame.pack(side="bottom", fill="x", pady=(0, 10))
+        self.footer_frame.pack(side="bottom", fill="x", pady=(0, 6))
         self.footer_lbl = ctk.CTkLabel(
             self.footer_frame,
             text="VOS  ·  Developed by Mohamed Abdo",
-            font=get_font("Outfit", 12, "bold"), text_color=colors["DIM_TEXT"],
+            font=get_font("Outfit", 9, "bold"), text_color="#FFFFFF",
         )
         self.footer_lbl.pack()
 
@@ -624,7 +624,7 @@ class VOSApp(ctk.CTk):
             scrollbar_button_color=colors["BORDER"],
             scrollbar_button_hover_color=colors["ACCENT"],
         )
-        self.scroll_frame.pack(fill="both", expand=True, padx=SPACE["xl"], pady=(0, SPACE["sm"]))
+        self.scroll_frame.pack(fill="both", expand=True, padx=16, pady=(0, 4))
         for c in range(3):
             self.scroll_frame.columnconfigure(c, weight=1, uniform="col")
         self.scroll_frame.rowconfigure(0, weight=1, uniform="row")
@@ -639,7 +639,7 @@ class VOSApp(ctk.CTk):
             "disk":   DiskCard(self.scroll_frame),
         }
 
-        gap = SPACE["lg"]
+        gap = 6
         self.cards["specs"].grid( row=0, column=0, sticky="nsew", padx=(0, gap), pady=(0, gap))
         self.cards["chrome"].grid(row=0, column=1, sticky="nsew", padx=gap,     pady=(0, gap))
         self.cards["disk"].grid(  row=0, column=2, sticky="nsew", padx=(gap, 0), pady=(0, gap))
