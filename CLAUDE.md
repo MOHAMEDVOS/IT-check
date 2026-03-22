@@ -140,7 +140,7 @@ git push origin main
 | UPX disabled in build | UPX corrupted python310.dll — caused crash on update |
 | `_MEIPASS` env vars stripped on update | PyInstaller child process inherited parent's temp path — caused DLL crash |
 | Staged rollout tolerance (1 milestone) for Chrome | Google rolls out Chrome gradually — 1 milestone behind is normal |
-| Ookla HTTP protocol (no library) for speed test | Cloudflare CDN is peered inside ISPs — gives inflated results. `speedtest-cli` library caused "No module" errors inside PyInstaller EXE. Direct HTTP to Ookla servers (`/random{N}x{N}.jpg`) with 3 parallel streams gives accurate results matching speedtest.net. Server URLs end with `/upload.php` — strip it with `rsplit('/', 1)[0]` before constructing download/latency URLs. |
+| Cloudflare Speed Test for speed test | Simple, reliable, no external library. Uses `speed.cloudflare.com/__down` and `__up` endpoints. |
 | VBS wrapper for update swap | Hides the cmd window during self-update |
 
 ---
