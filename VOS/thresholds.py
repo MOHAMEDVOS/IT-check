@@ -1,7 +1,7 @@
 # ─── VOS — Vital Operations Scanner ─── Threshold Constants ───
 
 APP_NAME = "VOS"
-APP_VERSION = "3.6.3"
+APP_VERSION = "3.6.4"
 PING_DEFAULT_TARGET = "resva.readymode.com"
 
 # ── Internet Speed (Mbps) ──
