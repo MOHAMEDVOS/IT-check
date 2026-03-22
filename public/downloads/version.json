@@ -1,6 +1,6 @@
 {
-  "latest_version": "3.2.0",
+  "latest_version": "3.3.0",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Fixed Python DLL loading error after updates. Disabled UPX compression. Hidden terminal windows during updates.",
-  "_timestamp": "2026-03-22T08:11:00"
+  "release_notes": "Test update to verify update flow. No UPX, hidden terminal windows.",
+  "_timestamp": "2026-03-22T08:20:00"
 }
