@@ -1,30 +1,14 @@
 """
-speed.py — Fast, accurate internet speed measurement using direct HTTP downloads.
+speed.py — Real internet speed measurement using Ookla's speedtest-cli.
 
-Uses Cloudflare's speed test CDN endpoints — no CLI binary required.
-Downloads and uploads actual data to accurately measure bandwidth.
-Much faster and more reliable than the Ookla CLI approach.
+Uses the same backend as speedtest.net — finds the closest real internet
+server (not a CDN edge node), giving results that match what agents see
+when they run speedtest.net themselves.
 """
 
-import time
-import threading
 import socket
 import psutil
-import requests
-
-
-# ── CDN test files for download speed measurement ────────────────────────────
-# Using Cloudflare's speed.cloudflare.com which is fast, reliable, unrestricted
-DOWNLOAD_URLS = [
-    "https://speed.cloudflare.com/__down?bytes=5000000",    # 5 MB
-    "https://speed.cloudflare.com/__down?bytes=2000000",    # 2 MB fallback
-]
-
-UPLOAD_URL = "https://speed.cloudflare.com/__up"
-
-TIMEOUT = 45  # Increased timeout for slower connections
-
-
+import speedtest
 
 
 def get_connection_type() -> str:
@@ -48,103 +32,28 @@ def get_connection_type() -> str:
         return "Unknown"
 
 
-def _measure_download_mbps(streams: int = 8) -> float:
-    """Download from Cloudflare CDN using multiple parallel streams."""
-    results = []
-    threads = []
-    
-    def _worker():
-        for url in DOWNLOAD_URLS:
-            try:
-                # Track starting time and downloaded bytes within the stream
-                start = time.perf_counter()
-                resp = requests.get(url, timeout=TIMEOUT, stream=True)
-                resp.raise_for_status()
-                bytes_received = 0
-                for chunk in resp.iter_content(chunk_size=131072):
-                    bytes_received += len(chunk)
-                
-                elapsed = time.perf_counter() - start
-                if elapsed > 0:
-                    results.append((bytes_received * 8) / (elapsed * 1_000_000))
-                return
-            except Exception:
-                continue
-
-    for _ in range(streams):
-        t = threading.Thread(target=_worker, daemon=True)
-        t.start()
-        threads.append(t)
-    
-    for t in threads:
-        t.join(timeout=TIMEOUT + 5)
-        
-    return sum(results) if results else 0.0
-
-
-def _measure_upload_mbps(streams: int = 5) -> float:
-    """Upload data to Cloudflare CDN using multiple parallel streams."""
-    results = []
-    threads = []
-    data = b"0" * 2_000_000 # 2 MB per stream (easier to finish within timeout)
-    
-    def _worker():
-        try:
-            start = time.perf_counter()
-            requests.post(UPLOAD_URL, data=data, timeout=TIMEOUT,
-                         headers={"Content-Type": "application/octet-stream"})
-            elapsed = time.perf_counter() - start
-            if elapsed > 0:
-                results.append((len(data) * 8) / (elapsed * 1_000_000))
-        except Exception:
-            pass
-
-    for _ in range(streams):
-        t = threading.Thread(target=_worker, daemon=True)
-        t.start()
-        threads.append(t)
-    
-    for t in threads:
-        t.join(timeout=TIMEOUT + 5)
-        
-    return sum(results) if results else 0.0
-
-
-def _measure_latency_ms() -> float:
-    """Measure latency to Cloudflare by timing a small HTTP request."""
-    try:
-        times = []
-        for _ in range(3):
-            start = time.perf_counter()
-            requests.get("https://speed.cloudflare.com/__down?bytes=0", timeout=5)
-            times.append((time.perf_counter() - start) * 1000)
-        return round(min(times), 1)
-    except Exception:
-        return 0.0
-
-
 def run_speedtest(callback=None) -> dict:
     """
-    Measure internet speed using Cloudflare CDN.
-    Runs tests SEQUENTIALLY with multi-threaded streams for accuracy.
+    Measure real internet speed using Ookla's speedtest-cli.
+    Results match speedtest.net — what agents see is what the app shows.
     """
     connection_type = get_connection_type()
 
     try:
         if callback:
-            callback("Step 1/3: Measuring latency...")
-        latency_ms = _measure_latency_ms()
+            callback("Step 1/3: Finding best server...")
+        st = speedtest.Speedtest()
+        st.get_best_server()
+        server_name = f"{st.results.server['name']}, {st.results.server['country']}"
+        latency_ms = round(st.results.ping, 1)
 
         if callback:
-            callback("Step 2/3: Testing download speed (multi-stream)...")
-        download_mbps = _measure_download_mbps(streams=6)
+            callback("Step 2/3: Testing download speed...")
+        download_mbps = st.download() / 1_000_000
 
         if callback:
-            callback("Step 3/3: Testing upload speed (multi-stream)...")
-        upload_mbps = _measure_upload_mbps(streams=4)
-
-        if download_mbps == 0.0:
-            return _error_result(connection_type, "No internet connection or server unavailable.")
+            callback("Step 3/3: Testing upload speed...")
+        upload_mbps = st.upload() / 1_000_000
 
         if callback:
             callback("Done!")
@@ -154,7 +63,7 @@ def run_speedtest(callback=None) -> dict:
             "upload":          f"{upload_mbps:.1f} Mbps",
             "latency":         f"{latency_ms:.0f} ms",
             "jitter":          "—",
-            "server":          "Cloudflare CDN (Multi-Stream)",
+            "server":          server_name,
             "connection_type": connection_type,
             "error":           None
         }

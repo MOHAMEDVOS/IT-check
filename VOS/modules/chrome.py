@@ -221,28 +221,31 @@ def check_chrome() -> ChromeResult:
     result.latest_milestone  = _get_milestone(latest)
     result.milestones_behind = max(0, result.latest_milestone - result.installed_milestone)
 
-    # ── Step 3: Full-version comparison with Major/Minor distinction ─────────
-    if result.installed_version == result.latest_version:
+    # ── Step 3: Milestone-based comparison (staged rollout aware) ────────────
+    if result.milestones_behind == 0:
+        # Same milestone (or exact version match) — user is current
         result.status       = "UP_TO_DATE"
-        result.status_label = "✅ Up to Date"
+        result.status_label = "Up to Date"
         result.status_color = "#10B981"
         result.note         = f"Your Chrome browser is up to date (v{result.installed_version})."
 
-    elif result.milestones_behind > 0:
-        # One or more milestones behind — Major update
-        result.status       = "OUTDATED"
-        result.status_label = "⚠️ Major Update Available"
-        result.status_color = "#EF4444"
+    elif result.milestones_behind == 1:
+        # One milestone behind — Google's staged rollout, not yet pushed to this machine
+        result.status       = "STAGED_ROLLOUT"
+        result.status_label = "Up to Date"
+        result.status_color = "#10B981"
         result.note         = (
-            "Open Chrome → Menu → Help → About Google Chrome to update."
+            f"Chrome v{result.latest_version} is rolling out gradually. "
+            f"Your version ({result.installed_version}) is current for this machine."
         )
 
     else:
-        # Same milestone but different point release — Minor/Security update
+        # 2+ milestones behind — genuinely outdated
         result.status       = "OUTDATED"
-        result.status_label = "🔄 Minor Update Available"
-        result.status_color = "#F59E0B" # Amber/Orange for minor
+        result.status_label = "Update Required"
+        result.status_color = "#EF4444"
         result.note         = (
+            f"Chrome is {result.milestones_behind} versions behind (v{result.installed_version} → v{result.latest_version}). "
             "Open Chrome → Menu → Help → About Google Chrome to update."
         )
 

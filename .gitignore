@@ -25,7 +25,22 @@ __pycache__/
 *.pyo
 *.pyd
 *.db
-test_chrome.py
+
+# PyInstaller build output
+VOS/build/
+VOS/Release/
+VOS/Release_test/
+VOS/*.spec
+VOS/update_log.txt
+VOS/debug.log
+public/downloads/debug.log
+
+# Virtual environments
+VOS/.venv_stable/
+
+# Logs
+debug.log
+*.log
 
 # Env
 .env
