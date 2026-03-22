@@ -6,7 +6,7 @@ echo ============================================
 :: Delete previous build to prevent silent reuse if PyInstaller fails
 if exist Release\VOS.exe del /f /q Release\VOS.exe
 
-python -m PyInstaller ^
+.venv_stable\Scripts\python.exe -m PyInstaller ^
   --noconsole ^
   --onefile ^
   --name VOS ^
