@@ -1,6 +1,6 @@
 {
-  "latest_version": "3.4.0",
+  "latest_version": "3.5.0",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Fix for PyInstaller DLL load failures during updates. TDD-verified _MEIPASS stripping.",
-  "_timestamp": "2026-03-22T08:40:00"
+  "release_notes": "Final test to verify the _MEIPASS fix inside the v3.4.0 updater.",
+  "_timestamp": "2026-03-22T08:56:00"
 }
