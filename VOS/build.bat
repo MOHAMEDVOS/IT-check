@@ -33,6 +33,7 @@ if exist Release\VOS.exe del /f /q Release\VOS.exe
   --hidden-import=gui.theme ^
   --collect-all pycaw ^
   --collect-all comtypes ^
+  --noupx ^
   main.py
 
 echo.

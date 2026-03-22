@@ -1,6 +1,6 @@
 {
-  "latest_version": "3.1.0",
+  "latest_version": "3.2.0",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Fixed terminal windows flashing during updates. Fixed Python DLL build issue.",
-  "_timestamp": "2026-03-22T08:03:00"
+  "release_notes": "Fixed Python DLL loading error after updates. Disabled UPX compression. Hidden terminal windows during updates.",
+  "_timestamp": "2026-03-22T08:11:00"
 }
