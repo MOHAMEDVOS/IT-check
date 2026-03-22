@@ -127,19 +127,23 @@ set "NEW_EXE={new_exe_path}"
 set "EXE_NAME={os.path.basename(current_exe)}"
 set "VBS_PATH={vbs_path}"
 
-:: Wait for app to close
-ping 127.0.0.1 -n 3 > nul 2>&1
+:: Wait for app to fully release file handles
+ping 127.0.0.1 -n 4 > nul 2>&1
 
 :: Hard kill just in case
 taskkill /f /im "%EXE_NAME%" > nul 2>&1
-ping 127.0.0.1 -n 2 > nul 2>&1
+ping 127.0.0.1 -n 3 > nul 2>&1
+
+:: Clean up ALL stale PyInstaller extraction dirs in TEMP
+:: This prevents PID recycling from reusing a wrong old _MEI dir
+for /d %%i in ("%TEMP%\\_MEI*") do rmdir /s /q "%%i" 2>nul
 
 :: Swap
 if exist "%EXE_PATH%" del /f /q "%EXE_PATH%" > nul 2>&1
 if exist "%NEW_EXE%" move /y "%NEW_EXE%" "%EXE_PATH%" > nul 2>&1
 
-:: Restart (use cmd /c start with minimized flag to avoid flash)
-if exist "%EXE_PATH%" start "" /b "%EXE_PATH%"
+:: Launch via PowerShell for a clean process with no inherited PyInstaller env
+if exist "%EXE_PATH%" powershell -WindowStyle Hidden -Command "Start-Sleep -Milliseconds 500; Start-Process '%EXE_PATH%'"
 
 :: Cleanup VBS launcher and this script
 if exist "%VBS_PATH%" del /f /q "%VBS_PATH%" > nul 2>&1
