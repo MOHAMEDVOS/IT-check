@@ -138,6 +138,10 @@ ping 127.0.0.1 -n 2 > nul 2>&1
 if exist "%EXE_PATH%" del /f /q "%EXE_PATH%" > nul 2>&1
 if exist "%NEW_EXE%" move /y "%NEW_EXE%" "%EXE_PATH%" > nul 2>&1
 
+:: Clear PyInstaller environment variables so new app extracts properly
+set _MEIPASS2=
+set _MEIPASS=
+
 :: Restart (use cmd /c start with minimized flag to avoid flash)
 if exist "%EXE_PATH%" start "" /b "%EXE_PATH%"
 
@@ -160,10 +164,18 @@ del "%~f0" > nul 2>&1
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             startupinfo.wShowWindow = 0  # SW_HIDE
+            
+            # CRITICAL: Clean environment variables so child PyInstaller extract works
+            clean_env = os.environ.copy()
+            clean_env.pop('_MEIPASS2', None)
+            clean_env.pop('_MEIPASS', None)
+            clean_env.pop('sys._MEIPASS', None)
+            
             subprocess.Popen(
                 ["wscript.exe", vbs_path],
                 creationflags=subprocess.CREATE_NO_WINDOW,
                 startupinfo=startupinfo,
+                env=clean_env
             )
         
         # 5. Terminate immediately so the batch script can delete this file
