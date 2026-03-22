@@ -1,8 +1,11 @@
 """
-speed.py — Internet speed measurement using Cloudflare CDN.
+speed.py — Internet speed measurement.
 
-Uses Cloudflare's speed test endpoints with multiple parallel streams.
-No external CLI dependency — works reliably inside the compiled EXE.
+Primary  : Ookla/speedtest.net protocol via direct HTTP requests.
+           Same servers and test files as speedtest.net — results match.
+Fallback : Cloudflare CDN if Ookla servers are unreachable.
+
+No external library needed — only uses 'requests' which is already bundled.
 """
 
 import time
@@ -12,17 +15,19 @@ import psutil
 import requests
 
 
-DOWNLOAD_URLS = [
-    "https://speed.cloudflare.com/__down?bytes=10000000",   # 10 MB
-    "https://speed.cloudflare.com/__down?bytes=5000000",    # 5 MB fallback
-]
+TIMEOUT = 30
 
-UPLOAD_URL  = "https://speed.cloudflare.com/__up"
-TIMEOUT     = 45
+# Ookla server list (JSON API — same source as speedtest-cli)
+_OOKLA_SERVERS_URL = "https://www.speedtest.net/api/js/servers"
 
+# Cloudflare fallback
+_CF_DOWNLOAD_URL = "https://speed.cloudflare.com/__down?bytes=10000000"
+_CF_UPLOAD_URL   = "https://speed.cloudflare.com/__up"
+
+
+# ── Connection type detection ─────────────────────────────────────────────────
 
 def get_connection_type() -> str:
-    """Detect whether active connection is Wi-Fi or Ethernet."""
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.connect(("8.8.8.8", 80))
@@ -42,64 +47,152 @@ def get_connection_type() -> str:
         return "Unknown"
 
 
-def _measure_download_mbps(streams: int = 3) -> float:
-    """Download from Cloudflare using parallel streams. Returns total Mbps."""
-    results = []
-    lock    = threading.Lock()
+# ── Ookla protocol ────────────────────────────────────────────────────────────
 
-    def _worker():
-        for url in DOWNLOAD_URLS:
-            try:
-                start = time.perf_counter()
-                resp  = requests.get(url, timeout=TIMEOUT, stream=True)
-                resp.raise_for_status()
-                received = sum(len(chunk) for chunk in resp.iter_content(chunk_size=131072))
-                elapsed  = time.perf_counter() - start
-                if elapsed > 0 and received > 0:
-                    with lock:
-                        results.append((received * 8) / (elapsed * 1_000_000))
-                return
-            except Exception:
-                continue
+def _get_best_ookla_server() -> dict | None:
+    """
+    Fetch Ookla server list and return the lowest-latency server.
+    Returns None if the API is unreachable.
+    """
+    try:
+        resp = requests.get(
+            _OOKLA_SERVERS_URL,
+            params={"engine": "js", "https_functional": "true", "limit": "10"},
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+            timeout=10
+        )
+        resp.raise_for_status()
+        servers = resp.json()
+    except Exception:
+        return None
 
-    threads = [threading.Thread(target=_worker, daemon=True) for _ in range(streams)]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join(timeout=TIMEOUT + 5)
-
-    return sum(results) if results else 0.0
-
-
-def _measure_upload_mbps(streams: int = 2) -> float:
-    """Upload data to Cloudflare using parallel streams. Returns total Mbps."""
-    results = []
-    lock    = threading.Lock()
-    data    = b"0" * 2_000_000  # 2 MB per stream
-
-    def _worker():
+    best, best_ping = None, float("inf")
+    for server in servers[:6]:
+        url = server.get("url", "")
+        if not url:
+            continue
+        # Server URLs end with /upload.php — strip to get the base path
+        base = url.rsplit("/", 1)[0]
         try:
             start = time.perf_counter()
-            requests.post(UPLOAD_URL, data=data, timeout=TIMEOUT,
-                          headers={"Content-Type": "application/octet-stream"})
-            elapsed = time.perf_counter() - start
-            if elapsed > 0:
-                with lock:
-                    results.append((len(data) * 8) / (elapsed * 1_000_000))
+            requests.get(f"{base}/latency.txt", timeout=5)
+            ping = (time.perf_counter() - start) * 1000
+            if ping < best_ping:
+                best_ping = ping
+                best = {**server, "ping": round(ping, 1)}
+        except Exception:
+            continue
+
+    return best
+
+
+def _ookla_download(server_url: str) -> float:
+    """
+    Download Ookla test images in parallel (3 streams). Returns Mbps.
+    Uses same random*.jpg format as speedtest.net.
+    Parallel streams are required to saturate the TCP connection.
+    """
+    sizes       = [2000, 2500, 3000]   # one per thread
+    total_bytes = 0
+    lock        = threading.Lock()
+    start       = time.perf_counter()
+
+    base = server_url.rsplit("/", 1)[0]   # strip upload.php
+
+    def _fetch(size):
+        nonlocal total_bytes
+        received = 0
+        try:
+            url  = f"{base}/random{size}x{size}.jpg"
+            resp = requests.get(url, stream=True, timeout=TIMEOUT)
+            resp.raise_for_status()
+            for chunk in resp.iter_content(chunk_size=65536):
+                received += len(chunk)
         except Exception:
             pass
+        finally:
+            if received > 0:
+                with lock:
+                    total_bytes += received
 
-    threads = [threading.Thread(target=_worker, daemon=True) for _ in range(streams)]
+    threads = [threading.Thread(target=_fetch, args=(s,)) for s in sizes]
     for t in threads:
         t.start()
     for t in threads:
-        t.join(timeout=TIMEOUT + 5)
+        t.join()
 
-    return sum(results) if results else 0.0
+    elapsed = time.perf_counter() - start
+    if elapsed > 0 and total_bytes > 0:
+        return (total_bytes * 8) / (elapsed * 1_000_000)
+    return 0.0
 
 
-def _measure_latency_ms() -> float:
-    """Measure latency to Cloudflare."""
+def _ookla_upload(server_url: str) -> float:
+    """Upload data to Ookla server. Returns Mbps."""
+    sizes       = [1_000_000, 2_000_000]  # 1 MB + 2 MB
+    total_bytes = 0
+    start       = time.perf_counter()
+
+    for size in sizes:
+        try:
+            data = b"x" * size
+            requests.post(
+                server_url,
+                data=data,
+                headers={"Content-Type": "application/octet-stream"},
+                timeout=TIMEOUT
+            )
+            total_bytes += size
+        except Exception:
+            continue
+
+    elapsed = time.perf_counter() - start
+    if elapsed > 0 and total_bytes > 0:
+        return (total_bytes * 8) / (elapsed * 1_000_000)
+    return 0.0
+
+
+def _ookla_latency(server_url: str) -> float:
+    """Ping Ookla server. Returns ms."""
+    try:
+        base  = server_url.rsplit("/", 1)[0]   # strip upload.php
+        times = []
+        for _ in range(3):
+            start = time.perf_counter()
+            requests.get(f"{base}/latency.txt", timeout=5)
+            times.append((time.perf_counter() - start) * 1000)
+        return round(min(times), 1)
+    except Exception:
+        return 0.0
+
+
+# ── Cloudflare fallback ───────────────────────────────────────────────────────
+
+def _cf_download() -> float:
+    try:
+        start = time.perf_counter()
+        resp  = requests.get(_CF_DOWNLOAD_URL, stream=True, timeout=TIMEOUT)
+        resp.raise_for_status()
+        received = sum(len(c) for c in resp.iter_content(chunk_size=131072))
+        elapsed  = time.perf_counter() - start
+        return (received * 8) / (elapsed * 1_000_000) if elapsed > 0 else 0.0
+    except Exception:
+        return 0.0
+
+
+def _cf_upload() -> float:
+    try:
+        data  = b"0" * 2_000_000
+        start = time.perf_counter()
+        requests.post(_CF_UPLOAD_URL, data=data, timeout=TIMEOUT,
+                      headers={"Content-Type": "application/octet-stream"})
+        elapsed = time.perf_counter() - start
+        return (len(data) * 8) / (elapsed * 1_000_000) if elapsed > 0 else 0.0
+    except Exception:
+        return 0.0
+
+
+def _cf_latency() -> float:
     try:
         times = []
         for _ in range(3):
@@ -111,22 +204,52 @@ def _measure_latency_ms() -> float:
         return 0.0
 
 
+# ── Main entry point ──────────────────────────────────────────────────────────
+
 def run_speedtest(callback=None) -> dict:
-    """Measure internet speed using Cloudflare CDN."""
     connection_type = get_connection_type()
 
     try:
+        # ── Try Ookla first ───────────────────────────────────────────────────
         if callback:
-            callback("Step 1/3: Measuring latency...")
-        latency_ms = _measure_latency_ms()
+            callback("Step 1/3: Finding best server...")
+        server = _get_best_ookla_server()
+
+        if server:
+            server_url  = server.get("url", "")
+            server_name = f"{server.get('name', '')}, {server.get('country', '')}"
+
+            if callback:
+                callback(f"Step 2/3: Testing download speed ({server.get('sponsor', 'Ookla')})...")
+            download_mbps = _ookla_download(server_url)
+
+            if callback:
+                callback("Step 3/3: Testing upload speed...")
+            upload_mbps = _ookla_upload(server_url)
+            latency_ms  = server.get("ping", _ookla_latency(server_url))
+
+            if download_mbps > 0:
+                if callback:
+                    callback("Done!")
+                return {
+                    "download":        f"{download_mbps:.1f} Mbps",
+                    "upload":          f"{upload_mbps:.1f} Mbps",
+                    "latency":         f"{latency_ms:.0f} ms",
+                    "jitter":          "—",
+                    "server":          server_name,
+                    "connection_type": connection_type,
+                    "error":           None
+                }
+
+        # ── Cloudflare fallback ───────────────────────────────────────────────
+        if callback:
+            callback("Step 2/3: Testing download speed (fallback)...")
+        download_mbps = _cf_download()
 
         if callback:
-            callback("Step 2/3: Testing download speed...")
-        download_mbps = _measure_download_mbps(streams=3)
-
-        if callback:
-            callback("Step 3/3: Testing upload speed...")
-        upload_mbps = _measure_upload_mbps(streams=2)
+            callback("Step 3/3: Testing upload speed (fallback)...")
+        upload_mbps = _cf_upload()
+        latency_ms  = _cf_latency()
 
         if download_mbps == 0.0:
             return _error_result(connection_type, "No internet connection or server unavailable.")
@@ -139,7 +262,7 @@ def run_speedtest(callback=None) -> dict:
             "upload":          f"{upload_mbps:.1f} Mbps",
             "latency":         f"{latency_ms:.0f} ms",
             "jitter":          "—",
-            "server":          "Cloudflare CDN",
+            "server":          "Cloudflare CDN (fallback)",
             "connection_type": connection_type,
             "error":           None
         }

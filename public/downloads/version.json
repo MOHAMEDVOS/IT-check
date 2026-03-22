@@ -1,6 +1,6 @@
 {
-  "latest_version": "3.6.4",
+  "latest_version": "3.6.5",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Chrome version check fix — no more false update alerts. Speed test now uses real internet measurement (Ookla).",
-  "_timestamp": "2026-03-22T22:45:00"
+  "release_notes": "Speed test now uses Ookla protocol for accurate results — no more inflated CDN readings.",
+  "_timestamp": "2026-03-23T00:00:00"
 }

@@ -125,7 +125,7 @@ git push origin main
 ### Desktop App
 - Python 3.11+, CustomTkinter (GUI), Flask (admin dashboard), SQLite
 - PyInstaller → single `.exe`, UPX disabled (caused DLL corruption)
-- Key packages: `psutil`, `pycaw`, `comtypes`, `requests`, `speedtest-cli`, `reportlab`, `GPUtil`, `pystray`
+- Key packages: `psutil`, `pycaw`, `comtypes`, `requests`, `reportlab`, `GPUtil`, `pystray`
 
 ### Landing Page
 - React 18, TypeScript, Vite, TailwindCSS
@@ -140,7 +140,7 @@ git push origin main
 | UPX disabled in build | UPX corrupted python310.dll — caused crash on update |
 | `_MEIPASS` env vars stripped on update | PyInstaller child process inherited parent's temp path — caused DLL crash |
 | Staged rollout tolerance (1 milestone) for Chrome | Google rolls out Chrome gradually — 1 milestone behind is normal |
-| Ookla speedtest-cli for speed test | Cloudflare CDN is too close (inside ISP) — gave inflated/fake readings |
+| Ookla HTTP protocol (no library) for speed test | Cloudflare CDN is peered inside ISPs — gives inflated results. `speedtest-cli` library caused "No module" errors inside PyInstaller EXE. Direct HTTP to Ookla servers (`/random{N}x{N}.jpg`) with 3 parallel streams gives accurate results matching speedtest.net. Server URLs end with `/upload.php` — strip it with `rsplit('/', 1)[0]` before constructing download/latency URLs. |
 | VBS wrapper for update swap | Hides the cmd window during self-update |
 
 ---
