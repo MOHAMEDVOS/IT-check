@@ -119,42 +119,54 @@ def apply_update(download_url: str) -> bool:
             return True
 
         # 2. Create the batch script to swap files (Only for frozen EXE)
+        vbs_path = os.path.join(app_dir, "update.vbs")
+
         bat_content = f"""@echo off
 set "EXE_PATH={current_exe}"
 set "NEW_EXE={new_exe_path}"
 set "EXE_NAME={os.path.basename(current_exe)}"
+set "VBS_PATH={vbs_path}"
 
-:: Wait for app to close (ping is safer than timeout for hidden consoles)
-ping 127.0.0.1 -n 3 > nul
+:: Wait for app to close
+ping 127.0.0.1 -n 3 > nul 2>&1
 
 :: Hard kill just in case
-taskkill /f /im "%EXE_NAME%" > NUL 2>&1
-ping 127.0.0.1 -n 2 > nul
+taskkill /f /im "%EXE_NAME%" > nul 2>&1
+ping 127.0.0.1 -n 2 > nul 2>&1
 
 :: Swap
-if exist "%EXE_PATH%" del /f /q "%EXE_PATH%"
-if exist "%NEW_EXE%" move /y "%NEW_EXE%" "%EXE_PATH%"
+if exist "%EXE_PATH%" del /f /q "%EXE_PATH%" > nul 2>&1
+if exist "%NEW_EXE%" move /y "%NEW_EXE%" "%EXE_PATH%" > nul 2>&1
 
-:: Restart
-if exist "%EXE_PATH%" start "" "%EXE_PATH%"
+:: Restart (use cmd /c start with minimized flag to avoid flash)
+if exist "%EXE_PATH%" start "" /b "%EXE_PATH%"
 
-:: Cleanup this script
-del "%~f0"
+:: Cleanup VBS launcher and this script
+if exist "%VBS_PATH%" del /f /q "%VBS_PATH%" > nul 2>&1
+del "%~f0" > nul 2>&1
 """
         with open(bat_path, "w") as f:
             f.write(bat_content)
 
-        log.info("Update batch script created. Launching script and exiting...")
+        # 3. Create a VBScript wrapper to launch the batch file completely hidden
+        vbs_content = f'CreateObject("Wscript.Shell").Run """{bat_path}""", 0, False\n'
+        with open(vbs_path, "w") as f:
+            f.write(vbs_content)
 
-        # 3. Launch the script in the background completely detached
+        log.info("Update scripts created. Launching hidden update and exiting...")
+
+        # 4. Launch the VBScript (which runs the bat hidden) — no window at all
         if platform.system() == "Windows":
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = 0  # SW_HIDE
             subprocess.Popen(
-                f'"{bat_path}"', 
-                creationflags=subprocess.CREATE_NO_WINDOW | 0x00000008,
-                shell=True
+                ["wscript.exe", vbs_path],
+                creationflags=subprocess.CREATE_NO_WINDOW,
+                startupinfo=startupinfo,
             )
         
-        # 4. Terminate immediately so the batch script can delete this file
+        # 5. Terminate immediately so the batch script can delete this file
         os._exit(0)
 
     except Exception as e:
