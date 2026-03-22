@@ -138,10 +138,6 @@ ping 127.0.0.1 -n 2 > nul 2>&1
 if exist "%EXE_PATH%" del /f /q "%EXE_PATH%" > nul 2>&1
 if exist "%NEW_EXE%" move /y "%NEW_EXE%" "%EXE_PATH%" > nul 2>&1
 
-:: Clear PyInstaller environment variables so new app extracts properly
-set _MEIPASS2=
-set _MEIPASS=
-
 :: Restart (use cmd /c start with minimized flag to avoid flash)
 if exist "%EXE_PATH%" start "" /b "%EXE_PATH%"
 
