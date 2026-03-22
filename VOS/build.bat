@@ -27,7 +27,7 @@ if exist Release\VOS.exe del /f /q Release\VOS.exe
   --hidden-import=winreg ^
   --hidden-import=psutil._pswindows ^
   --hidden-import=GPUtil ^
-  --hidden-import=speedtest ^
+  --collect-all speedtest ^
   --hidden-import=gui ^
   --hidden-import=gui.cards ^
   --hidden-import=gui.dialogs ^
