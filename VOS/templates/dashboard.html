@@ -843,15 +843,16 @@ let sortCol = -1, sortAsc = true;
 const expandedAgents = new Set();
 
 /* ── Helpers ─────────────────────────────────────────────────── */
-function formatDateTime12h(dateStr) {
-    if (!dateStr || dateStr === '—') return '—';
-    try {
-        const d = new Date(dateStr.replace(' ', 'T'));
-        if (isNaN(d.getTime())) return dateStr;
-        const dp = d.toLocaleDateString('en-US', { year:'numeric', month:'numeric', day:'numeric' });
-        const tp = d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
-        return `<div class="date-stacked"><div>${dp}</div><div>${tp}</div></div>`;
-    } catch(e){ return dateStr; }
+function formatDateTime12h(dateStr){
+    if(!dateStr||dateStr==='—') return '—';
+    try{
+        const d=new Date(dateStr.replace(' ','T')+'Z');
+        if(isNaN(d.getTime())) return dateStr;
+        const opts={timeZone:'America/New_York'};
+        const dp=d.toLocaleDateString('en-US',{...opts,year:'numeric',month:'numeric',day:'numeric'});
+        const tp=d.toLocaleTimeString('en-US',{...opts,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+        return `<div class="date-stacked"><div>${dp}</div><div>${tp} EST</div></div>`;
+    }catch(e){return dateStr;}
 }
 function getDateFreshnessClass(dateStr) {
     if (!dateStr || dateStr === '—') return '';
@@ -1193,7 +1194,7 @@ function renderTable(data){
                         <div class="drow"><span class="lbl">Disk Free</span><span class="val">${r.disk_space||'—'}</span></div>
                         <div class="drow"><span class="lbl">Disk Used</span><span class="val">${r.disk_used_pct?r.disk_used_pct+'%':'—'}</span></div>
                         <div class="drow"><span class="lbl">AnyDesk ID</span><span class="val" style="color:#60a5fa">${r.anydesk_id||'—'}</span></div>
-                        <div class="drow"><span class="lbl">Last Check</span><span class="val">${r.last_checked||'—'}</span></div>
+                        <div class="drow"><span class="lbl">Last Check</span><span class="val">${formatDateTime12h(r.last_checked)||'—'}</span></div>
                     </div>
                 </div>
             </td>

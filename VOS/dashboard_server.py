@@ -286,7 +286,7 @@ def get_results():
             FROM results
             GROUP BY agent_name
         ) latest ON r.id = latest.max_id
-        ORDER BY r.agent_name COLLATE NOCASE
+        ORDER BY r.last_checked DESC
     """).fetchall()
     conn.close()
 
