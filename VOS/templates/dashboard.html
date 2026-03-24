@@ -1108,7 +1108,7 @@ function renderTable(data){
     }
     let html='', issues=0, approved=0, rejected=0;
     data.forEach((r,i)=>{
-        const dataIdx=allData.indexOf(r);
+        const dataIdx=r._idx!==undefined?r._idx:allData.indexOf(r);
         let ping={}; try{ping=JSON.parse(r.ping_details||'{}');}catch(e){}
         const ok=isAgentApproved(r);
         const isPoorConn=(ping.verdict||'').toUpperCase()==='POOR';
@@ -1287,7 +1287,7 @@ function toggleIssuesFilter(){
 function applyFilters(){
     const q=document.getElementById('searchBox').value.toLowerCase();
     const team=document.getElementById('teamFilter').value||document.getElementById('teamFilterSb').value;
-    let f=allData.map(r=>({...r,team:normalizeTeam(r.team)}));
+    let f=allData.map((r,i)=>({...r,_idx:i,team:normalizeTeam(r.team)}));
 
     if(currentView==='new'){
         f=f.filter(r=>(r.team||'').toUpperCase()==='NEW');
