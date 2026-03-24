@@ -992,6 +992,20 @@ function isAgentApproved(r){
     const mt=mp.length>1?mp[mp.length-1].trim().toLowerCase():'';
     return specsOk&&isEth&&speedOk&&(mt==='usb'||ms.includes('usb'));
 }
+function getApprovalReason(r){
+    const reasons=[];
+    if(!r.cpu_label||r.cpu_label.toLowerCase()!=='approved') reasons.push('PC specs not approved');
+    const ct=(r.connection_type||'').toLowerCase();
+    if(!ct.includes('ethernet')&&!ct.includes('eth')) reasons.push('Not using Ethernet ('+(r.connection_type||'unknown')+')');
+    const dl=parseFloat(r.download_mbps||0), ul=parseFloat(r.upload_mbps||0);
+    if(dl<10) reasons.push('Download speed too low ('+dl+' Mbps, min 10)');
+    if(ul<2)  reasons.push('Upload speed too low ('+ul+' Mbps, min 2)');
+    const ms=(r.mic_device||'').toLowerCase();
+    const mp=r.mic_device?r.mic_device.split('\u2014'):[];
+    const mt=mp.length>1?mp[mp.length-1].trim().toLowerCase():'';
+    if(mt!=='usb'&&!ms.includes('usb')) reasons.push('Headset is not USB type');
+    return reasons.join('\n             ');
+}
 
 /* ── Copy summary ────────────────────────────────────────────── */
 async function copySummary(idx,evt){
@@ -1008,16 +1022,60 @@ async function copySummary(idx,evt){
     const proc=(specs[0]||r.pc_specs||'—').trim()||'—';
     let ram='—';
     const rm=(specs.length>1?specs[1]:r.pc_specs||'').match(/(\d+)\s*GB/i); if(rm) ram=rm[1]+' GB';
+    const appOk=isAgentApproved(r);
+    const appLine='   Approved to join? '+(appOk?'Yes':'No');
+    const reasonLine=appOk?'':'   Reason:   '+getApprovalReason(r);
     const txt=['1. Headset Type','   Type: '+(r.mic_device||'—'),'','',
         '2. Internet Connection',
         '   Speed:      Upload '+(r.upload_mbps||'—')+' Mbps / Download '+(r.download_mbps||'—')+' Mbps',
         '   Type:      '+ct,'   Stability: '+stab,'','',
-        '3. Device Information','   Processor: '+proc,'   RAM:       '+ram,'   Storage:   '+(r.disk_space||'—')].join('\n');
+        '3. Device Information','   Processor: '+proc,'   RAM:       '+ram,'   Storage:   '+(r.disk_space||'—'),'','',
+        '4. Approval',appLine,...(appOk?[]:[reasonLine])].join('\n');
     try{
         if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(txt);
         else{ const ta=document.createElement('textarea'); ta.value=txt; ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
         document.getElementById('lastUpdated').textContent='✓ Copied for '+(r.agent_name||'agent');
     }catch(e){alert('Copy failed: '+e.message);}
+}
+
+async function sendToSheet(idx,evt){
+    if(evt) evt.stopPropagation();
+    const r=allData[idx]; if(!r) return;
+    let ping={}; try{ping=JSON.parse(r.ping_details||'{}');}catch(e){}
+    let ct=r.connection_type&&r.connection_type!=='—'?r.connection_type:'—';
+    if(ct!=='—') ct=ct.replace(/^[^A-Za-z0-9]+/,'').trim();
+    let stab='—';
+    if(ping&&(ping.verdict||ping.avg_ms||ping.loss_pct!==undefined))
+        stab=`${ping.verdict||'—'} (avg ${ping.avg_ms!==undefined?ping.avg_ms:'—'} ms, ${ping.loss_pct!==undefined?ping.loss_pct:0}% loss)`;
+    else if(r.connection_stability&&r.connection_stability!=='—') stab=r.connection_stability;
+    const specs=(r.pc_specs||'').split('/');
+    const proc=(specs[0]||r.pc_specs||'—').trim()||'—';
+    let ram='—';
+    const rm=(specs.length>1?specs[1]:r.pc_specs||'').match(/(\d+)\s*GB/i); if(rm) ram=rm[1]+' GB';
+    const appOk=isAgentApproved(r);
+    const appLine='   Approved to join? '+(appOk?'Yes':'No');
+    const reasonLine=appOk?'':'   Reason:   '+getApprovalReason(r);
+    const details=['1. Headset Type','   Type: '+(r.mic_device||'—'),'','',
+        '2. Internet Connection',
+        '   Speed:      Upload '+(r.upload_mbps||'—')+' Mbps / Download '+(r.download_mbps||'—')+' Mbps',
+        '   Type:      '+ct,'   Stability: '+stab,'','',
+        '3. Device Information','   Processor: '+proc,'   RAM:       '+ram,'   Storage:   '+(r.disk_space||'—'),'','',
+        '4. Approval',appLine,...(appOk?[]:[reasonLine])].join('\n');
+    const btn=evt?.target; if(btn){btn.disabled=true;btn.textContent='...';}
+    try{
+        const res=await fetch('/api/send-to-sheet',{
+            method:'POST',credentials:'same-origin',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({agent_name:r.agent_name||'—',anydesk_id:r.anydesk_id||'—',details})
+        });
+        const json=await res.json();
+        if(!res.ok) throw new Error(json.error||res.status);
+        document.getElementById('lastUpdated').textContent='✓ Sent to Sheet: '+(r.agent_name||'agent');
+        if(btn){btn.disabled=false;btn.textContent='Sheet';}
+    }catch(e){
+        alert('Send to Sheet failed: '+e.message);
+        if(btn){btn.disabled=false;btn.textContent='Sheet';}
+    }
 }
 
 function deleteAgent(name){
@@ -1093,7 +1151,8 @@ function renderTable(data){
                     <button class="btn-act" onclick="copySummary(${i},event);return false;">Copy</button>
                     <button class="btn-act" onclick="downloadPDF('${safe(r.agent_name)}');return false;">PDF</button>
                     ${currentView==='new'
-                        ?`<button class="btn-act grad" onclick="graduateAgent('${safe(r.agent_name)}');return false;">✓ Done</button>`
+                        ?`<button class="btn-act" onclick="sendToSheet(${i},event);return false;">Sheet</button>
+                          <button class="btn-act grad" onclick="graduateAgent('${safe(r.agent_name)}');return false;">✓ Done</button>`
                         :`<button class="btn-act del" onclick="deleteAgent('${safe(r.agent_name)}');return false;">✕</button>`
                     }
                 </div>
@@ -1109,6 +1168,8 @@ function renderTable(data){
                         <div class="drow"><span class="lbl">GPU</span><span class="val">${r.gpu||'—'}</span></div>
                         <div class="drow"><span class="lbl">Performance</span><span class="val">${statusPill(r.cpu_label)}</span></div>
                         <div class="drow"><span class="lbl">Chrome</span><span class="val">${r.chrome_version||'—'}</span></div>
+                        <div class="drow"><span class="lbl">Approved to join?</span><span class="val" style="color:${isAgentApproved(r)?'#34d399':'#f87171'};font-weight:600">${isAgentApproved(r)?'✓ Yes':'✗ No'}</span></div>
+                        ${!isAgentApproved(r)?`<div class="drow"><span class="lbl">Reason</span><span class="val" style="color:#fbbf24;white-space:pre-wrap">${getApprovalReason(r).replace(/\n\s+/g,'\n')}</span></div>`:''}
                     </div>
                     <div class="dsec">
                         <h4>Network</h4>

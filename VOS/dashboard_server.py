@@ -79,6 +79,7 @@ def _load_dashboard_config() -> dict:
         "smtp_password": "",
         "alert_recipients": [],
         "alert_from": "",
+        "google_sheet_webhook": "",
     }
     try:
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
@@ -388,6 +389,26 @@ def graduate_agent(agent_name):
     conn.commit()
     conn.close()
     return jsonify({"status": "graduated", "agent": agent_name}), 200
+
+
+@app.route("/api/send-to-sheet", methods=["POST"])
+@require_login
+def send_to_sheet():
+    """Forward agent results to a Google Sheet via Apps Script webhook."""
+    webhook_url = cfg.get("google_sheet_webhook", "").strip()
+    if not webhook_url:
+        return jsonify({"error": "google_sheet_webhook not configured in dashboard_config.json"}), 400
+    data = request.get_json(force=True)
+    try:
+        import urllib.request as _ur, json as _json
+        payload = _json.dumps(data).encode()
+        req = _ur.Request(webhook_url, data=payload,
+                          headers={"Content-Type": "application/json"}, method="POST")
+        with _ur.urlopen(req, timeout=10) as resp:
+            body = resp.read().decode()
+        return jsonify({"ok": True, "response": body})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/history/<agent_name>", methods=["GET"])
