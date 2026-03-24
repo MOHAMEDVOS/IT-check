@@ -487,7 +487,7 @@
         thead th:nth-child(13) { width: 60px; }   /* notes */
         thead th:nth-child(14) { width: 55px; }   /* disk */
         thead th:nth-child(15) { width: 72px; }   /* checked */
-        thead th:nth-child(16) { width: 80px; }   /* actions */
+        thead th:nth-child(16) { width: 130px; min-width:130px; }   /* actions */
 
         /* ── ROWS ─────────────────────────────────────────── */
         tbody tr.data-row {
@@ -630,9 +630,9 @@
         .chk-col input[type="checkbox"] { width:14px; height:14px; accent-color:var(--accent); cursor:pointer; }
 
         /* ── ACTION BUTTONS ───────────────────────────────── */
-        .act-wrap { display:flex; gap:3px; }
+        .act-wrap { display:flex; gap:3px; flex-wrap:wrap; }
         .btn-act {
-            padding: 4px 8px; border-radius:6px;
+            padding: 3px 6px; border-radius:6px;
             border: 1px solid var(--b2); background:transparent;
             color: var(--t3); font-family:'Manrope',sans-serif;
             font-size:9px; font-weight:700; cursor:pointer; transition:.15s;
