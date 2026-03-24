@@ -1108,6 +1108,7 @@ function renderTable(data){
     }
     let html='', issues=0, approved=0, rejected=0;
     data.forEach((r,i)=>{
+        const dataIdx=allData.indexOf(r);
         let ping={}; try{ping=JSON.parse(r.ping_details||'{}');}catch(e){}
         const ok=isAgentApproved(r);
         const isPoorConn=(ping.verdict||'').toUpperCase()==='POOR';
@@ -1148,10 +1149,10 @@ function renderTable(data){
             <td class="date-cell ${fc}">${fd}</td>
             <td>
                 <div class="act-wrap">
-                    <button class="btn-act" onclick="copySummary(${i},event);return false;">Copy</button>
+                    <button class="btn-act" onclick="copySummary(${dataIdx},event);return false;">Copy</button>
                     <button class="btn-act" onclick="downloadPDF('${safe(r.agent_name)}');return false;">PDF</button>
                     ${currentView==='new'
-                        ?`<button class="btn-act" onclick="sendToSheet(${i},event);return false;">Sheet</button>
+                        ?`<button class="btn-act" onclick="sendToSheet(${dataIdx},event);return false;">Sheet</button>
                           <button class="btn-act grad" onclick="graduateAgent('${safe(r.agent_name)}');return false;">✓ Done</button>`
                         :`<button class="btn-act del" onclick="deleteAgent('${safe(r.agent_name)}');return false;">✕</button>`
                     }
