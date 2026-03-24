@@ -792,6 +792,7 @@
         <div class="bulk-bar" id="bulkBar">
             <span class="bulk-count"><span id="bulkCount">0</span> selected</span>
             <button class="btn-bulk grad" id="bulkGrad" onclick="bulkGraduate()" style="display:none">✓ Graduate</button>
+            <button class="btn-bulk" id="bulkSheet" onclick="bulkSendToSheet()" style="display:none">Send to Sheet</button>
             <button class="btn-bulk del"  id="bulkDel"  onclick="bulkDelete()">Delete selected</button>
             <button class="btn-bulk clear" onclick="clearSelection()">Clear</button>
         </div>
@@ -1264,6 +1265,7 @@ function switchView(view){
     document.getElementById('sb-rejected-wrap').style.display=showAR?'':'none';
     // bulk button visibility
     document.getElementById('bulkGrad').style.display=view==='new'?'':'none';
+    document.getElementById('bulkSheet').style.display=view==='new'?'':'none';
     document.getElementById('bulkDel').style.display=view==='new'?'none':'';
     // issues filter — clear if switching away
     if(issuesFilterOn){ issuesFilterOn=false; document.getElementById('btnIssues').classList.remove('active'); }
@@ -1384,6 +1386,44 @@ function bulkGraduate(){
     if(!confirm('Graduate '+names.length+' agent(s) out of Newcomers?')) return;
     Promise.all(names.map(n=>fetch('/api/results/'+encodeURIComponent(n)+'/graduate',{method:'PATCH',credentials:'same-origin'})))
         .then(()=>{clearSelection();fetchResults();}).catch(e=>alert('Failed: '+e.message));
+}
+async function bulkSendToSheet(){
+    const names=[...selectedAgents]; if(!names.length) return;
+    const btn=document.getElementById('bulkSheet');
+    btn.disabled=true; btn.textContent='Sending...';
+    let sent=0, failed=0;
+    for(const name of names){
+        const r=allData.find(a=>a.agent_name===name); if(!r) continue;
+        let ping={}; try{ping=JSON.parse(r.ping_details||'{}');}catch(e){}
+        let ct=r.connection_type&&r.connection_type!=='—'?r.connection_type:'—';
+        if(ct!=='—') ct=ct.replace(/^[^A-Za-z0-9]+/,'').trim();
+        let stab='—';
+        if(ping&&(ping.verdict||ping.avg_ms||ping.loss_pct!==undefined))
+            stab=`${ping.verdict||'—'} (avg ${ping.avg_ms!==undefined?ping.avg_ms:'—'} ms, ${ping.loss_pct!==undefined?ping.loss_pct:0}% loss)`;
+        else if(r.connection_stability&&r.connection_stability!=='—') stab=r.connection_stability;
+        const specs=(r.pc_specs||'').split('/');
+        const proc=(specs[0]||r.pc_specs||'—').trim()||'—';
+        let ram='—';
+        const rm=(specs.length>1?specs[1]:r.pc_specs||'').match(/(\d+)\s*GB/i); if(rm) ram=rm[1]+' GB';
+        const appOk=isAgentApproved(r);
+        const appLine='   Approved to join? '+(appOk?'Yes':'No');
+        const reasonLine=appOk?'':'   Reason:   '+getApprovalReason(r);
+        const details=['1. Headset Type','   Type: '+(r.mic_device||'—'),'','',
+            '2. Internet Connection',
+            '   Speed:      Upload '+(r.upload_mbps||'—')+' Mbps / Download '+(r.download_mbps||'—')+' Mbps',
+            '   Type:      '+ct,'   Stability: '+stab,'','',
+            '3. Device Information','   Processor: '+proc,'   RAM:       '+ram,'   Storage:   '+(r.disk_space||'—'),'','',
+            '4. Approval',appLine,...(appOk?[]:[reasonLine])].join('\n');
+        try{
+            const res=await fetch('/api/send-to-sheet',{method:'POST',credentials:'same-origin',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({agent_name:r.agent_name||'—',anydesk_id:r.anydesk_id||'—',details})});
+            if(res.ok) sent++; else failed++;
+        }catch(e){ failed++; }
+    }
+    btn.disabled=false; btn.textContent='Send to Sheet';
+    document.getElementById('lastUpdated').textContent=
+        failed===0?`✓ Sent ${sent} agent(s) to Sheet`:`Sent ${sent}, failed ${failed}`;
 }
 function bulkDelete(){
     const names=[...selectedAgents]; if(!names.length) return;
