@@ -391,20 +391,84 @@ def graduate_agent(agent_name):
     return jsonify({"status": "graduated", "agent": agent_name}), 200
 
 
+def _generate_pdf_base64(agent_name):
+    """Generate PDF for an agent and return as base64 string, or None on failure."""
+    if not HAS_PDF:
+        return None
+    conn = _get_db()
+    row = conn.execute("SELECT * FROM results WHERE agent_name = ? ORDER BY id DESC LIMIT 1",
+                       (agent_name,)).fetchone()
+    conn.close()
+    if not row:
+        return None
+    ping_details = {}
+    try:
+        ping_details = json.loads(row["ping_details"])
+    except Exception:
+        pass
+    results = {
+        "specs": {
+            "cpu_model": row["pc_specs"],
+            "total_ram": row["pc_specs"].split("/")[-1].strip() if "/" in (row["pc_specs"] or "") else "—",
+            "gpu_name": row["gpu"],
+            "perf_label": row["cpu_label"],
+        },
+        "speed": {
+            "download": row["download_mbps"],
+            "upload": row["upload_mbps"],
+            "connection_type": row["connection_type"],
+        },
+        "mic": {
+            "device": row["mic_device"].split("—")[0].strip() if "—" in (row["mic_device"] or "") else row["mic_device"],
+            "type": row["mic_device"].split("—")[-1].strip() if "—" in (row["mic_device"] or "") else "—",
+            "level": row["mic_level"],
+        },
+        "disk": {
+            "drive": "C:", "free_gb": row["disk_free_gb"],
+            "total_gb": 0, "used_pct": row["disk_used_pct"], "disk_space": row["disk_space"]
+        },
+        "chrome": {
+            "installed_version": row["chrome_version"], "status_label": row["chrome_status"],
+            "installed_milestone": "—", "latest_version": "—", "latest_milestone": "—"
+        }
+    }
+    class DummyPing:
+        def __init__(self, d):
+            self.stability_score = d.get("score", "—"); self.verdict = d.get("verdict", "—")
+            self.jitter = d.get("jitter_ms", "—"); self.avg_rtt = d.get("avg_ms", 0)
+            self.packet_loss_pct = d.get("loss_pct", 0); self.spike_count = d.get("spikes", "—")
+    results["ping"] = DummyPing(ping_details)
+    try:
+        import base64, tempfile
+        filepath = export_results_to_pdf(
+            results=results, agent_name=row["agent_name"],
+            anydesk_id=row["anydesk_id"], team_name=row["team"],
+            output_dir=tempfile.gettempdir()
+        )
+        with open(filepath, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except Exception:
+        return None
+
+
 @app.route("/api/send-to-sheet", methods=["POST"])
 @require_login
 def send_to_sheet():
-    """Forward agent results to a Google Sheet via Apps Script webhook."""
+    """Forward agent results (+ PDF) to a Google Sheet via Apps Script webhook."""
     webhook_url = cfg.get("google_sheet_webhook", "").strip()
     if not webhook_url:
         return jsonify({"error": "google_sheet_webhook not configured in dashboard_config.json"}), 400
     data = request.get_json(force=True)
+    # Attach PDF as base64 so Apps Script can save it to Google Drive
+    pdf_b64 = _generate_pdf_base64(data.get("agent_name", ""))
+    if pdf_b64:
+        data["pdf_base64"] = pdf_b64
     try:
         import urllib.request as _ur, json as _json
         payload = _json.dumps(data).encode()
         req = _ur.Request(webhook_url, data=payload,
                           headers={"Content-Type": "application/json"}, method="POST")
-        with _ur.urlopen(req, timeout=10) as resp:
+        with _ur.urlopen(req, timeout=30) as resp:
             body = resp.read().decode()
         return jsonify({"ok": True, "response": body})
     except Exception as e:
