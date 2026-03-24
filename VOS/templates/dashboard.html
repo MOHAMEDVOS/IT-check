@@ -1308,13 +1308,13 @@ function applyFilters(){
         (r.agent_name||'').toLowerCase().includes(q)||
         (r.anydesk_id||'').toLowerCase().includes(q)||
         (r.res_id||'').toLowerCase().includes(q));
-    // Agents with no team always sink to the bottom
+    // Sort: newest check first; agents with no team always sink to the bottom
     f.sort((a,b)=>{
         const aEmpty=!a.team||a.team==='—'||a.team.trim()==='';
         const bEmpty=!b.team||b.team==='—'||b.team.trim()==='';
         if(aEmpty&&!bEmpty) return 1;
         if(!aEmpty&&bEmpty) return -1;
-        return 0;
+        return (b.last_checked||'').localeCompare(a.last_checked||'');
     });
     renderTable(f);
 }
