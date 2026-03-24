@@ -304,9 +304,8 @@ def post_results():
     if not agent_name:
         return jsonify({"error": "agent_name is required"}), 400
 
-    # Always use server UTC time so the dashboard can convert correctly to any timezone
-    from datetime import timezone as _tz
-    last_checked = datetime.now(_tz.utc).strftime("%Y-%m-%d %H:%M:%S")
+    last_checked = payload.get("last_checked",
+                               datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     conn = _get_db()
     

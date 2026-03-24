@@ -846,7 +846,7 @@ const expandedAgents = new Set();
 function formatDateTime12h(dateStr){
     if(!dateStr||dateStr==='—') return '—';
     try{
-        const d=new Date(dateStr.replace(' ','T')+'Z');
+        const d=new Date(dateStr.replace(' ','T')+'+02:00'); // agents are Egypt UTC+2
         if(isNaN(d.getTime())) return dateStr;
         const opts={timeZone:'America/New_York'};
         const dp=d.toLocaleDateString('en-US',{...opts,year:'numeric',month:'numeric',day:'numeric'});
@@ -857,7 +857,7 @@ function formatDateTime12h(dateStr){
 function getDateFreshnessClass(dateStr) {
     if (!dateStr || dateStr === '—') return '';
     try {
-        const d = new Date(dateStr.replace(' ', 'T'));
+        const d = new Date(dateStr.replace(' ', 'T')+'+02:00');
         if (isNaN(d.getTime())) return '';
         const now = new Date();
         if (d.toDateString() === now.toDateString()) return 'date-fresh';
