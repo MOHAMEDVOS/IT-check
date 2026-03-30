@@ -231,13 +231,10 @@ def check_chrome() -> ChromeResult:
 
     elif result.milestones_behind == 1:
         # One milestone behind — Google's staged rollout, not yet pushed to this machine
-        result.status       = "STAGED_ROLLOUT"
+        result.status       = "UP_TO_DATE"
         result.status_label = "Up to Date"
         result.status_color = "#10B981"
-        result.note         = (
-            f"Chrome v{result.latest_version} is rolling out gradually. "
-            f"Your version ({result.installed_version}) is current for this machine."
-        )
+        result.note         = f"Your Chrome browser is up to date (v{result.installed_version})."
 
     else:
         # 2+ milestones behind — genuinely outdated
