@@ -383,9 +383,26 @@ class VOSApp(ctk.CTk):
 
     # ─────────────────────── System tray ───────────────────────
     def _on_unmap(self, event):
-        """When window is minimized, send to tray instead of taskbar."""
-        if event.widget is self and self.state() == "iconic":
-            self.after(10, self._to_tray)
+        """
+        When window is minimized, send to tray instead of taskbar.
+
+        Guard: only react to Unmap events whose widget IS this toplevel
+        AND whose state has *genuinely* settled to "iconic" after a short
+        debounce — this prevents false positives from transient
+        focus-steal / reconfigure events (e.g. a background worker thread
+        briefly stealing focus) from sending the window to the tray.
+        """
+        if event.widget is not self:
+            return
+        self.after(150, self._maybe_minimize_to_tray)
+
+    def _maybe_minimize_to_tray(self):
+        """Verify the window really is minimized before sending it to tray."""
+        try:
+            if self.state() == "iconic":
+                self._to_tray()
+        except Exception:
+            pass
 
     def _to_tray(self):
         """Hide window and show in system tray (notification area)."""
@@ -1405,7 +1422,7 @@ class VOSApp(ctk.CTk):
             res = results_snapshot["mic"]
             try:
                 lvl = float(res.get("level", 100))
-                if lvl < MIC_LEVEL_MIN:
+                if lvl < 100:
                     self.cards["mic"].show_fix_btn(self._auto_fix_mic)
                 else:
                     self.cards["mic"].hide_fix_btn()

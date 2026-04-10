@@ -42,10 +42,10 @@ def get_connection_type() -> str:
 def _cf_download() -> float:
     try:
         start = time.perf_counter()
-        resp  = requests.get(_CF_DOWNLOAD_URL, stream=True, timeout=TIMEOUT)
-        resp.raise_for_status()
-        received = sum(len(c) for c in resp.iter_content(chunk_size=131072))
-        elapsed  = time.perf_counter() - start
+        with requests.get(_CF_DOWNLOAD_URL, stream=True, timeout=TIMEOUT) as resp:
+            resp.raise_for_status()
+            received = sum(len(c) for c in resp.iter_content(chunk_size=131072))
+        elapsed = time.perf_counter() - start
         return (received * 8) / (elapsed * 1_000_000) if elapsed > 0 else 0.0
     except Exception:
         return 0.0
@@ -55,8 +55,9 @@ def _cf_upload() -> float:
     try:
         data  = b"0" * 2_000_000
         start = time.perf_counter()
-        requests.post(_CF_UPLOAD_URL, data=data, timeout=TIMEOUT,
-                      headers={"Content-Type": "application/octet-stream"})
+        with requests.post(_CF_UPLOAD_URL, data=data, timeout=TIMEOUT,
+                           headers={"Content-Type": "application/octet-stream"}):
+            pass
         elapsed = time.perf_counter() - start
         return (len(data) * 8) / (elapsed * 1_000_000) if elapsed > 0 else 0.0
     except Exception:
@@ -68,7 +69,8 @@ def _cf_latency() -> float:
         times = []
         for _ in range(3):
             start = time.perf_counter()
-            requests.get("https://speed.cloudflare.com/__down?bytes=0", timeout=5)
+            with requests.get("https://speed.cloudflare.com/__down?bytes=0", timeout=5):
+                pass
             times.append((time.perf_counter() - start) * 1000)
         return round(min(times), 1)
     except Exception:

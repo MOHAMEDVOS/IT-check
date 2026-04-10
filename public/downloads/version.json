@@ -1,6 +1,6 @@
 {
-  "latest_version": "3.6.6",
+  "latest_version": "3.6.7",
   "download_url": "https://raw.githubusercontent.com/MOHAMEDVOS/IT-check/main/public/downloads/vos.exe",
-  "release_notes": "Chrome version check simplified — 1 version behind now correctly shows as up to date.",
-  "_timestamp": "2026-03-30T00:00:00"
+  "release_notes": "Smarter CPU scoring (fixes i5 10th gen false rejections), no more window minimize on check, Fix Mic button now shows for any level below 100.",
+  "_timestamp": "2026-04-10T00:00:00"
 }

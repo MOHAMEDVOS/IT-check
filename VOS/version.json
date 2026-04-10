@@ -1,5 +1,5 @@
 {
-    "latest_version": "3.6.6",
+    "latest_version": "3.6.7",
     "download_url": "https://github.com/MOHAMEDVOS/IT-check/releases/latest/download/VOS.exe",
-    "release_notes": "Chrome version check fix — no more false update alerts. Speed test now uses real internet measurement (Ookla) instead of CDN."
+    "release_notes": "Smarter CPU scoring (fixes i5 10th gen false rejections), no more window minimize on check, Fix Mic button now shows for any level below 100."
 }

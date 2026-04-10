@@ -22,7 +22,6 @@ if exist Release\VOS.exe del /f /q Release\VOS.exe
   --hidden-import=comtypes.stream ^
   --hidden-import=comtypes._cominterface_items ^
   --hidden-import=comtypes.server.localserver ^
-  --hidden-import=cpuinfo ^
   --hidden-import=pkg_resources.py2_warn ^
   --hidden-import=winreg ^
   --hidden-import=psutil._pswindows ^

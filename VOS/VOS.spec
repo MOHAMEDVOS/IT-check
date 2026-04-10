@@ -3,7 +3,7 @@ from PyInstaller.utils.hooks import collect_all
 
 datas = [('assets', 'assets'), ('gui', 'gui'), ('thresholds.py', '.'), ('logger.py', '.')]
 binaries = []
-hiddenimports = ['pycaw.pycaw', 'pycaw.constants', 'pycaw.magic', 'comtypes.stream', 'comtypes._cominterface_items', 'comtypes.server.localserver', 'cpuinfo', 'pkg_resources.py2_warn', 'winreg', 'psutil._pswindows', 'GPUtil', 'gui', 'gui.cards', 'gui.dialogs', 'gui.theme']
+hiddenimports = ['pycaw.pycaw', 'pycaw.constants', 'pycaw.magic', 'comtypes.stream', 'comtypes._cominterface_items', 'comtypes.server.localserver', 'pkg_resources.py2_warn', 'winreg', 'psutil._pswindows', 'GPUtil', 'gui', 'gui.cards', 'gui.dialogs', 'gui.theme']
 tmp_ret = collect_all('pycaw')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('comtypes')

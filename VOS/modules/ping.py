@@ -146,6 +146,7 @@ def _run_single_round(host: str, count: int) -> tuple:
     """Runs one batch of `count` pings. Returns (samples, sent, lost)."""
     samples = []
     lost = 0
+    proc = None
     try:
         proc = subprocess.Popen(
             ["ping", host, "-n", str(count)],
@@ -154,7 +155,15 @@ def _run_single_round(host: str, count: int) -> tuple:
             text=True,
             creationflags=subprocess.CREATE_NO_WINDOW
         )
-        stdout, _ = proc.communicate(timeout=120)
+        try:
+            stdout, _ = proc.communicate(timeout=120)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            try:
+                proc.communicate(timeout=5)
+            except Exception:
+                pass
+            return samples, count, count  # count everything as lost
         for line in stdout.splitlines():
             ms = _parse_ping_ms(line)
             if ms is not None:
@@ -163,7 +172,11 @@ def _run_single_round(host: str, count: int) -> tuple:
         if loss_match:
             lost = round(count * float(loss_match.group(1)) / 100)
     except Exception:
-        pass
+        if proc is not None and proc.poll() is None:
+            try:
+                proc.kill()
+            except Exception:
+                pass
     return samples, count, lost
 
 
