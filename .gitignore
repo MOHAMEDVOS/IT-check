@@ -28,12 +28,31 @@ __pycache__/
 
 # PyInstaller build output
 VOS/build/
+VOS/dist/
 VOS/Release/
 VOS/Release_test/
 VOS/*.spec
 VOS/update_log.txt
 VOS/debug.log
 public/downloads/debug.log
+
+# One-off scripts (never commit back)
+VOS/get_logs.py
+VOS/deploy_to_pythonanywhere.py
+VOS/analyze_ping.py
+VOS/DEPLOY_GUIDE.py
+
+# Dead GUI code
+VOS/gui/loading_screen.py
+
+# Agent/AI tooling (not part of the app)
+.agents/
+VOS/.agents/
+.claude/
+
+# Local test files
+test_chrome.py
+VOS/team_results.db
 
 # Virtual environments
 VOS/.venv_stable/
