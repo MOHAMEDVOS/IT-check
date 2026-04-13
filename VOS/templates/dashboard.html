@@ -975,7 +975,7 @@ function micPill(s){
     const d=s.toLowerCase(), parts=s.split('—');
     const tp=parts.length>1?parts[parts.length-1].trim().toLowerCase():'';
     if(tp==='usb'||d.includes('usb')) return '<span class="pill pill-good">USB</span>';
-    if(tp==='aux'||d.includes('aux')||d.includes('jack')) return '<span class="pill pill-warn">AUX</span>';
+    if(tp==='aux'||d.includes('aux')||d.includes('jack')) return '<span class="pill pill-good">AUX</span>';
     if(tp==='built-in'||d.includes('built-in')||d.includes('array')||d.includes('internal')) return '<span class="pill pill-bad">Built-in</span>';
     if(tp) return `<span class="pill pill-warn">${parts[parts.length-1].trim()}</span>`;
     return `<span class="pill pill-warn">${s.split('—')[0].trim()}</span>`;
@@ -992,7 +992,8 @@ function isAgentApproved(r){
     const ms=(r.mic_device||'').toLowerCase();
     const mp=r.mic_device?r.mic_device.split('\u2014'):[];
     const mt=mp.length>1?mp[mp.length-1].trim().toLowerCase():'';
-    return specsOk&&isEth&&speedOk&&(mt==='usb'||ms.includes('usb'));
+    const micOk=mt==='usb'||ms.includes('usb')||mt==='aux'||ms.includes('aux')||ms.includes('jack');
+    return specsOk&&isEth&&speedOk&&micOk;
 }
 function getApprovalReason(r){
     const reasons=[];
@@ -1005,7 +1006,8 @@ function getApprovalReason(r){
     const ms=(r.mic_device||'').toLowerCase();
     const mp=r.mic_device?r.mic_device.split('\u2014'):[];
     const mt=mp.length>1?mp[mp.length-1].trim().toLowerCase():'';
-    if(mt!=='usb'&&!ms.includes('usb')) reasons.push('Headset is not USB type');
+    const micOk=mt==='usb'||ms.includes('usb')||mt==='aux'||ms.includes('aux')||ms.includes('jack');
+    if(!micOk) reasons.push('Headset is not USB or AUX type');
     return reasons.join('\n             ');
 }
 
@@ -1309,11 +1311,18 @@ function applyFilters(){
         (r.anydesk_id||'').toLowerCase().includes(q)||
         (r.res_id||'').toLowerCase().includes(q));
     // Sort: newest check first; agents with no team always sink to the bottom
+    // Newcomers tab: agents with issues float to the top
     f.sort((a,b)=>{
         const aEmpty=!a.team||a.team==='—'||a.team.trim()==='';
         const bEmpty=!b.team||b.team==='—'||b.team.trim()==='';
         if(aEmpty&&!bEmpty) return 1;
         if(!aEmpty&&bEmpty) return -1;
+        if(currentView==='new'){
+            const aIssue=!isAgentApproved(a);
+            const bIssue=!isAgentApproved(b);
+            if(aIssue&&!bIssue) return -1;
+            if(!aIssue&&bIssue) return 1;
+        }
         return (b.last_checked||'').localeCompare(a.last_checked||'');
     });
     renderTable(f);
