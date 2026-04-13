@@ -164,3 +164,17 @@ These are excluded from git (see `.gitignore`):
 - `*.log`, `*.db`
 
 **Never commit** the venv or build folders — they are large and regeneratable.
+
+---
+
+## Knowledge Base (Obsidian)
+
+**Vault:** `C:\Users\vos\Desktop\obsidian_brain`
+**Project doc:** `01-projects/IT Check (VOS Desktop).md`
+
+When significant changes happen, update the vault:
+- New release cut → update version + release notes in project doc
+- Bug or gotcha discovered → add to `03-decisions/Known Gotchas.md`
+- New design decision made → add to project doc's Key Design Decisions table
+- New runbook needed → create in `04-how-to/`
+- Session log → append to the **Session Log** section in the project doc
