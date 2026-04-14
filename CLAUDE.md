@@ -1,6 +1,16 @@
 # VOS — Vital Operations Scanner
 ## Project Guide for Claude
 
+## SESSION START — Load Second Brain
+At the start of every session, before anything else:
+1. Read `C:\Users\vos\Desktop\obsidian_brain\index.md`
+2. Read `C:\Users\vos\Desktop\obsidian_brain\01-projects\IT Check (VOS Desktop).md`
+3. Read `C:\Users\vos\Desktop\obsidian_brain\03-decisions\Known Gotchas.md`
+
+This is your memory. Use it to understand what was done before, what's in progress, and what gotchas to avoid.
+
+---
+
 This file is read automatically at the start of every conversation.
 It explains the project structure, release process, and critical gotchas.
 
