@@ -1,5 +1,5 @@
 {
-    "latest_version": "3.6.7",
+    "latest_version": "3.6.8",
     "download_url": "https://github.com/MOHAMEDVOS/IT-check/releases/latest/download/VOS.exe",
-    "release_notes": "Smarter CPU scoring (fixes i5 10th gen false rejections), no more window minimize on check, Fix Mic button now shows for any level below 100."
+    "release_notes": "Fix speed test accuracy (multi-sample averaging), Ryzen 5 2600 now approved, real jitter measurement"
 }
