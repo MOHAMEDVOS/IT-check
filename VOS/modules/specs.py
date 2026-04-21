@@ -80,7 +80,7 @@ def get_cpu_performance(model_name: str) -> tuple:
     PENTIUM_TIER    = {'GOLD': 55, 'SILVER': 40, 'STANDARD': 45}
 
     RYZEN_SER_SCORE = {
-        1000: 55, 2000: 70, 3000: 105, 4000: 140, 5000: 230,
+        1000: 55, 2000: 85, 3000: 105, 4000: 140, 5000: 230,
         6000: 248, 7000: 320, 8000: 338, 9000: 360,
     }
     RYZEN_TIER_MULT  = {3: 0.76, 5: 1.0, 7: 1.22, 9: 1.55}
