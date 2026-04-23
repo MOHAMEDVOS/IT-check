@@ -138,12 +138,29 @@ def export_results_to_pdf(results: dict, agent_name: str = "Unknown",
     if dl < 10.0 or ul < 2.0:
         reasons.append(f"Internet speed below requirement — Need: 10 Mbps down / 2 Mbps up, Got: {dl} / {ul}")
 
-    # 4. Mic — USB required
+    # 4. Mic — USB or AUX/jack required
     mic_type = str(mic.get("type", "")).lower()
     mic_device = str(mic.get("device", "")).lower()
-    if "usb" not in mic_type and "usb" not in mic_device:
+    mic_ok = (
+        "usb" in mic_type or "usb" in mic_device or
+        "aux" in mic_type or "aux" in mic_device or
+        "jack" in mic_device or "3.5" in mic_device
+    )
+    if not mic_ok:
         mic_label = mic.get("type", mic.get("device", "Unknown"))
-        reasons.append(f"Microphone is not USB — Detected: {mic_label}")
+        reasons.append(f"Headset is not USB or AUX type — Detected: {mic_label}")
+
+    def _display_mic_type(mic_data: dict) -> str:
+        raw_type = str(mic_data.get("type", "") or "").strip()
+        raw_device = str(mic_data.get("device", "") or "").lower()
+        raw_type_l = raw_type.lower()
+        if "usb" in raw_type_l or "usb" in raw_device:
+            return "USB"
+        if "aux" in raw_type_l or "aux" in raw_device or "jack" in raw_device or "3.5" in raw_device:
+            return "AUX"
+        if raw_type and raw_type != "—":
+            return raw_type
+        return "—"
 
     is_approved = len(reasons) == 0
 
@@ -270,10 +287,11 @@ def export_results_to_pdf(results: dict, agent_name: str = "Unknown",
     # Microphone
     mic = results.get("mic", {})
     if mic:
+        mic_type_display = _display_mic_type(mic)
         elements.append(Paragraph("🎙 Microphone", heading_style))
         data = [
             ["Device", str(mic.get("device", "—"))],
-            ["Type", str(mic.get("type", "—"))],
+            ["Type", mic_type_display],
             ["Level", f"{mic.get('level', 0)}/100"],
             ["Notes", str(mic.get("notes", "—"))],
         ]

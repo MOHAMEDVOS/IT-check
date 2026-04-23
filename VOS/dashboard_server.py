@@ -36,6 +36,7 @@ Configuration (dashboard_config.json):
 
 import json
 import os
+import re
 import sqlite3
 from datetime import datetime
 from functools import wraps
@@ -93,6 +94,17 @@ cfg = _load_dashboard_config()
 app.secret_key = cfg.get("secret_key", "change-me-in-production")
 ADMIN_PASSWORD = cfg.get("admin_password", "vos2024")
 API_KEY = cfg.get("api_key", "vos-default-key")
+
+
+def _split_mic_device(mic_device_raw: str):
+    """Split stored mic device string into (device_name, device_type)."""
+    raw = (mic_device_raw or "").strip()
+    if not raw:
+        return "—", "—"
+    parts = re.split(r"\s+[—-]\s+", raw, maxsplit=1)
+    if len(parts) == 2:
+        return parts[0].strip() or "—", parts[1].strip() or "—"
+    return raw, "—"
 
 
 # ── Database ────────────────────────────────────────────────────────────
@@ -419,8 +431,8 @@ def _generate_pdf_base64(agent_name):
             "connection_type": row["connection_type"],
         },
         "mic": {
-            "device": row["mic_device"].split("—")[0].strip() if "—" in (row["mic_device"] or "") else row["mic_device"],
-            "type": row["mic_device"].split("—")[-1].strip() if "—" in (row["mic_device"] or "") else "—",
+            "device": _split_mic_device(row["mic_device"])[0],
+            "type": _split_mic_device(row["mic_device"])[1],
             "level": row["mic_level"],
         },
         "disk": {
@@ -531,8 +543,8 @@ def get_pdf(agent_name):
             "connection_type": row["connection_type"],
         },
         "mic": {
-            "device": row["mic_device"].split("—")[0].strip() if "—" in row["mic_device"] else row["mic_device"],
-            "type": row["mic_device"].split("—")[-1].strip() if "—" in row["mic_device"] else "—",
+            "device": _split_mic_device(row["mic_device"])[0],
+            "type": _split_mic_device(row["mic_device"])[1],
             "level": row["mic_level"],
         },
         "disk": {

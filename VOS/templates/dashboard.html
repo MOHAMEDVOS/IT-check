@@ -567,6 +567,7 @@
         .pill-neutral { background:var(--glass3); color:var(--t3); border-color:var(--b1); }
         .pill-eth     { background:var(--cyan-bg); color:#22d3ee; border-color:rgba(6,182,212,.25); }
         .pill-wifi    { background:var(--yellow-bg); color:#fbbf24; border-color:var(--yellow-b); }
+        .pill-aux     { background:var(--yellow-bg); color:#fbbf24; border-color:var(--yellow-b); }
         .pill-speed-good { background:var(--green-bg); color:#34d399; border-color:var(--green-b); }
         .pill-speed-bad  { background:var(--red-bg); color:#fb7185; border-color:var(--red-b); font-weight:800; }
         .speed-wrap { display:flex; flex-direction:column; gap:2px; }
@@ -975,12 +976,23 @@ function micPill(s){
     const d=s.toLowerCase(), parts=s.split('—');
     const tp=parts.length>1?parts[parts.length-1].trim().toLowerCase():'';
     if(tp==='usb'||d.includes('usb')) return '<span class="pill pill-good">USB</span>';
-    if(tp==='aux'||d.includes('aux')||d.includes('jack')) return '<span class="pill pill-good">AUX</span>';
+    if(tp==='aux'||d.includes('aux')||d.includes('jack')) return '<span class="pill pill-aux">AUX</span>';
     if(tp==='built-in'||d.includes('built-in')||d.includes('array')||d.includes('internal')) return '<span class="pill pill-bad">Built-in</span>';
     if(tp) return `<span class="pill pill-warn">${parts[parts.length-1].trim()}</span>`;
     return `<span class="pill pill-warn">${s.split('—')[0].trim()}</span>`;
 }
 function vpnPill(a){ return a?'<span class="pill pill-bad">Active</span>':'<span class="pill pill-good">Off</span>'; }
+
+function isMicApproved(micDevice){
+    const ms=(micDevice||'').toLowerCase();
+    const parts=micDevice?micDevice.split('\u2014'):[];
+    const mt=parts.length>1?parts[parts.length-1].trim().toLowerCase():'';
+    return (
+        mt==='usb' || ms.includes('usb') ||
+        mt==='aux' || ms.includes('aux') ||
+        ms.includes('jack') || ms.includes('3.5')
+    );
+}
 
 /* ── Agent approval ──────────────────────────────────────────── */
 function isAgentApproved(r){
@@ -989,10 +1001,7 @@ function isAgentApproved(r){
     const isEth=ct.includes('ethernet')||ct.includes('eth');
     const dl=parseFloat(r.download_mbps||0), ul=parseFloat(r.upload_mbps||0);
     const speedOk=dl>=10&&ul>=2;
-    const ms=(r.mic_device||'').toLowerCase();
-    const mp=r.mic_device?r.mic_device.split('\u2014'):[];
-    const mt=mp.length>1?mp[mp.length-1].trim().toLowerCase():'';
-    const micOk=mt==='usb'||ms.includes('usb')||mt==='aux'||ms.includes('aux')||ms.includes('jack');
+    const micOk=isMicApproved(r.mic_device);
     return specsOk&&isEth&&speedOk&&micOk;
 }
 function getApprovalReason(r){
@@ -1003,10 +1012,7 @@ function getApprovalReason(r){
     const dl=parseFloat(r.download_mbps||0), ul=parseFloat(r.upload_mbps||0);
     if(dl<10) reasons.push('Download speed too low ('+dl+' Mbps, min 10)');
     if(ul<2)  reasons.push('Upload speed too low ('+ul+' Mbps, min 2)');
-    const ms=(r.mic_device||'').toLowerCase();
-    const mp=r.mic_device?r.mic_device.split('\u2014'):[];
-    const mt=mp.length>1?mp[mp.length-1].trim().toLowerCase():'';
-    const micOk=mt==='usb'||ms.includes('usb')||mt==='aux'||ms.includes('aux')||ms.includes('jack');
+    const micOk=isMicApproved(r.mic_device);
     if(!micOk) reasons.push('Headset is not USB or AUX type');
     return reasons.join('\n             ');
 }
