@@ -80,16 +80,21 @@ def get_cpu_performance(model_name: str) -> tuple:
     PENTIUM_TIER    = {'GOLD': 55, 'SILVER': 40, 'STANDARD': 45}
 
     RYZEN_SER_SCORE = {
-        1000: 55, 2000: 85, 3000: 105, 4000: 140, 5000: 230,
+        1000: 55, 2000: 72, 3000: 105, 4000: 140, 5000: 230,
         6000: 248, 7000: 320, 8000: 338, 9000: 360,
     }
     RYZEN_TIER_MULT  = {3: 0.76, 5: 1.0, 7: 1.22, 9: 1.55}
     RYZEN_SUFFIX_MULT = {
-        'U': 0.90, 'HS': 1.45, 'H': 1.4, 'HX': 1.5,
+        'U': 1.90, 'HS': 1.45, 'H': 1.4, 'HX': 1.5,
         'G': 1.3, 'GE': 1.25, 'X': 1.2, 'X3D': 1.25, 'XS': 1.15, '': 1.0,
     }
     TR_SERIES_SCORE = {1000: 200, 2000: 260, 3000: 350, 5000: 450, 7000: 550}
     FX_CORE_SCORE   = {4: 50, 6: 62, 8: 75, 9: 82}
+    PHENOM_SCORE = {
+        'II_X6': 40, 'II_X4': 33, 'II_X3': 25, 'II_X2': 20,
+        'I_X4': 18, 'I_X3': 15, 'I_X2': 12
+    }
+    AMD_APU_SCORE = {'E': 8, 'E1': 12, 'E2': 18, 'A4': 18, 'A6': 26, 'A8': 40, 'A10': 55, 'A12': 62}
 
     APPLE_GEN_SCORE = {1: 260, 2: 320, 3: 375, 4: 420, 5: 480}
     APPLE_TIER_MULT = {'BASE': 1.0, 'PRO': 1.25, 'MAX': 1.55, 'ULTRA': 2.0}
@@ -99,6 +104,282 @@ def get_cpu_performance(model_name: str) -> tuple:
         '8CX_GEN3': 130, '8CX_GEN2': 100, '8CX': 85,
         '7C_PLUS_GEN3': 75, '7C_PLUS': 55, '7C': 45,
     }
+
+    def infer_intel_gen_from_model(num_str: str):
+        if not num_str:
+            return None
+        if len(num_str) == 3:
+            return 1  # i5-650 class
+        if len(num_str) == 4:
+            return int(num_str[0])
+        if len(num_str) == 5:
+            two = int(num_str[:2])
+            if 10 <= two <= 14:
+                return two
+            # OCR can yield malformed 19xxx / 18xxx for 10xxx+ parts.
+            if 15 <= two <= 20:
+                return 10
+            return int(num_str[0])
+        return None
+
+    def get_xeon_w_score(n: int):
+        if 3500 <= n < 3700:
+            if n < 3530:
+                return 38
+            if n < 3550:
+                return 42
+            if n < 3570:
+                return 46
+            if n < 3600:
+                return 49
+            if n < 3670:
+                return 53
+            return 61
+        if 5580 <= n <= 5599:
+            return 55
+        if 5500 <= n < 5580:
+            return 51
+        if 1200 <= n < 1400:
+            return round(138 + ((n - 1200) * 20) / 200)
+        if 1400 <= n < 2100:
+            return round(158 + ((n - 1400) * 4) / 700)
+        if 2100 <= n < 2700:
+            return round(162 + ((n - 2100) * 20) / 600)
+        if 2700 <= n < 3500:
+            return round(182 + ((n - 2700) * 50) / 800)
+        if 0 < n < 1200:
+            return 78
+        if 3700 <= n < 5500:
+            return 118
+        if 7000 <= n < 9200:
+            return 162
+        return XEON_TIER_SCORE.get('W', 180)
+
+    def get_xeon_nonw_score(tier: str, n: int):
+        s = XEON_TIER_SCORE.get(tier, 130)
+        if tier == 'E3':
+            if n < 1230:
+                s -= 20
+            elif n >= 1580:
+                s += 12
+            elif n >= 1285:
+                s += 6
+        elif tier == 'E5':
+            if n < 2400:
+                s -= 24
+            elif n < 2600:
+                s -= 15
+            elif 2600 <= n <= 2630:
+                s -= 35
+            elif n >= 2690:
+                s += 14
+            elif n >= 2660:
+                s += 6
+        elif tier == 'E7':
+            if n < 4850:
+                s -= 18
+            elif n >= 8890:
+                s += 22
+        elif tier == 'D':
+            if n < 1530:
+                s -= 12
+        return max(26, min(295, round(s)))
+
+    def ryzen_sku_offset(series: int, tier: int, mod: int, suffix: str):
+        off = 0
+        s3d = suffix == 'X3D'
+        if series == 1000:
+            off -= 6
+            if mod >= 900:
+                off += 8
+            elif mod < 250:
+                off -= 6
+        elif series == 2000:
+            if suffix == 'U':
+                if mod < 260:
+                    off -= 3
+                elif mod < 340:
+                    off += 0
+                elif mod < 440:
+                    off += 4
+                elif mod < 540:
+                    off += 8
+                elif mod < 620:
+                    off += 6
+                elif mod < 720:
+                    off += 12
+            else:
+                if mod < 520:
+                    off -= 14
+                elif mod < 620:
+                    off -= 8
+            if mod >= 950:
+                off += 10
+            elif mod >= 900:
+                off += 5
+        elif series == 3000:
+            if mod >= 980:
+                off += 16
+            elif mod >= 950:
+                off += 12
+            elif mod >= 900:
+                off += 7
+            elif mod < 420 and tier <= 5:
+                off -= 10
+            elif mod < 320 and tier == 3:
+                off -= 6
+        elif series == 4000:
+            if mod >= 980:
+                off += 14
+            elif mod >= 900:
+                off += 8
+            elif mod < 430:
+                off -= 8
+        elif series == 5000:
+            if mod >= 990:
+                off += 22
+            elif mod >= 950:
+                off += 15
+            elif mod >= 900:
+                off += 9
+            elif mod < 500 and tier <= 5:
+                off -= 10
+            elif mod < 620 and tier == 5:
+                off -= 4
+        elif series == 6000:
+            if mod >= 980:
+                off += 18
+            elif mod >= 950:
+                off += 12
+            elif mod < 430:
+                off -= 10
+        elif series in (7000, 8000, 9000):
+            if mod >= 990:
+                off += 24
+            elif mod >= 950:
+                off += 16
+            elif mod >= 900:
+                off += 10
+            elif mod < 380:
+                off -= 10
+        elif series >= 10000:
+            off += min(40, ((series - 10000) // 1000) * 8)
+        if s3d and series >= 5000:
+            off += 10
+        return off
+
+    def get_ryzen_score(tier: int, series_base: int, model_num: int, suffix: str):
+        s0 = RYZEN_SER_SCORE.get(series_base)
+        if s0 is None and model_num:
+            k = (model_num // 1000) * 1000
+            s0 = RYZEN_SER_SCORE.get(k, min(380, 90 + (model_num // 800)))
+        if s0 is None:
+            s0 = 100
+        t_mult = RYZEN_TIER_MULT.get(tier, 1.0)
+        s_mult = RYZEN_SUFFIX_MULT.get(suffix, 1.0)
+        s = s0 + ryzen_sku_offset(series_base, tier, model_num % 1000, suffix)
+        return max(22, round(s * t_mult * s_mult))
+
+    def get_threadripper_score(model_num: int, series_base: int, is_pro: bool):
+        base0 = TR_SERIES_SCORE.get(series_base, 300)
+        base = round(base0 * 1.15) if is_pro else base0
+        mod = model_num % 1000
+        off = 0
+        if series_base == 1000:
+            if mod >= 900:
+                off += 22
+            elif mod < 200:
+                off -= 28
+        elif series_base == 2000:
+            if mod >= 960:
+                off += 30
+            elif mod < 380:
+                off -= 20
+        elif series_base == 3000:
+            if mod >= 900:
+                off += 36
+            elif mod < 280:
+                off -= 26
+        elif series_base >= 5000:
+            if mod >= 980:
+                off += 42
+            elif mod >= 900:
+                off += 30
+            elif mod < 360:
+                off -= 28
+        return max(105, round(base + off))
+
+    def get_fx_score(model_num: str):
+        b = FX_CORE_SCORE.get(int(model_num[0]), 60)
+        tail = int(re.sub(r'\D', '', model_num)[1:])
+        off = 0
+        if tail < 320:
+            off -= 14
+        elif tail >= 750:
+            off += 10
+        elif tail >= 520:
+            off += 5
+        return max(26, round(b + off))
+
+    def get_phenom_score(gen_tag: str, cores_tag: str, model_num: int):
+        s = PHENOM_SCORE.get(f"{gen_tag}_{cores_tag}", 20)
+        if model_num >= 1100:
+            s += 10
+        elif model_num >= 950:
+            s += 5
+        elif model_num < 750:
+            s -= 6
+        return max(10, round(s))
+
+    def get_sempron_score(model_num: int):
+        if model_num >= 3600:
+            return 26
+        if model_num >= 3000:
+            return 20
+        if model_num >= 2500:
+            return 15
+        return 10
+
+    def get_amd_legacy_apu_score(series_tag: str, model_num: int):
+        b = AMD_APU_SCORE.get(series_tag, 25)
+        off = 0
+        if model_num >= 9800:
+            off += 14
+        elif model_num >= 9500:
+            off += 10
+        elif model_num >= 9000:
+            off += 6
+        elif model_num < 6200:
+            off -= 10
+        elif model_num < 7200:
+            off -= 4
+        return max(12, round(b + off))
+
+    def get_athlon_score(family: str, model_num: int = 0, cores: str = '', dual: bool = False):
+        if family == 'athlon_modern':
+            if model_num >= 3200:
+                return 50
+            if model_num >= 3000:
+                return 46
+            if model_num >= 2450:
+                return 41
+            if model_num >= 200:
+                return 35
+            return 28
+        if family == 'athlon_ii':
+            s = {'X4': 22, 'X3': 18, 'X2': 16}.get(cores, 18)
+            if model_num >= 660:
+                s += 6
+            elif model_num >= 640:
+                s += 4
+            elif model_num < 220:
+                s -= 5
+            return max(10, round(s))
+        if family == 'athlon_64':
+            return 14 if dual else 10
+        if family == 'athlon_classic':
+            return 12 if model_num >= 4000 else 8
+        return 15
 
     score = None
 
@@ -118,34 +399,19 @@ def get_cpu_performance(model_name: str) -> tuple:
             gen        = None
             suffix     = ''
 
-            # Model number → gen  (e.g. I5-10400 → gen 10, I7-1255U → gen 12)
-            mod_m = re.search(r'I[3579][-\s]?(\d{4,5})([A-Z]{0,3})?', t)
+            # Model number → gen  (supports 3/4/5 digit OCR/model variants)
+            mod_m = re.search(r'I[3579][-\s]?(\d{3,5})([A-Z]{0,3})?', t)
             if mod_m:
                 num_str = mod_m.group(1)
                 suffix  = (mod_m.group(2) or '').strip()
-                if len(num_str) == 5:
-                    gen = int(num_str[:2])   # e.g. 10400 → gen 10
-                else:
-                    # 4-digit: first digit is gen for 2xxx-9xxx.
-                    # But Intel Alder/Raptor Lake use 1200-1299 (gen 12),
-                    # Tiger Lake 1100-1195 (gen 11), Ice Lake 1000-1068 (gen 10).
-                    first = int(num_str[0])
-                    second = int(num_str[1])
-                    if first == 1:
-                        # Distinguish by hundreds digit
-                        if second >= 2:
-                            gen = 10 + second  # 12xx→12, 13xx→13, 14xx→14
-                        elif second == 1:
-                            gen = 11
-                        else:
-                            gen = 10  # 10xx Ice Lake
-                    else:
-                        gen = first  # 6500→6, 7500→7, 8265→8, 9600→9
+                gen = infer_intel_gen_from_model(num_str)
 
             # Explicit "Nth Gen" beats model-number detection
             exp_m = re.search(r'(?:(\d{1,2})(?:ST|ND|RD|TH)\s*GEN|GEN\s*(\d{1,2}))', t)
             if exp_m:
-                gen = int(exp_m.group(1) or exp_m.group(2))
+                eg = int(exp_m.group(1) or exp_m.group(2))
+                if 1 <= eg <= 14:
+                    gen = eg
 
             if gen is not None:
                 g = INTEL_GEN_SCORE.get(gen, 100)
@@ -161,10 +427,30 @@ def get_cpu_performance(model_name: str) -> tuple:
 
     # ── Intel Xeon ──────────────────────────────────────────────────────
     if score is None:
-        m = re.search(r'XEON\s+(E3|E5|E7|D|W|GOLD|PLATINUM|SILVER|BRONZE)[-\s]?\d{4,5}', t)
+        m = re.search(r'XEON\s+(?:CPU\s+|PROCESSOR\s+)*(E3|E5|E7|D|W|GOLD|PLATINUM|SILVER|BRONZE)[-\s]?(\d{4,5})', t)
         if m:
-            score = XEON_TIER_SCORE.get(m.group(1), 130)
-        elif 'XEON' in t:
+            tier = m.group(1)
+            num = int(m.group(2))
+            if tier == 'W':
+                score = get_xeon_w_score(num)
+            elif tier in ('E3', 'E5', 'E7', 'D'):
+                score = get_xeon_nonw_score(tier, num)
+            else:
+                score = XEON_TIER_SCORE.get(tier, 130)
+        else:
+            m2 = re.search(r'XEON\s+(?:CPU\s+|PROCESSOR\s+)*(W|E3|E5|E7|D)(\d{4,5})', t)
+            if m2:
+                tier = m2.group(1)
+                num = int(m2.group(2))
+                if tier == 'W':
+                    score = get_xeon_w_score(num)
+                else:
+                    score = get_xeon_nonw_score(tier, num)
+            else:
+                m3 = re.search(r'XEON\s+(?:CPU\s+|PROCESSOR\s+)*(\d{4,5})', t)
+                if m3:
+                    score = get_xeon_nonw_score('E3', int(m3.group(1)))
+        if score is None and 'XEON' in t:
             score = 130  # bare Xeon fallback
 
     # ── Intel Celeron ────────────────────────────────────────────────────
@@ -201,13 +487,10 @@ def get_cpu_performance(model_name: str) -> tuple:
         m = re.search(r'RYZEN\s*([3579])\s+(?:PRO\s+)?(\d{4,5})([A-Z]{0,3})?', t)
         if m:
             tier       = int(m.group(1))
-            series_num = int(m.group(2))
+            model_num  = int(m.group(2))
             suffix     = (m.group(3) or '').strip()
-            series_base = (series_num // 1000) * 1000
-            s = RYZEN_SER_SCORE.get(series_base, 100)
-            tm = RYZEN_TIER_MULT.get(tier, 1.0)
-            sm = RYZEN_SUFFIX_MULT.get(suffix, 1.0)
-            score = round(s * tm * sm)
+            series_base = (model_num // 1000) * 1000
+            score = get_ryzen_score(tier, series_base, model_num, suffix)
 
     # ── AMD Threadripper ─────────────────────────────────────────────────
     if score is None:
@@ -215,23 +498,61 @@ def get_cpu_performance(model_name: str) -> tuple:
         if m:
             model_num  = int(m.group(1))
             series_base = (model_num // 1000) * 1000
-            base   = TR_SERIES_SCORE.get(series_base, 300)
             is_pro = 'THREADRIPPER PRO' in t
-            score  = round(base * 1.15) if is_pro else base
+            score = get_threadripper_score(model_num, series_base, is_pro)
 
     # ── AMD FX ───────────────────────────────────────────────────────────
     if score is None:
         m = re.search(r'\bFX[-\s](\d{4})', t)
         if m:
-            core_prefix = int(m.group(1)[0])
-            score = FX_CORE_SCORE.get(core_prefix, 60)
+            score = get_fx_score(m.group(1))
+
+    # ── AMD Phenom / Phenom II ─────────────────────────────────────────
+    if score is None:
+        m = re.search(r'PHENOM\s*(II)?\s*(X[2346])\s+(\d{3,4})', t)
+        if m:
+            gen_tag = 'II' if m.group(1) else 'I'
+            cores = m.group(2)
+            model_num = int(m.group(3))
+            score = get_phenom_score(gen_tag, cores, model_num)
+
+    # ── AMD Athlon ─────────────────────────────────────────────────────
+    if score is None:
+        m_modern = re.search(r'ATHLON\s+(?:(?:GOLD|SILVER)\s+)?(\d{3,4})([A-Z]{0,3})?', t)
+        if m_modern:
+            score = get_athlon_score('athlon_modern', model_num=int(m_modern.group(1)))
+        else:
+            m_ii = re.search(r'ATHLON\s+II\s+(X[234])\s+(\d{3,4})', t)
+            if m_ii:
+                score = get_athlon_score('athlon_ii', model_num=int(m_ii.group(2)), cores=m_ii.group(1))
+            else:
+                m_64 = re.search(r'ATHLON\s+64\s*(X2)?\s*(\d{3,4})', t)
+                if m_64:
+                    score = get_athlon_score('athlon_64', model_num=int(m_64.group(2)), dual=bool(m_64.group(1)))
+                else:
+                    m_plain = re.search(r'ATHLON\s+(\d{4})\+?', t)
+                    if m_plain:
+                        score = get_athlon_score('athlon_classic', model_num=int(m_plain.group(1)))
+
+    # ── AMD Sempron ────────────────────────────────────────────────────
+    if score is None:
+        m = re.search(r'SEMPRON\s+(\d{3,4})', t)
+        if m:
+            score = get_sempron_score(int(m.group(1)))
+
+    # ── AMD Turion ─────────────────────────────────────────────────────
+    if score is None:
+        m = re.search(r'TURION\s+(?:(64\s*X2|X2|64|NEO)\s+)?', t)
+        if m:
+            typ = (m.group(1) or 'STANDARD').replace(' ', '_').upper()
+            turion_scores = {'64_X2': 15, 'X2': 15, '64': 10, 'NEO': 8, 'STANDARD': 12}
+            score = turion_scores.get(typ, 12)
 
     # ── AMD Legacy APU (A4/A6/A8/A10/A12, E/E1/E2) ───────────────────
     if score is None:
-        AMD_APU_SCORE = {'E': 8, 'E1': 12, 'E2': 18, 'A4': 18, 'A6': 26, 'A8': 40, 'A10': 55, 'A12': 62}
-        m = re.search(r'\b(E2|E1|E|A(?:4|6|8|10|12))[-\s](\d{4,5})', t)
+        m = re.search(r'\b(E2|E1|E|A(?:4|6|8|10|12))(?:\s+PRO)?[-\s](\d{4,5})', t)
         if m:
-            score = AMD_APU_SCORE.get(m.group(1), 25)
+            score = get_amd_legacy_apu_score(m.group(1), int(m.group(2)))
 
     # ── Intel/AMD low-end catch-all ───────────────────────────────────────
     if score is None and any(x in t for x in ['CELERON', 'PENTIUM', 'ATOM']):
