@@ -138,17 +138,15 @@ def export_results_to_pdf(results: dict, agent_name: str = "Unknown",
     if dl < 10.0 or ul < 2.0:
         reasons.append(f"Internet speed below requirement — Need: 10 Mbps down / 2 Mbps up, Got: {dl} / {ul}")
 
-    # 4. Mic — USB or AUX/jack required
+    # 4. Mic — USB required
     mic_type = str(mic.get("type", "")).lower()
     mic_device = str(mic.get("device", "")).lower()
     mic_ok = (
-        "usb" in mic_type or "usb" in mic_device or
-        "aux" in mic_type or "aux" in mic_device or
-        "jack" in mic_device or "3.5" in mic_device
+        "usb" in mic_type or "usb" in mic_device
     )
     if not mic_ok:
         mic_label = mic.get("type", mic.get("device", "Unknown"))
-        reasons.append(f"Headset is not USB or AUX type — Detected: {mic_label}")
+        reasons.append(f"Headset is not USB type — Detected: {mic_label}")
 
     def _display_mic_type(mic_data: dict) -> str:
         raw_type = str(mic_data.get("type", "") or "").strip()
@@ -194,6 +192,21 @@ def export_results_to_pdf(results: dict, agent_name: str = "Unknown",
         ('ROUNDEDCORNERS', [4, 4, 4, 4]),
     ]))
     elements.append(vt)
+
+    # Always show detected headset type as a visible flag near the verdict.
+    headset_type = _display_mic_type(mic)
+    headset_style = ParagraphStyle(
+        'HeadsetFlag', parent=styles['Normal'],
+        fontSize=11, fontName='Helvetica-Bold',
+        textColor=HexColor("#0A1118"),
+        spaceBefore=4, spaceAfter=2,
+    )
+    elements.append(Paragraph(f"Headset Type: {headset_type}", headset_style))
+    if headset_type == "AUX":
+        elements.append(Paragraph(
+            "- AUX headset detected — User is using an AUX headset, not USB.",
+            reason_style
+        ))
 
     if reasons:
         elements.append(Spacer(1, 3 * mm))

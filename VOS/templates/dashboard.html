@@ -985,12 +985,8 @@ function vpnPill(a){ return a?'<span class="pill pill-bad">Active</span>':'<span
 
 function isMicApproved(micDevice){
     const ms=(micDevice||'').toLowerCase();
-    const parts=micDevice?micDevice.split('\u2014'):[];
-    const mt=parts.length>1?parts[parts.length-1].trim().toLowerCase():'';
     return (
-        mt==='usb' || ms.includes('usb') ||
-        mt==='aux' || ms.includes('aux') ||
-        ms.includes('jack') || ms.includes('3.5')
+        ms.includes('usb')
     );
 }
 
@@ -1013,7 +1009,7 @@ function getApprovalReason(r){
     if(dl<10) reasons.push('Download speed too low ('+dl+' Mbps, min 10)');
     if(ul<2)  reasons.push('Upload speed too low ('+ul+' Mbps, min 2)');
     const micOk=isMicApproved(r.mic_device);
-    if(!micOk) reasons.push('Headset is not USB or AUX type');
+    if(!micOk) reasons.push('Headset is not USB type');
     return reasons.join('\n             ');
 }
 
