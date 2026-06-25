@@ -120,13 +120,18 @@ git commit -m "vX.X.X: Short description of changes"
 git push origin main
 ```
 
-### 7. Create GitHub Release (manual — no gh CLI installed)
-- Go to: github.com/MOHAMEDVOS/IT-check/releases/new
-- Tag: `vX.X.X`, Target: `main`
-- Attach: `VOS/Release/VOS.exe`
-- Publish
+### 7. (OPTIONAL) GitHub Release — NOT required, do not nag about it
+**Pushing in step 6 is the whole release.** Both the auto-updater and the
+landing page download the EXE directly from the pushed repo file
+(`raw.githubusercontent.com/.../public/downloads/vos.exe` and Vercel's
+`/downloads/vos.exe`). Neither reads a GitHub Release. So agents auto-update
+on next restart as soon as step 6 is pushed — no manual step needed.
 
-**That's it.** Agents auto-update on next app restart.
+Only create a GitHub Release if you specifically want the
+`releases/latest/download/VOS.exe` link to be current (cosmetic). No `gh`
+CLI is installed, so it would be manual — skip it by default.
+
+**That's it.** Agents auto-update on next app restart after the push.
 
 ---
 
