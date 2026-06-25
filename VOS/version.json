@@ -1,5 +1,5 @@
 {
-    "latest_version": "3.6.8",
+    "latest_version": "3.6.9",
     "download_url": "https://github.com/MOHAMEDVOS/IT-check/releases/latest/download/VOS.exe",
-    "release_notes": "Fix speed test accuracy (multi-sample averaging), Ryzen 5 2600 now approved, real jitter measurement"
+    "release_notes": "Accurate CPU scoring: AMD Ryzen and modern budget CPUs (e.g. Ryzen 5 2600, Intel N100) no longer wrongly marked Not Approved"
 }

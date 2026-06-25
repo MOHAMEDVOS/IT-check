@@ -1117,9 +1117,8 @@ function renderTable(data){
         const dataIdx=r._idx!==undefined?r._idx:allData.indexOf(r);
         let ping={}; try{ping=JSON.parse(r.ping_details||'{}');}catch(e){}
         const ok=isAgentApproved(r);
-        const isPoorConn=(ping.verdict||'').toUpperCase()==='POOR';
-        const isRed=!ok||isPoorConn;
-        if(ok&&!isPoorConn) approved++; else{ rejected++; issues++; }
+        const isRed=!ok;
+        if(ok) approved++; else{ rejected++; issues++; }
         const rowCls=isRed?'row-rejected':'row-approved';
         const badge=isRed
             ?'<span class="agent-badge bad">Needs attention</span>'

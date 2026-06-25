@@ -71,22 +71,32 @@ def get_cpu_performance(model_name: str) -> tuple:
     }
     CORE_ULTRA_TIER = {5: 280, 7: 340, 9: 400}
     CORE_ULTRA_SFXM = {'U': 0.80, 'H': 1.0, 'HX': 1.15, '': 1.0}
-    INTEL_N_SCORE   = {'N100': 42, 'N200': 38, 'N95': 40, 'N97': 42, 'N300': 48, 'N305': 52}
+    # Alder Lake-N (2023+): modern, baseline-capable budget chips. Calibrated
+    # to the blended i5-6500=100 scale (strong single-thread, decent MT).
+    INTEL_N_SCORE   = {'N100': 95, 'N200': 88, 'N95': 84, 'N97': 90, 'N300': 112, 'N305': 120}
     XEON_TIER_SCORE = {
         'E3': 110, 'E5': 140, 'E7': 160, 'D': 120, 'W': 180,
         'BRONZE': 130, 'SILVER': 160, 'GOLD': 200, 'PLATINUM': 260,
     }
     CELERON_PFX     = {'N': 25, 'J': 30, 'G': 45, 'P': 28}
-    PENTIUM_TIER    = {'GOLD': 55, 'SILVER': 40, 'STANDARD': 45}
+    # Pentium GOLD (Coffee Lake+ 2c/4t) performs at ~i5-6500 baseline -> Approved.
+    # SILVER (Atom-based) and STANDARD (older, e.g. G4560) stay entry-level.
+    PENTIUM_TIER    = {'GOLD': 82, 'SILVER': 40, 'STANDARD': 45}
 
+    # Calibrated to the same i5-6th-gen=100 blended scale as INTEL_GEN_SCORE
+    # (geometric mean of single- and multi-thread PassMark vs i5-6500).
+    # Bases represent the canonical tier-5 desktop part (e.g. x600).
     RYZEN_SER_SCORE = {
-        1000: 55, 2000: 72, 3000: 105, 4000: 140, 5000: 230,
-        6000: 248, 7000: 320, 8000: 338, 9000: 360,
+        1000: 145, 2000: 170, 3000: 215, 4000: 235, 5000: 272,
+        6000: 300, 7000: 335, 8000: 360, 9000: 395,
     }
-    RYZEN_TIER_MULT  = {3: 0.76, 5: 1.0, 7: 1.22, 9: 1.55}
+    RYZEN_TIER_MULT  = {3: 0.80, 5: 1.0, 7: 1.13, 9: 1.38}
+    # Suffix is RELATIVE to the standard desktop part. Low-power mobile
+    # (U) and APU (G) parts are SLOWER than the desktop chip of the same
+    # series, so their multipliers are < 1.0.
     RYZEN_SUFFIX_MULT = {
-        'U': 1.90, 'HS': 1.45, 'H': 1.4, 'HX': 1.5,
-        'G': 1.3, 'GE': 1.25, 'X': 1.2, 'X3D': 1.25, 'XS': 1.15, '': 1.0,
+        'U': 0.68, 'HS': 0.85, 'H': 0.82, 'HX': 0.95,
+        'G': 0.85, 'GE': 0.72, 'X': 1.03, 'X3D': 1.05, 'XS': 1.0, '': 1.0,
     }
     TR_SERIES_SCORE = {1000: 200, 2000: 260, 3000: 350, 5000: 450, 7000: 550}
     FX_CORE_SCORE   = {4: 50, 6: 62, 8: 75, 9: 82}
