@@ -1,5 +1,5 @@
 {
-    "latest_version": "3.6.9",
+    "latest_version": "3.7.0",
     "download_url": "https://github.com/MOHAMEDVOS/IT-check/releases/latest/download/VOS.exe",
-    "release_notes": "Accurate CPU scoring: AMD Ryzen and modern budget CPUs (e.g. Ryzen 5 2600, Intel N100) no longer wrongly marked Not Approved"
+    "release_notes": "Debug log moved to a hidden per-user folder so it no longer appears next to the app"
 }
